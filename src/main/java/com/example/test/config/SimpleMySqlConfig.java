@@ -16,7 +16,7 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 @Configuration
-@EnableJpaRepositories(basePackages = { "com.example.test.repository"}, entityManagerFactoryRef = "entityManager", transactionManagerRef = "transactionManager")
+@EnableJpaRepositories(basePackages = { "com.example.test.repository.mysql"}, entityManagerFactoryRef = "entityManager", transactionManagerRef = "transactionManager")
 public class SimpleMySqlConfig {
 
 	@Value("${spring.datasource.driver-class-name}")
@@ -65,7 +65,7 @@ public class SimpleMySqlConfig {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(dataSource());
 		em.setJpaVendorAdapter(jpaVendorAdapter());
-		em.setPackagesToScan("com.example.test.entity");
+		em.setPackagesToScan("com.example.test.entity.mysql");
 
 		return em;
 	}

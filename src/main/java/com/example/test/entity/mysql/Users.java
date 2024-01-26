@@ -1,4 +1,4 @@
-package com.example.test.entity;
+package com.example.test.entity.mysql;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -9,14 +9,16 @@ import lombok.experimental.FieldNameConstants;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "USERS")
+@Table(name = "users")
 @FieldNameConstants
 @Entity
 public class Users extends BaseMySqlEntity {
 	private static final long serialVersionUID = 1L;
-//	@Id
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	private Integer id;
 	private String name;
+	private String mobile_no;
+	private String password;
+	private Integer status;
+	private String email_id;
+	private Boolean is_mail_verified;
 
 }

@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import com.example.test.entity.BaseMySqlEntity;
+import com.example.test.entity.mysql.BaseMySqlEntity;
 import com.example.test.helper.AggregationFilter.JoinClause;
 import com.example.test.helper.AggregationFilter.QueryFilter;
 import com.example.test.helper.AggregationFilter.QueryFilterType;
@@ -52,6 +52,11 @@ public interface BaseMySqlRepository<K, T extends BaseMySqlEntity>
 	}
 
 	@Override
+	default long totalCount() {
+		return this.count();
+	}
+
+	@Override
 	default long countByFilter(QueryFilter f) {
 		Specification<T> specification = this.buildSpecification(f);
 		return this.count(specification);
@@ -77,7 +82,7 @@ public interface BaseMySqlRepository<K, T extends BaseMySqlEntity>
 			return;
 		}
 		T t = findById.get();
-//		t.setDeleted(true);
+		t.setDeleted(true);
 		this.save(t);
 	}
 

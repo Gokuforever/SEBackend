@@ -16,10 +16,10 @@ public interface BaseRepository<T , K> {
 
 	long countByFilter(QueryFilter f);
 
-	long count();
+	long totalCount();
 
 	T update(T obj, String cudby);
 
 	void deleteOne(K id);
-
+	
 }

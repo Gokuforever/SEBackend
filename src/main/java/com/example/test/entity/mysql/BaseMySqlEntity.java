@@ -1,4 +1,4 @@
-package com.example.test.entity;
+package com.example.test.entity.mysql;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
