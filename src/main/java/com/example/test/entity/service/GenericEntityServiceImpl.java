@@ -42,8 +42,8 @@ public abstract class GenericEntityServiceImpl<K, T extends BaseMySqlEntity, R e
 	}
 
 	@Override
-	public T create(T entity) {
-		return repository.create(entity);
+	public T create(T entity, String cudby) {
+		return repository.create(entity, cudby);
 	}
 
 	@Override
@@ -52,8 +52,8 @@ public abstract class GenericEntityServiceImpl<K, T extends BaseMySqlEntity, R e
 	}
 
 	@Override
-	public T update(T entity) {
-		return repository.update(entity);
+	public T update(T entity, String cudby) {
+		return repository.update(entity, cudby);
 	}
 
 	@Override

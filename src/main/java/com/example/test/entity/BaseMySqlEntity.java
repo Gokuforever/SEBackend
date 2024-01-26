@@ -2,6 +2,7 @@ package com.example.test.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.ToString;
 
 @Data
@@ -40,6 +42,8 @@ public abstract class BaseMySqlEntity implements Serializable, Cloneable {
 	@Column(name = "modification_date")
 	private LocalDateTime modification_date;
 	@ToString.Include
+	private String creation_date_str;
+	@ToString.Include
 	private String modification_date_str;
 	@ToString.Include
 	private boolean deleted = false;
@@ -49,4 +53,26 @@ public abstract class BaseMySqlEntity implements Serializable, Cloneable {
 		return super.clone();
 	}
 
+	public void setBeforeCreate(@NonNull String cudby) {
+		this.created_by = cudby;
+		this.modified_by = cudby;
+		LocalDateTime curDate = LocalDateTime.now();
+		this.creation_date = curDate;
+		this.modification_date = curDate;
+
+		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		String curDateStr = curDate.format(pattern);
+		this.creation_date_str = curDateStr;
+		this.modification_date_str = curDateStr;
+	}
+
+	public void setBeforeModification(@NonNull String cudby) {
+		this.modified_by = cudby;
+		LocalDateTime curDate = LocalDateTime.now();
+		this.modification_date = curDate;
+
+		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		String curDateStr = curDate.format(pattern);
+		this.modification_date_str = curDateStr;
+	}
 }

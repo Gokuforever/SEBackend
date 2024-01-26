@@ -12,13 +12,13 @@ public interface BaseRepository<T , K> {
 
 	List<T> repoFind(QueryFilter f);
 
-	T create(T obj);
+	T create(T obj, String cudby);
 
 	long countByFilter(QueryFilter f);
 
 	long count();
 
-	T update(T obj);
+	T update(T obj, String cudby);
 
 	void deleteOne(K id);
 

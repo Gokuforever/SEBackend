@@ -22,6 +22,8 @@ public class AggregationFilter {
 		private QueryFilterType type;
 		private OrderBy orderBy;
 		private List<String> selection;
+		
+		// Don't use below
 		private List<JoinClause> joins;
 		private List<SubqueryClause> subqueries;
 

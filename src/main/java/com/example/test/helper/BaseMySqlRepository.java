@@ -35,7 +35,8 @@ public interface BaseMySqlRepository<K, T extends BaseMySqlEntity>
 	}
 
 	@Override
-	default T create(T obj) {
+	default T create(T obj, String cudby) {
+		obj.setBeforeCreate(cudby);
 		return this.save(obj);
 	}
 
@@ -63,7 +64,8 @@ public interface BaseMySqlRepository<K, T extends BaseMySqlEntity>
 	}
 
 	@Override
-	default T update(T obj) {
+	default T update(T obj, String cudby) {
+		obj.setBeforeCreate(cudby);
 		return this.save(obj);
 	}
 
