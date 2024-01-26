@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import com.example.test.entity.BaseMySqlEntity;
 import com.example.test.helper.AggregationFilter.JoinClause;
 import com.example.test.helper.AggregationFilter.QueryFilter;
 import com.example.test.helper.AggregationFilter.QueryFilterType;
@@ -21,7 +22,7 @@ import com.example.test.helper.AggregationFilter.WhereClause;
 
 import lombok.NonNull;
 
-public interface BaseMySqlRepository<T, K>
+public interface BaseMySqlRepository<K, T extends BaseMySqlEntity>
 		extends BaseRepository<T, K>, JpaSpecificationExecutor<T>, JpaRepository<T, K> {
 
 	@Override

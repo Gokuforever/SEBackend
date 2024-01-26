@@ -5,21 +5,21 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import com.example.test.entity.BaseMySqlEntity;
 import com.example.test.helper.AggregationFilter.QueryFilter;
 import com.example.test.helper.BaseRepository;
 
-public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T, K>> implements BaseRepository<T, K> {
+public abstract class GenericEntityServiceImpl<K, T extends BaseMySqlEntity, R extends BaseRepository<T, K>>
+		implements BaseRepository<T, K> {
 
-	
 	protected abstract Class<R> getRepoClass();
-	
+
 	private R repository;
 
 	@Autowired
-    private void setApplicationContext(ApplicationContext applicationContext) {
-		repository = applicationContext.getBean(getRepoClass());       
-    }
-	
+	private void setApplicationContext(ApplicationContext applicationContext) {
+		repository = applicationContext.getBean(getRepoClass());
+	}
 
 	@Override
 	public List<T> repoFindAll() {
