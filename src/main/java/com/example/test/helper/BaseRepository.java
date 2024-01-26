@@ -1,0 +1,25 @@
+package com.example.test.helper;
+
+import java.util.List;
+
+import com.example.test.helper.AggregationFilter.QueryFilter;
+
+public interface BaseRepository<T , K> {
+
+	List<T> repoFindAll();
+
+	T repoFindOne(QueryFilter f);
+
+	List<T> repoFind(QueryFilter f);
+
+	T create(T obj);
+
+	long countByFilter(QueryFilter f);
+
+	long count();
+
+	T update(T obj);
+
+	void deleteOne(K id);
+
+}
