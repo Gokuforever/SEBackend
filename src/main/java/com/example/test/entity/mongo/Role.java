@@ -1,10 +1,13 @@
 package com.example.test.entity.mongo;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Document(collection = "role")
 public class Role extends BaseMongoEntity<String> {
 
 	/**

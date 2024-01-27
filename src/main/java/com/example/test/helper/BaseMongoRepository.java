@@ -1,5 +1,7 @@
 package com.example.test.helper;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -10,6 +12,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import com.example.test.config.StaticMongoAccessor;
 import com.example.test.entity.mongo.BaseMongoEntity;
 import com.example.test.enums.Operators;
 import com.example.test.helper.AggregationFilter.OrderBy;
@@ -21,7 +24,20 @@ import com.example.test.helper.AggregationFilter.WhereClause;
 public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		extends BaseRepository<T, K>, MongoRepository<T, K> {
 
-//	Class<T> getEntityClassForManualQuery();
+	@SuppressWarnings("unchecked")
+	default Class<T> getEntityType() {
+		Type genericSuperclass = getClass().getGenericSuperclass();
+
+		if (genericSuperclass instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+			Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+			if (typeArguments.length > 1 && typeArguments[1] instanceof Class) {
+				return (Class<T>) typeArguments[1];
+			}
+		}
+		throw new IllegalStateException("Unable to determine the entity type.");
+	}
 
 	@Override
 	default List<T> repoFindAll() {
@@ -31,7 +47,8 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	@Override
 	default T create(T obj, String cudby) {
 		obj.setBeforeCreate(cudby);
-		return this.insert(obj);
+		T insert = this.insert(obj);
+		return insert;
 	}
 
 	@Override
@@ -48,22 +65,22 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	@Override
 	default T repoFindOne(QueryFilter f) {
 		Query query = buildQuery(f);
-		return null;
-//		return StaticMongoAccessor.MONGO_TEMPLATE.findOne(query, );
+//		return null;
+		return StaticMongoAccessor.MONGO_TEMPLATE.findOne(query, getEntityType());
 	}
 
 	@Override
 	default List<T> repoFind(QueryFilter f) {
 		Query query = buildQuery(f);
-		return null;
-//		return StaticMongoAccessor.MONGO_TEMPLATE.find(query, );
+//		return null;
+		return StaticMongoAccessor.MONGO_TEMPLATE.find(query, getEntityType());
 	}
 
 	@Override
 	default long countByFilter(QueryFilter f) {
 		Query query = buildQuery(f);
-		return 0;
-//		return StaticMongoAccessor.MONGO_TEMPLATE.count(query, );
+//		return 0;
+		return StaticMongoAccessor.MONGO_TEMPLATE.count(query, getEntityType());
 	}
 
 	@Override

@@ -11,6 +11,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.Decimal128;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
@@ -20,11 +21,13 @@ import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
 import lombok.NonNull;
 
+@Configuration
 public class SimpleMongoConfig {
 
 	@Bean
@@ -40,9 +43,13 @@ public class SimpleMongoConfig {
 	@Bean
 	public MongoTemplate mongoTemplate() {
 		MongoTemplate mongoTemplate = new MongoTemplate(mongo(), "sorted");
+		mongoTemplate.setWriteConcern(WriteConcern.ACKNOWLEDGED);
 		MappingMongoConverter conv = (MappingMongoConverter) mongoTemplate.getConverter();
 		conv.setCustomConversions(mongoCustomConversions());
 		conv.afterPropertiesSet();
+
+		System.out.println("MongoTemplate connected to database: " + mongoTemplate.getDb().getName());
+
 		return mongoTemplate;
 	}
 
