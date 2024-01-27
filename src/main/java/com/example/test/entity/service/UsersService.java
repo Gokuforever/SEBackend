@@ -6,7 +6,7 @@ import com.example.test.entity.mysql.Users;
 import com.example.test.repository.mysql.UsersRepository;
 
 @Service
-public class UsersService extends GenericEntityServiceImpl<Integer, Users, UsersRepository> {
+public class UsersService extends GenericEntityServiceImpl<Long, Users, UsersRepository> {
 
 	@Override
 	protected Class<UsersRepository> getRepoClass() {

@@ -6,6 +6,6 @@ import com.example.test.entity.mysql.Users;
 import com.example.test.helper.BaseMySqlRepository;
 
 @Repository
-public interface UsersRepository extends BaseMySqlRepository<Integer, Users> {
+public interface UsersRepository extends BaseMySqlRepository<Long, Users> {
 
 }
