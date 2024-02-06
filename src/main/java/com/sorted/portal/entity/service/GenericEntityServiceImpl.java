@@ -1,0 +1,62 @@
+package com.sorted.portal.entity.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+
+import com.sorted.portal.helper.BaseRepository;
+import com.sorted.portal.helper.AggregationFilter.QueryFilter;
+
+public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T, K>> implements BaseRepository<T, K> {
+
+	protected abstract Class<R> getRepoClass();
+
+	private R repository;
+
+	@Autowired
+	private void setApplicationContext(ApplicationContext applicationContext) {
+		repository = applicationContext.getBean(getRepoClass());
+	}
+
+	@Override
+	public List<T> repoFindAll() {
+		return repository.repoFindAll();
+	}
+
+	@Override
+	public List<T> repoFind(QueryFilter filter) {
+		return repository.repoFind(filter);
+	}
+
+	@Override
+	public T repoFindOne(QueryFilter filter) {
+		return repository.repoFindOne(filter);
+	}
+
+	@Override
+	public long totalCount() {
+		return repository.totalCount();
+	}
+
+	@Override
+	public T create(T entity, String cudby) {
+		return repository.create(entity, cudby);
+	}
+
+	@Override
+	public long countByFilter(QueryFilter filter) {
+		return repository.countByFilter(filter);
+	}
+
+	@Override
+	public T update(T entity, String cudby) {
+		return repository.update(entity, cudby);
+	}
+
+	@Override
+	public void deleteOne(K id) {
+		repository.deleteOne(id);
+	}
+
+}
