@@ -13,7 +13,8 @@ public enum ResponseCode {
 	MANDATE_CATAGORY("SE_0003", "Category name is mandatory.", "Category name is mandatory."),
 	MANDATE_SUB_CATAGORY("SE_0004", "Sub category name is missing.", "Sub category name is missing."),
 	INVALID_SUB_CATAGORY("SE_0005", "Invalid sub category.", "Invalid sub category."),
-	INVALID_MIN_SUB_CATAGORY("SE_0006", "At least one value is required for sub category.", "At least one value is required for sub category."),
+	INVALID_MIN_SUB_CATAGORY("SE_0006", "At least one value is required for sub category.",
+			"At least one value is required for sub category."),
 	INVALID_SUB_CATAGORY_VAL("SE_0007", "Invalid sub category value.", "Invalid sub category value"),
 	INVALID_CATAGORY_SELECTED("SE_0008", "Invalid catagory selected.", "Invalid catagory selected."),
 	MISSING_PRODUCT_NAME("SE_0009", "Product name is missing.", "Product name is missing."),
@@ -32,6 +33,16 @@ public enum ResponseCode {
 	MISSING_ID("SE_0021", "Entity id is missing for update.", "Something went wrong."),
 	NO_RECORD("SE_0022", "No record found.", "No record found."),
 	NOT_A_LIST("SE_0023", "List is required.", "Something went wrong."),
+	MISSING_USER_ID("SE_0024", "User id is missing.", "Requester details missing."),
+	MISSING_ROLE_ID("SE_0025", "Role id is missing.", "Requester details missing."),
+	MISSING_PRODUCT_ID("SE_0026", "Product id is missing.", "Product id is missing."),
+	PRODUCT_NOT_FOUND("SE_0026", "Product not found.", "Product not found."),
+	PRODUCT_OUT_OF_STOCK("SE_0027", "This product out of stock.", "This product out of stock."),
+	STOCK_LIMIT_REACHED("SE_0028", "Stock limit reached. Additional quantities cannot be added at this time.",
+			"Stock limit reached. Additional quantities cannot be added at this time."),
+	MISSING_PRODUCT_QUANTITY("SE_0026", "Product quantity is missing.", "Product quantity is missing."),
+	INVAALID_PRODUCT_QUANTITY("SE_0026", "Product quantity is invalid.", "Product quantity is invalid."),
+	CART_NOT_FOUND("SE_0026", "First crete a cart for this user by adding an item.", "First crete a cart for this user by adding an item."),
 	INVALID_CATAGORY("SE_000", "Invalid catagory name.", "Invalid catagory name.");
 
 	private final String code;

@@ -169,7 +169,7 @@ public class ManageProductBLService {
 		}
 		Products product = new Products();
 		product.setName(req.getName());
-		product.setPrice(new BigDecimal(req.getPrice()));
+		product.setSelling_price(new BigDecimal(req.getPrice()));
 		product.setQuantity(Long.valueOf(req.getQuantity()));
 		product.setDescription(req.getDescription());
 
