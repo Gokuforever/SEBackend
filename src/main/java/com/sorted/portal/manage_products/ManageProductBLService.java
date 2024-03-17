@@ -97,7 +97,7 @@ public class ManageProductBLService {
 			return SEResponse.getEmptySuccessResponse(ResponseCode.NO_RECORD);
 		}
 
-		return SEResponse.getBasicSuccessResponseList(listProducts, ResponseCode.NO_RECORD);
+		return SEResponse.getBasicSuccessResponseList(listProducts, ResponseCode.SUCCESSFUL);
 
 	}
 
