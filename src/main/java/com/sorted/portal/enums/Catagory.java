@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum Operators {
+public enum Catagory {
 
-	EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, LIKE, IN, NOT_LIKE, ALL;
+	BOOKS
 }

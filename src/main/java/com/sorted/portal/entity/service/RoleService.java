@@ -13,4 +13,22 @@ public class RoleService extends GenericEntityServiceImpl<String, Role, RoleRepo
 		return RoleRepository.class;
 	}
 
+	@Override
+	protected void validateBeforeCreate(Role inE) throws RuntimeException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void validateBeforeUpdate(String id, Role inE) throws RuntimeException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void validateBeforeDelete(String id) throws RuntimeException {
+		// TODO Auto-generated method stub
+
+	}
+
 }

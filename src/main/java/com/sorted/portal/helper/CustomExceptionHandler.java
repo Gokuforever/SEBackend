@@ -20,7 +20,7 @@ public class CustomExceptionHandler {
 				: e.getMessage();
 		String userMessage = e.getUserMessage() == null ? Defaults.DEF_USER_ERR_MSG : e.getUserMessage();
 
-		Response apiResponse = Response.builder().status(status).responseCode(e.getMessageCode())
+		SEResponse apiResponse = SEResponse.builder().status(status).responseCode(e.getMessageCode())
 				.errorMessage(errMessage).userMessage(userMessage).build();
 		return new ResponseEntity<Object>(apiResponse, new HttpHeaders(), status);
 	}

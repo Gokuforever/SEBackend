@@ -6,8 +6,10 @@ import java.time.format.DateTimeFormatter;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public abstract class BaseMongoEntity<K> implements Serializable {
 
 	/**

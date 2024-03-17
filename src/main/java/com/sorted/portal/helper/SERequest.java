@@ -13,7 +13,7 @@ import lombok.NonNull;
 
 @Data
 @Builder
-public class Request implements Serializable {
+public class SERequest implements Serializable {
 	/**
 	* 
 	*/
@@ -31,6 +31,7 @@ public class Request implements Serializable {
 				ObjectMapper mapper = new ObjectMapper();
 				return mapper.convertValue(this.getRequestData(), clazz);
 			} catch (IllegalArgumentException e) {
+				System.out.println(e);
 				throw new CustomIllegalArgumentsException(ResponseCode.INVALID_REQ);
 			}
 		} else {

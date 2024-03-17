@@ -5,12 +5,34 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import com.sorted.portal.helper.AggregationFilter.SEFilter;
 import com.sorted.portal.helper.BaseRepository;
-import com.sorted.portal.helper.AggregationFilter.QueryFilter;
 
 public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T, K>> implements BaseRepository<T, K> {
 
 	protected abstract Class<R> getRepoClass();
+
+	protected abstract void validateBeforeCreate(T inE) throws RuntimeException;
+
+	protected abstract void validateBeforeUpdate(K id, T inE) throws RuntimeException;
+
+	protected abstract void validateBeforeDelete(K id) throws RuntimeException;
+
+	public void validateCreate(T inE) {
+		this.validateBeforeCreate(inE);
+	}
+
+	public void validateUpdate(K id, T inE) {
+		this.validateBeforeUpdate(id, inE);
+	}
+
+	public void validateUpsert(T inE) {
+		this.validateBeforeCreate(inE);
+	}
+
+	public void validateDelete(K id) {
+		this.validateBeforeDelete(id);
+	}
 
 	private R repository;
 
@@ -25,12 +47,12 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 	}
 
 	@Override
-	public List<T> repoFind(QueryFilter filter) {
+	public List<T> repoFind(SEFilter filter) {
 		return repository.repoFind(filter);
 	}
 
 	@Override
-	public T repoFindOne(QueryFilter filter) {
+	public T repoFindOne(SEFilter filter) {
 		return repository.repoFindOne(filter);
 	}
 
@@ -41,17 +63,19 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 
 	@Override
 	public T create(T entity, String cudby) {
+		this.validateBeforeCreate(entity);
 		return repository.create(entity, cudby);
 	}
 
 	@Override
-	public long countByFilter(QueryFilter filter) {
+	public long countByFilter(SEFilter filter) {
 		return repository.countByFilter(filter);
 	}
 
 	@Override
-	public T update(T entity, String cudby) {
-		return repository.update(entity, cudby);
+	public T update(K id, T entity, String cudby) {
+		this.validateBeforeUpdate(id, entity);
+		return repository.update(id, entity, cudby);
 	}
 
 	@Override
