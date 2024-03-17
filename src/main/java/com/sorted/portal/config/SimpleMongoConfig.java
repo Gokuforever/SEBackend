@@ -32,7 +32,7 @@ public class SimpleMongoConfig {
 
 	@Bean
 	public MongoClient mongo() {
-		final ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017/");
+		final ConnectionString connectionString = new ConnectionString("mongodb+srv://yogeshk:Sorted%402024@sorted.myru7yg.mongodb.net/");
 		CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 				fromProviders(PojoCodecProvider.builder().automatic(true).build()));
 		final MongoClientSettings mongoClientSettings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry)
