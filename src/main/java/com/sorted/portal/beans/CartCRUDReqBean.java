@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartCUDReqBean extends BaseBean {
+public class CartCRUDReqBean extends BaseBean {
 
 	/**
 	 * 

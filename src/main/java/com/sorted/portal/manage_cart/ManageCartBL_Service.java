@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sorted.portal.beans.CartCUDReqBean;
+import com.sorted.portal.beans.CartCRUDReqBean;
 import com.sorted.portal.beans.Item;
 import com.sorted.portal.entity.mongo.BaseMongoEntity;
 import com.sorted.portal.entity.mongo.Cart;
@@ -43,7 +43,7 @@ public class ManageCartBL_Service {
 	@PostMapping("/add")
 	public SEResponse add(@RequestBody SERequest request) {
 
-		CartCUDReqBean req = request.getGenericRequestDataObject(CartCUDReqBean.class);
+		CartCRUDReqBean req = request.getGenericRequestDataObject(CartCRUDReqBean.class);
 		if (!StringUtils.hasText(req.getReq_user_id())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_USER_ID);
 		}
@@ -112,7 +112,7 @@ public class ManageCartBL_Service {
 
 	@PostMapping("/update")
 	public SEResponse update(@RequestBody SERequest request) {
-		CartCUDReqBean req = request.getGenericRequestDataObject(CartCUDReqBean.class);
+		CartCRUDReqBean req = request.getGenericRequestDataObject(CartCRUDReqBean.class);
 		if (!StringUtils.hasText(req.getReq_user_id())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_USER_ID);
 		}
@@ -139,7 +139,7 @@ public class ManageCartBL_Service {
 			throw new CustomIllegalArgumentsException(ResponseCode.PRODUCT_OUT_OF_STOCK);
 		}
 		SEFilter filterC = new SEFilter(SEFilterType.AND);
-		filterP.addClause(WhereClause.eq(Products.Fields.product_code, req.getProduct_id()));
+		filterC.addClause(WhereClause.eq(Cart.Fields.user_id, req.getReq_user_id()));
 		filterC.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 		Cart cart = cart_Service.repoFindOne(filterC);
 		if (cart == null) {
@@ -188,5 +188,21 @@ public class ManageCartBL_Service {
 		cart_Service.update(cart.getId(), cart, req.getReq_user_id());
 
 		return SEResponse.getEmptySuccessResponse(ResponseCode.SUCCESSFUL);
+	}
+
+	@PostMapping("/get")
+	public SEResponse get(@RequestBody SERequest request) {
+		CartCRUDReqBean req = request.getGenericRequestDataObject(CartCRUDReqBean.class);
+		if (!StringUtils.hasText(req.getReq_user_id())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_USER_ID);
+		}
+		SEFilter filterC = new SEFilter(SEFilterType.AND);
+		filterC.addClause(WhereClause.eq(Cart.Fields.user_id, req.getReq_user_id()));
+		filterC.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+		Cart cart = cart_Service.repoFindOne(filterC);
+		if (cart == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.NO_RECORD);
+		}
+		return SEResponse.getBasicSuccessResponseObject(cart, ResponseCode.SUCCESSFUL);
 	}
 }
