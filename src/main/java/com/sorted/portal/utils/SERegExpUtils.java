@@ -11,6 +11,12 @@ public class SERegExpUtils {
 		Pattern pattern = Pattern.compile("[a-zA-Z]*");
 		return pattern.matcher(val).matches();
 	}
+	
+	public static Boolean isMobileNo(@NonNull String val) {
+		val = val.trim();
+		Pattern pattern = Pattern.compile("[6-9]\\d{9}");
+		return pattern.matcher(val).matches();
+	}
 
 	public static Boolean standardTextValidation(@NonNull String val) {
 		val = val.strip();
@@ -50,6 +56,6 @@ public class SERegExpUtils {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(standardTextValidation(""));
+		System.out.println(isMobileNo("9867292392"));
 	}
 }

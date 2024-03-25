@@ -1,4 +1,4 @@
-package com.sorted.portal.manage.catagory;
+package com.sorted.portal.manage.category;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sorted.portal.beans.CatagoryReqBean;
+import com.sorted.portal.beans.CategoryReqBean;
 import com.sorted.portal.constants.Defaults;
-import com.sorted.portal.entity.mongo.Catagory_Master;
-import com.sorted.portal.entity.mongo.Catagory_Master.SubCatagory;
-import com.sorted.portal.entity.service.Catagory_MasterService;
+import com.sorted.portal.entity.mongo.Category_Master;
+import com.sorted.portal.entity.mongo.Category_Master.SubCategory;
+import com.sorted.portal.entity.service.Category_MasterService;
 import com.sorted.portal.enums.ResponseCode;
 import com.sorted.portal.exceptions.CustomIllegalArgumentsException;
 import com.sorted.portal.helper.SERequest;
@@ -20,11 +20,11 @@ import com.sorted.portal.helper.SEResponse;
 import com.sorted.portal.utils.SERegExpUtils;
 
 @RestController
-@RequestMapping("/catagory")
-public class ManageCatagoryBLService {
+@RequestMapping("/category")
+public class ManageCategoryBLService {
 
 	@Autowired
-	private Catagory_MasterService catagoryService;
+	private Category_MasterService categoryService;
 
 //	@Autowired
 //	private ProductService productService;
@@ -37,10 +37,10 @@ public class ManageCatagoryBLService {
 //		product.setName(req.getName());
 //		product.setStock(req.getStock());
 //		product.setPrice(req.getPrice());
-//		Catagory_Master selected_catagory = req.getSelected_catagory();
-//		CatagoryDetails details = new CatagoryDetails();
-//		details.setCatagory_name(selected_catagory.getName());
-//		details.setSelected_sub_catagories(selected_catagory.getSub_catagories());
+//		Category_Master selected_category = req.getSelected_category();
+//		CategoryDetails details = new CategoryDetails();
+//		details.setCategory_name(selected_category.getName());
+//		details.setSelected_sub_catagories(selected_category.getSub_categories());
 //		product.setCatagories(details);
 //		
 //		productService.create(product, Defaults.SYSTEM_ADMIN);
@@ -51,38 +51,38 @@ public class ManageCatagoryBLService {
 	@PostMapping("/create")
 	public SEResponse create(@RequestBody SERequest request) {
 
-		CatagoryReqBean req = request.getGenericRequestDataObject(CatagoryReqBean.class);
+		CategoryReqBean req = request.getGenericRequestDataObject(CategoryReqBean.class);
 
-		if (!StringUtils.hasText(req.getCatagory_name())) {
-			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_CATAGORY);
+		if (!StringUtils.hasText(req.getCategory_name())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_CATEGORY);
 		}
-		if (Boolean.FALSE.equals(SERegExpUtils.standardTextValidation(req.getCatagory_name()))) {
-			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_CATAGORY);
+		if (Boolean.FALSE.equals(SERegExpUtils.standardTextValidation(req.getCategory_name()))) {
+			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_CATEGORY);
 		}
-		if (!CollectionUtils.isEmpty(req.getSub_catagories())) {
-			for (SubCatagory subCatagory : req.getSub_catagories()) {
-				if (!StringUtils.hasText(subCatagory.getName())) {
-					throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_SUB_CATAGORY);
+		if (!CollectionUtils.isEmpty(req.getSub_categories())) {
+			for (SubCategory subCategory : req.getSub_categories()) {
+				if (!StringUtils.hasText(subCategory.getName())) {
+					throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_SUB_CATEGORY);
 				}
-				if (Boolean.FALSE.equals(SERegExpUtils.isString(subCatagory.getName()))) {
-					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_SUB_CATAGORY);
+				if (Boolean.FALSE.equals(SERegExpUtils.isString(subCategory.getName()))) {
+					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_SUB_CATEGORY);
 				}
-				if (CollectionUtils.isEmpty(subCatagory.getAttributes())) {
-					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_MIN_SUB_CATAGORY);
+				if (CollectionUtils.isEmpty(subCategory.getAttributes())) {
+					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_MIN_SUB_CATEGORY);
 				}
-				long count = subCatagory.getAttributes().stream().filter(e -> !SERegExpUtils.standardTextValidation(e))
+				long count = subCategory.getAttributes().stream().filter(e -> !SERegExpUtils.standardTextValidation(e))
 						.count();
 				if (count > 0) {
-					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_SUB_CATAGORY_VAL);
+					throw new CustomIllegalArgumentsException(ResponseCode.INVALID_SUB_CATEGORY_VAL);
 				}
 			}
 		}
 
-		Catagory_Master catagory = new Catagory_Master();
-		catagory.setName(req.getCatagory_name());
-		catagory.setSub_catagories(req.getSub_catagories());
+		Category_Master category = new Category_Master();
+		category.setName(req.getCategory_name());
+		category.setSub_categories(req.getSub_categories());
 
-		catagoryService.create(catagory, Defaults.SYSTEM_ADMIN);
+		categoryService.create(category, Defaults.SYSTEM_ADMIN);
 
 		return SEResponse.getEmptySuccessResponse(ResponseCode.SUCCESSFUL);
 	}

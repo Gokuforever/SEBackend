@@ -2,14 +2,14 @@ package com.sorted.portal.beans;
 
 import java.util.List;
 
-import com.sorted.portal.entity.mongo.Catagory_Master.SubCatagory;
+import com.sorted.portal.entity.mongo.Category_Master.SubCategory;
 
 import lombok.Data;
 
 @Data
-public class CatagoryReqBean {
+public class CategoryReqBean {
 
-	private String catagory_name;
-	private List<SubCatagory> sub_catagories;
-	
+	private String category_name;
+	private List<SubCategory> sub_categories;
+
 }

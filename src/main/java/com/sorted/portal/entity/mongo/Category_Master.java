@@ -11,19 +11,19 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "catagory_master")
-public class Catagory_Master extends BaseMongoEntity<String> {
+@Document(collection = "category_master")
+public class Category_Master extends BaseMongoEntity<String> {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private String name;
-	private String catagory_code;
-	private List<SubCatagory> sub_catagories;
+	private String category_code;
+	private List<SubCategory> sub_categories;
 
 	@Data
-	public static class SubCatagory {
+	public static class SubCategory {
 		private String name;
 		private List<String> attributes;
 	}

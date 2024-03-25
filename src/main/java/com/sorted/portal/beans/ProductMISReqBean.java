@@ -2,7 +2,7 @@ package com.sorted.portal.beans;
 
 import java.util.List;
 
-import com.sorted.portal.entity.mongo.Catagory_Master.SubCatagory;
+import com.sorted.portal.entity.mongo.Category_Master.SubCategory;
 
 import lombok.Data;
 
@@ -11,6 +11,6 @@ public class ProductMISReqBean {
 
 	private String name;
 	private String base_ctagory_code;
-	private List<SubCatagory> sub_catagories;
+	private List<SubCategory> sub_categories;
 
 }

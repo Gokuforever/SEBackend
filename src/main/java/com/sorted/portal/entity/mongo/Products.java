@@ -1,6 +1,7 @@
 package com.sorted.portal.entity.mongo;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -22,5 +23,14 @@ public class Products extends BaseMongoEntity<String> {
 	private BigDecimal selling_price;
 	private String description;
 	private Long quantity;
+	private String category_id;
+	private String category_code;
+	private List<SelectedSubCatagories> selected_sub_catagories;
 
+	@Data
+	@FieldNameConstants
+	public static class SelectedSubCatagories{
+		private String sub_category;
+		private List<String> selected_attributes;
+	}
 }

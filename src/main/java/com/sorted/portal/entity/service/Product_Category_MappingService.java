@@ -2,26 +2,26 @@ package com.sorted.portal.entity.service;
 
 import org.springframework.stereotype.Service;
 
-import com.sorted.portal.entity.mongo.Product_Catagory_Mapping;
-import com.sorted.portal.repository.mongo.Product_Catagory_MappingRepository;
+import com.sorted.portal.entity.mongo.Product_Category_Mapping;
+import com.sorted.portal.repository.mongo.Product_Category_MappingRepository;
 
 @Service
-public class Product_Catagory_MappingService
-		extends GenericEntityServiceImpl<String, Product_Catagory_Mapping, Product_Catagory_MappingRepository> {
+public class Product_Category_MappingService
+		extends GenericEntityServiceImpl<String, Product_Category_Mapping, Product_Category_MappingRepository> {
 
 	@Override
-	protected Class<Product_Catagory_MappingRepository> getRepoClass() {
-		return Product_Catagory_MappingRepository.class;
+	protected Class<Product_Category_MappingRepository> getRepoClass() {
+		return Product_Category_MappingRepository.class;
 	}
 
 	@Override
-	protected void validateBeforeCreate(Product_Catagory_Mapping inE) throws RuntimeException {
+	protected void validateBeforeCreate(Product_Category_Mapping inE) throws RuntimeException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	protected void validateBeforeUpdate(String id, Product_Catagory_Mapping inE) throws RuntimeException {
+	protected void validateBeforeUpdate(String id, Product_Category_Mapping inE) throws RuntimeException {
 		// TODO Auto-generated method stub
 
 	}
