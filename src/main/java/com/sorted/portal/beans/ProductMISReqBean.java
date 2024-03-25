@@ -10,7 +10,7 @@ import lombok.Data;
 public class ProductMISReqBean {
 
 	private String name;
-	private String base_ctagory_code;
+	private String base_category_code;
 	private List<SubCategory> sub_categories;
 
 }

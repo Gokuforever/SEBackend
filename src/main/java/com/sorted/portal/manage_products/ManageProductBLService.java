@@ -52,7 +52,7 @@ public class ManageProductBLService {
 		if (StringUtils.hasText(req.getName())) {
 			filter.addClause(WhereClause.like(Products.Fields.name, req.getName()));
 		}
-		if (StringUtils.hasText(req.getBase_ctagory_code()) || !CollectionUtils.isEmpty(req.getSub_categories())) {
+		if (StringUtils.hasText(req.getBase_category_code()) || !CollectionUtils.isEmpty(req.getSub_categories())) {
 			if (!CollectionUtils.isEmpty(req.getSub_categories())) {
 				for (SubCategory sub_cat : req.getSub_categories()) {
 					Map<String, String> keymap = new HashMap<>();
