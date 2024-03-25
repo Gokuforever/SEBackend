@@ -127,35 +127,50 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 
 	private static Criteria buildCriteria(SEFilter filter) {
 		List<WhereClause> clauses = filter.getClause();
+
+		SEFilterType baseType = filter.getType();
+
 		Criteria criteria = new Criteria();
+		Criteria sub_query_criteria = new Criteria();
+		List<Criteria> baseQueryCriterias = new ArrayList<>();
 		List<Criteria> nodeCriterias = new ArrayList<>();
 
 		if (!CollectionUtils.isEmpty(clauses)) {
-			List<Criteria> whereCriterias = clauses.stream().map(BaseMongoRepository::buildWhereClauseCriteria)
+			baseQueryCriterias = clauses.stream().map(BaseMongoRepository::buildWhereClauseCriteria)
 					.collect(Collectors.toList());
-
-			if (filter.getType() == SEFilterType.AND) {
-				criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
-			} else if (filter.getType() == SEFilterType.OR) {
-				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
-			}
 		}
 		if (!CollectionUtils.isEmpty(filter.getNodes())) {
 			nodeCriterias = filter.getNodes().stream().map(BaseMongoRepository::buildCriteria)
 					.collect(Collectors.toList());
 
 		}
-		if (!nodeCriterias.isEmpty()) {
-			if (filter.getSubquery_type() == null) {
-				filter.setSubquery_type(SEFilterType.AND);
+		Criteria[] arrComb = null;
+		if (!nodeCriterias.isEmpty() && !baseQueryCriterias.isEmpty()) {
+			if (nodeCriterias.size() > 1) {
+//				SEFilterType subquery_type = filter.getSubquery_type() == null ? SEFilterType.AND
+//						: filter.getSubquery_type();
+				Criteria[] subQueriesComb = nodeCriterias.toArray(new Criteria[nodeCriterias.size()]);
+//				if (subquery_type.equals(SEFilterType.AND)) {
+//					sub_query_criteria.andOperator(subQueriesComb);
+//				} else if (subquery_type.equals(SEFilterType.OR)) {
+				sub_query_criteria.orOperator(subQueriesComb);
+//				}
+				baseQueryCriterias.add(sub_query_criteria);
+			} else {
+				baseQueryCriterias.addAll(nodeCriterias);
 			}
-			filter.getSubquery_type();
-			Criteria[] arrComb = nodeCriterias.toArray(new Criteria[nodeCriterias.size()]);
-			if (filter.getSubquery_type().equals(SEFilterType.AND)) {
-				criteria.andOperator(arrComb);
-			} else if (filter.getSubquery_type().equals(SEFilterType.OR)) {
-				criteria.orOperator(arrComb);
-			}
+			arrComb = baseQueryCriterias.toArray(new Criteria[baseQueryCriterias.size()]);
+		} else if (!baseQueryCriterias.isEmpty()) {
+			arrComb = baseQueryCriterias.toArray(new Criteria[baseQueryCriterias.size()]);
+		} else if (!nodeCriterias.isEmpty()) {
+			arrComb = nodeCriterias.toArray(new Criteria[nodeCriterias.size()]);
+		} else {
+			throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+		}
+		if (baseType.equals(SEFilterType.AND)) {
+			criteria.andOperator(arrComb);
+		} else if (baseType.equals(SEFilterType.OR)) {
+			criteria.orOperator(arrComb);
 		}
 		return criteria;
 	}
@@ -173,7 +188,6 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
 			}
 		}
-
 		return criteria;
 	}
 
@@ -200,6 +214,26 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 			return new Criteria(clause.getField()).in(clause.getValueList());
 		case ALL:
 			return new Criteria(clause.getField()).all(clause.getValueList());
+		case ELEMMATCH_IN:
+			String keyName = null;
+			String keyVal = null;
+			String valName = null;
+			List<?> val = null;
+			for (String v : clause.getValMap().keySet()) {
+				valName = v;
+				val = clause.getValMap().get(v);
+			}
+
+			for (String key : clause.getKeyMap().keySet()) {
+				keyName = key;
+				keyVal = clause.getKeyMap().get(key);
+			}
+			if (keyName == null || keyVal == null || valName == null || val == null) {
+				// TODO: throw appropriate exception
+				throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+			}
+			Criteria keyValCriteria = new Criteria(keyName).is(keyVal).and(valName).in(val);
+			return new Criteria(clause.getField()).elemMatch(keyValCriteria);
 		default:
 			return null;
 		}

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ public class AggregationFilter {
 		private List<WhereClause> clause;
 		private SEFilterType type;
 		private List<SEFilterNode> nodes;
-		private SEFilterType subquery_type;
+//		private SEFilterType subquery_type;
 		private OrderBy orderBy;
 		private List<String> selection;
 
@@ -56,12 +57,27 @@ public class AggregationFilter {
 			}
 			this.clause.add(clause);
 		}
+
+		public void addNodes(List<SEFilterNode> nodes) {
+			if (CollectionUtils.isEmpty(this.nodes)) {
+				this.nodes = new ArrayList<>();
+			}
+			this.nodes.addAll(nodes);
+		}
+
+		public void addNodes(SEFilterNode nodes) {
+			if (CollectionUtils.isEmpty(this.nodes)) {
+				this.nodes = new ArrayList<>();
+			}
+			this.nodes.add(nodes);
+		}
 	}
 
 	@Data
 	public static class SEFilterNode {
 		private List<WhereClause> clause;
 		private SEFilterType type;
+		private SEFilter subQuertClause;
 
 		public SEFilterNode(SEFilterType type) {
 			this.type = type;
@@ -88,6 +104,8 @@ public class AggregationFilter {
 		private String value;
 		private String valueClassType;
 		private List<?> valueList;
+		private Map<String, String> keyMap;
+		private Map<String, List<?>> valMap;
 		private Operators operator;
 
 		public WhereClause(@NonNull String field, @NonNull List<?> valueList, @NonNull Operators operator) {
@@ -99,6 +117,20 @@ public class AggregationFilter {
 			}
 			this.valueClassType = "list";
 			this.valueList = valueList;
+		}
+
+		public WhereClause(@NonNull String field, @NonNull Map<String, String> keyMap,
+				@NonNull Map<String, List<?>> valMap) {
+			super();
+			this.field = field;
+			this.operator = Operators.ELEMMATCH_IN;
+			if (CollectionUtils.isEmpty(keyMap) || CollectionUtils.isEmpty(valMap)) {
+				// TODO: raise appropriate exception
+				throw new CustomIllegalArgumentsException(ResponseCode.NOT_A_LIST);
+			}
+			this.valueClassType = "Map";
+			this.keyMap = keyMap;
+			this.valMap = valMap;
 		}
 
 		public WhereClause(@NonNull String field, Object value, @NonNull Operators operator) {
@@ -146,9 +178,13 @@ public class AggregationFilter {
 		public static WhereClause in(String field, List<?> value) {
 			return new WhereClause(field, value, Operators.IN);
 		}
-		
+
 		public static WhereClause all(String field, List<?> value) {
 			return new WhereClause(field, value, Operators.ALL);
+		}
+
+		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
+			return new WhereClause(field, keyMap, valMap);
 		}
 
 		@JsonIgnore
