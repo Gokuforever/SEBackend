@@ -253,7 +253,7 @@ public class AggregationFilter {
 	}
 
 	@Data
-	public class OrderBy {
+	public static class OrderBy {
 		private SortOrder type = SortOrder.DESC;
 		private String key;
 	}
