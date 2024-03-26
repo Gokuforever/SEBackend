@@ -62,10 +62,9 @@ public class SEResponse implements Serializable {
 	@JsonIgnore
 	public static SEResponse getBadRequestFailureResponse(ResponseCode error) {
 		String inErrorMessage = "Bad request";
-		SEResponse apiResponse = SEResponse.builder().status(HttpStatus.BAD_REQUEST).errorMessage(inErrorMessage)
+		return SEResponse.builder().status(HttpStatus.BAD_REQUEST).errorMessage(inErrorMessage)
 				.userMessage(error.getUserMessage()).sysErrorMessage(error.getErrorMessage())
 				.responseCode(error.getCode()).build();
-		return apiResponse;
 	}
 
 	@JsonIgnore

@@ -19,6 +19,7 @@ public class Role extends BaseMongoEntity<String> {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private String code;
 	private String name;
 	private Integer status;
 	private List<Role_Activity_Permissions> activity_Permissions;
