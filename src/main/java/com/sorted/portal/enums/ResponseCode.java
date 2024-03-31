@@ -65,6 +65,11 @@ public enum ResponseCode {
 	INVALID_LN("SE_0050", "Please enter a valid last name.", "Please enter a valid last name."),
 	INVALID_MN("SE_0051", "Please enter a valid mobile number.", "Please enter a valid mobile number."),
 	INVALID_EI("SE_0052", "Please enter a valid email ID.", "Please enter a valid first email ID."),
+	MISSING_MOBILE("SE_0053", "Mobile no is missing.", "Mobile no is missing."),
+	LOGIN_FAILED("SE_0054", "Invalid user name or password.", "Invalid user name or password."),
+	USER_BLOCKED("SE_0055", "This account is blocked, please contact customer service.", "This account is blocked, please contact customer service."),
+	ROLE_MISSING("SE_0056", "Role not found.", "Something went wrong."),
+	USER_NOT_FOUND("SE_0057", "User Not found.", "User Not found."),
 	INVALID_CATEGORY("SE_000", "Invalid category name.", "Invalid category name.");
 
 	private final String code;

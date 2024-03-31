@@ -37,6 +37,15 @@ public class SEResponse implements Serializable {
 
 		return apiResponse;
 	}
+	
+	@JsonIgnore
+	public static SEResponse getEmptySuccessResponse(String message) {
+		SEResponse apiResponse;
+		apiResponse = SEResponse.builder().status(HttpStatus.OK).userMessage(message).responseData("")
+				.responseDataType("").build();
+
+		return apiResponse;
+	}
 
 	@JsonIgnore
 	public static SEResponse getBasicSuccessResponseObject(@NonNull Object e, ResponseCode message) {

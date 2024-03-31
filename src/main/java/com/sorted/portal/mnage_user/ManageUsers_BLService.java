@@ -1,11 +1,10 @@
 package com.sorted.portal.mnage_user;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.CollectionUtils;
@@ -13,7 +12,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.sorted.portal.beans.OtpVerificationReqBean;
 import com.sorted.portal.beans.UsersCUDReqBean;
@@ -30,18 +28,19 @@ import com.sorted.portal.entity.service.Users_Service;
 import com.sorted.portal.enums.ProcessType;
 import com.sorted.portal.enums.ResponseCode;
 import com.sorted.portal.exceptions.CustomIllegalArgumentsException;
-import com.sorted.portal.helper.AggregationFilter.OrderBy;
 import com.sorted.portal.helper.AggregationFilter.SEFilter;
 import com.sorted.portal.helper.AggregationFilter.SEFilterType;
-import com.sorted.portal.helper.AggregationFilter.SortOrder;
 import com.sorted.portal.helper.AggregationFilter.WhereClause;
 import com.sorted.portal.helper.SERequest;
 import com.sorted.portal.helper.SEResponse;
+import com.sorted.portal.otp_service.ManageOtp;
 import com.sorted.portal.utils.PasswordValidatorUtils;
 import com.sorted.portal.utils.SERegExpUtils;
 
 @RestController
 public class ManageUsers_BLService {
+
+	private static final Logger logger = LoggerFactory.getLogger(ManageUsers_BLService.class);
 
 	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -56,6 +55,12 @@ public class ManageUsers_BLService {
 
 	@Autowired
 	private Otp_Service otp_Service;
+
+	@Autowired
+	private ManageOtp manageOtp;
+
+//	@Autowired
+//	private ManageSMS_BLService manageSMS_BLService;
 
 	@PostMapping("/signup")
 	public SEResponse signup(@RequestBody SERequest request) {
@@ -134,26 +139,29 @@ public class ManageUsers_BLService {
 			}
 		}
 
-		Otp otp = new Otp();
-		otp.setOtp_value("111111");
-		otp.setStatus(true);
-		otp.setExpiry_time(LocalDateTime.now().plusMinutes(3));
-		otp.setMobile_no(req.getMobile_no());
-		otp.setEntity_id(leads.getId());
-		otp.setProcess_type(ProcessType.SIGN_UP);
-		otp.setIs_verified(false);
-
-		otp_Service.create(otp, Defaults.SIGN_UP);
-
-		String authToken = "7wQ8MBamSXWG3qx9hYA2yulEkOV4HcZtrCjvfLUF0PobKJgen5B13FPMC6StpAEH7jzWQuahVGfRvYlk";
-		String verificationCode = "111111";
-		String mobileNumber = "9867292392";
-		String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + verificationCode
-				+ "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
-		WebClient webClient = WebClient.create("https://www.fast2sms.com/dev/bulkV2");
-		String response = webClient.post().uri("").header(HttpHeaders.AUTHORIZATION, authToken)
-				.contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().bodyToMono(String.class).block();
-		System.out.println(response);
+		manageOtp.send(req.getMobile_no(), leads.getId(), ProcessType.SIGN_UP);
+//		Otp otp = new Otp();
+////		int random_otp = CommonUtils.generateFixedLengthRandomNumber(6);
+//		otp.setOtp_value("111111");
+//		otp.setStatus(true);
+//		otp.setExpiry_time(LocalDateTime.now().plusMinutes(3));
+//		otp.setMobile_no(req.getMobile_no());
+//		otp.setEntity_id(leads.getId());
+//		otp.setProcess_type(ProcessType.SIGN_UP);
+//		otp.setIs_verified(false);
+//
+//		otp_Service.create(otp, Defaults.SIGN_UP);
+//
+////		String authToken = "7wQ8MBamSXWG3qx9hYA2yulEkOV4HcZtrCjvfLUF0PobKJgen5B13FPMC6StpAEH7jzWQuahVGfRvYlk";
+//
+//		String verificationCode = "111111";
+//		manageSMS_BLService.sendSMS(req.getMobile_no(), verificationCode);
+//		String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + verificationCode
+//				+ "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
+//		WebClient webClient = WebClient.create("https://www.fast2sms.com/dev/bulkV2");
+//		String response = webClient.post().uri("").header(HttpHeaders.AUTHORIZATION, sms_auth_token)
+//				.contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().bodyToMono(String.class).block();
+//		System.out.println(response);
 
 		return SEResponse.getBasicSuccessResponseObject(leads.getId(), ResponseCode.SUCCESSFUL);
 	}
@@ -183,31 +191,33 @@ public class ManageUsers_BLService {
 			throw new CustomIllegalArgumentsException(ResponseCode.ENTITY_NOT_FOUND);
 		}
 
-		SEFilter filterO = new SEFilter(SEFilterType.AND);
-		filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-		filterO.addClause(WhereClause.eq(Otp.Fields.entity_id, entity_id));
-		filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, leads.getMobile_no()));
-		filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
-		filterO.addClause(WhereClause.eq(Otp.Fields.is_verified, false));
-		filterO.addClause(WhereClause.eq(Otp.Fields.otp_value, otp));
-		filterO.addClause(WhereClause.eq(Otp.Fields.process_type, ProcessType.SIGN_UP.name()));
+		manageOtp.verify(leads.getMobile_no(), entity_id, otp, ProcessType.SIGN_UP, Defaults.SIGN_UP);
 
-		OrderBy orderBy = new OrderBy();
-		orderBy.setKey(BaseMongoEntity.Fields.creation_date);
-		orderBy.setType(SortOrder.DESC);
-		filterO.setOrderBy(orderBy);
-
-		Otp otp2 = otp_Service.repoFindOne(filterO);
-		if (otp2 == null) {
-			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_OTP);
-		}
-		LocalDateTime now = LocalDateTime.now();
-		if (otp2.getExpiry_time().isBefore(LocalDateTime.now())) {
-			throw new CustomIllegalArgumentsException(ResponseCode.OTP_EXPIRED);
-		}
-		otp2.setIs_verified(true);
-		otp2.setVerification_time(now);
-		otp_Service.update(otp2.getId(), otp2, Defaults.SIGN_UP);
+//		SEFilter filterO = new SEFilter(SEFilterType.AND);
+//		filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.entity_id, entity_id));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, leads.getMobile_no()));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.is_verified, false));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.otp_value, otp));
+//		filterO.addClause(WhereClause.eq(Otp.Fields.process_type, ProcessType.SIGN_UP.name()));
+//
+//		OrderBy orderBy = new OrderBy();
+//		orderBy.setKey(BaseMongoEntity.Fields.creation_date);
+//		orderBy.setType(SortOrder.DESC);
+//		filterO.setOrderBy(orderBy);
+//
+//		Otp otp2 = otp_Service.repoFindOne(filterO);
+//		if (otp2 == null) {
+//			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_OTP);
+//		}
+//		LocalDateTime now = LocalDateTime.now();
+//		if (otp2.getExpiry_time().isBefore(LocalDateTime.now())) {
+//			throw new CustomIllegalArgumentsException(ResponseCode.OTP_EXPIRED);
+//		}
+//		otp2.setIs_verified(true);
+//		otp2.setVerification_time(now);
+//		otp_Service.update(otp2.getId(), otp2, Defaults.SIGN_UP);
 
 		SEFilter filterR = new SEFilter(SEFilterType.AND);
 		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, "65bf7de610296739a03f64de"));
