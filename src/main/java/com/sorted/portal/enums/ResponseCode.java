@@ -70,6 +70,8 @@ public enum ResponseCode {
 	USER_BLOCKED("SE_0055", "This account is blocked, please contact customer service.", "This account is blocked, please contact customer service."),
 	ROLE_MISSING("SE_0056", "Role not found.", "Something went wrong."),
 	USER_NOT_FOUND("SE_0057", "User Not found.", "User Not found."),
+	MISSING_STREAM("SE_0058", "Stream is missing.", "Stream is missing."),
+	MISSING_SEMISTER("SE_0059", "Semister is missing.", "Semister is missing."),
 	INVALID_CATEGORY("SE_000", "Invalid category name.", "Invalid category name.");
 
 	private final String code;

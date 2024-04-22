@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.portal.beans.Item;
+import com.sorted.portal.enums.OrderStatus;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,9 +20,14 @@ public class Order_Details extends BaseMongoEntity<String> {/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private String code;
 	private String user_id;
+	private String user_code;
 	private List<Item> items;
 	private BigDecimal total;
-	private Integer status;
+	private String pg_order_id;
+	private Integer status_id;
+	private OrderStatus status;
+	private String transaction_id;
 
 }

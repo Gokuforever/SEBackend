@@ -72,7 +72,6 @@ public class ManageProductBLService {
 		}
 
 		return SEResponse.getBasicSuccessResponseList(listProducts, ResponseCode.SUCCESSFUL);
-
 	}
 
 	@PostMapping("/create")

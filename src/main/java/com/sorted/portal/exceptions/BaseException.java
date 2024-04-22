@@ -68,7 +68,7 @@ public abstract class BaseException extends RuntimeException {
 		this(err.getErrorMessage(), err.getUserMessage());
 		this.messageCode = err.getCode();
 	}
-
+	
 	protected BaseException(@NonNull ResponseCode err, String argsResponseCode, String argsUser) {
 		this(err.getErrorMessage() + argsResponseCode, err.getUserMessage() + argsUser);
 		this.messageCode = err.getCode();

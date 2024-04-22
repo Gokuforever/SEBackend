@@ -104,6 +104,8 @@ public class ManageCartBL_Service {
 		item.setPrice(product_price);
 		item.setSub_total(sub_total);
 		cart_items.add(item);
+		BigDecimal total_amount = cart_items.stream().map(Item::getSub_total).reduce(BigDecimal.ZERO, BigDecimal::add);
+		cart.setTotal_price(total_amount);
 		cart.setCart_items(cart_items);
 
 		cart_Service.update(cart.getId(), cart, req.getReq_user_id());

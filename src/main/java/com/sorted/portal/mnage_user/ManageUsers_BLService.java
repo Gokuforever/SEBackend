@@ -2,8 +2,6 @@ package com.sorted.portal.mnage_user;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,7 +38,7 @@ import com.sorted.portal.utils.SERegExpUtils;
 @RestController
 public class ManageUsers_BLService {
 
-	private static final Logger logger = LoggerFactory.getLogger(ManageUsers_BLService.class);
+//	private static final Logger logger = LoggerFactory.getLogger(ManageUsers_BLService.class);
 
 	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -78,6 +76,12 @@ public class ManageUsers_BLService {
 		if (!StringUtils.hasText(req.getEmail_id())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_EI);
 		}
+		if (!StringUtils.hasText(req.getStream())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_STREAM);
+		}
+		if (!StringUtils.hasText(req.getSemister())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_SEMISTER);
+		}
 		if (!StringUtils.hasText(req.getPassword())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_PASS);
 		}
@@ -93,6 +97,7 @@ public class ManageUsers_BLService {
 		if (!SERegExpUtils.isEmail(req.getEmail_id())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_EI);
 		}
+		
 
 		PasswordValidatorUtils.validatePassword(req.getPassword().trim());
 

@@ -66,7 +66,25 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.aitime.cashfree/cashfree-payment -->
+		<dependency>
+			<groupId>com.cashfree.pg.java</groupId>
+			<artifactId>cashfree_pg</artifactId>
+			<version>4.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+		</dependency>
+
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>cashfree-releases</id>
+			<url>https://repository.cashfree.com/releases/</url>
+		</repository>
+	</repositories>
+
 
 	<build>
 		<plugins>
