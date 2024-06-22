@@ -10,6 +10,6 @@ public class UsersCUDReqBean {
 	private String mobile_no;
 	private String email_id;
 	private String college;
-	private String semister;
-	private String stream;
+	private Integer semister;
+	private Integer branch;
 }

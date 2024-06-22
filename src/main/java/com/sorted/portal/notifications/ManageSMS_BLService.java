@@ -25,6 +25,9 @@ public class ManageSMS_BLService {
 	@Value("${fast2sms.auth.token}")
 	private String sms_auth_token;
 
+	@Value("${spring.profiles.active}")
+	private String profile;
+
 	@Autowired
 	private SmsPool_Service smsPool_Service;
 
@@ -34,10 +37,7 @@ public class ManageSMS_BLService {
 		smsPool.setMobile_no(mobileNumber);
 		smsPool.setContent(content);
 		smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
-		if ("111111".equals(content)) {
-			smsPool.setRaw_response("Static OTP");
-			smsPool.set_sent(true);
-		} else {
+		if ("prod".equalsIgnoreCase(profile)) {
 			try {
 				String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + content
 						+ "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
@@ -55,9 +55,10 @@ public class ManageSMS_BLService {
 				logger.error("Error occurred while extracting SMS response.");
 				logger.error(e.toString());
 			}
+		} else {
+			smsPool.setRaw_response("Static OTP");
+			smsPool.set_sent(true);
 		}
-//		String verificationCode = "111111";
-//		String mobileNumber = "9867292392";
 		smsPool_Service.update(smsPool.getId(), smsPool, Defaults.SMS_SERVICE);
 	}
 }

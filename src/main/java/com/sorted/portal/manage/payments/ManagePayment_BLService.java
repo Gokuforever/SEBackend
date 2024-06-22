@@ -206,7 +206,6 @@ public class ManagePayment_BLService {
 			third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, "");
 			OrderEntity orderEntity = response.getData();
 			details.setPg_order_id(orderEntity.getOrderId());
-//			orderEntity.getOrderStatus();
 			order_Details_Service.update(details.getId(), details, "Cashfree");
 			return SEResponse.getBasicSuccessResponseObject(response.getData(), ResponseCode.SUCCESSFUL);
 		} catch (ApiException e) {
@@ -214,7 +213,7 @@ public class ManagePayment_BLService {
 		}
 	}
 
-	@PostMapping
+	@PostMapping("upcoming end point name")
 	public SEResponse update_order_status(@RequestBody SERequest request) {
 		PG_Response_Bean req = request.getGenericRequestDataObject(PG_Response_Bean.class);
 		if (!StringUtils.hasText(req.getOrder_id())) {

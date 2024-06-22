@@ -3,6 +3,7 @@ package com.sorted.portal.otp_service;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.sorted.portal.constants.Defaults;
@@ -18,6 +19,7 @@ import com.sorted.portal.helper.AggregationFilter.SEFilterType;
 import com.sorted.portal.helper.AggregationFilter.SortOrder;
 import com.sorted.portal.helper.AggregationFilter.WhereClause;
 import com.sorted.portal.notifications.ManageSMS_BLService;
+import com.sorted.portal.utils.CommonUtils;
 
 import lombok.NonNull;
 
@@ -29,11 +31,21 @@ public class ManageOtp {
 
 	@Autowired
 	private ManageSMS_BLService manageSMS_BLService;
+	
+	@Value("${spring.profiles.active}")
+	private String profile;
+	
+	@Value("${se.portal.otp_length}")
+	private int otp_length;
 
 	public void send(@NonNull String mobileNumber, @NonNull String entity_id, @NonNull ProcessType processType) {
 		Otp otp = new Otp();
-//		int random_otp = CommonUtils.generateFixedLengthRandomNumber(6);
-		String random_otp = "111111";
+		String random_otp = null;
+		if("prod".equalsIgnoreCase(profile)) {
+			random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
+		}else {
+			random_otp = "111111";
+		}
 		otp.setOtp_value(random_otp);
 		otp.setStatus(true);
 		otp.setExpiry_time(LocalDateTime.now().plusMinutes(3));

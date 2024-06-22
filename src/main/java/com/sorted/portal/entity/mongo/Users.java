@@ -2,6 +2,8 @@ package com.sorted.portal.entity.mongo;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.sorted.portal.enums.UserType;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
@@ -27,5 +29,9 @@ public class Users extends BaseMongoEntity<String> {
 	private Boolean is_mobile_verified = false;
 	private Boolean is_email_verified = false;
 	private Integer status;
+	private UserType user_type;
+	private Integer user_type_id;
+	private Integer semister;
+	private Integer branch;
 
 }

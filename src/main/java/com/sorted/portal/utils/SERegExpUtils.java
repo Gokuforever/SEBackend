@@ -2,9 +2,14 @@ package com.sorted.portal.utils;
 
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import lombok.NonNull;
 
 public class SERegExpUtils {
+
+	@Value("${se.portal.otp_length}")
+	private static int otp_length;
 
 	public static boolean isString(@NonNull String val) {
 		val = val.trim();
@@ -17,10 +22,15 @@ public class SERegExpUtils {
 		Pattern pattern = Pattern.compile("[6-9]\\d{9}");
 		return pattern.matcher(val).matches();
 	}
-	
+
 	public static boolean isOtp(@NonNull String val) {
 		val = val.trim();
-		Pattern pattern = Pattern.compile("\\d{6}");
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("\\d{{");
+		stringBuilder.append(otp_length);
+		stringBuilder.append("}");
+		String regex = stringBuilder.toString();
+		Pattern pattern = Pattern.compile(regex);
 		return pattern.matcher(val).matches();
 	}
 

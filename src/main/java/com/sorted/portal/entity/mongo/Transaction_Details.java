@@ -23,7 +23,7 @@ public class Transaction_Details extends BaseMongoEntity<String> {
 	private String order_id;
 	private String order_code;
 	private String pg_transaction_id;
-	private String bank_reference;
+	private String utr;
 	private String payment_mode;
 	private LocalDateTime payment_completion_time;
 	private LocalDateTime payment_time;

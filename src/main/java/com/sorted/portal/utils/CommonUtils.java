@@ -21,18 +21,18 @@ public class CommonUtils {
 		return set.stream().collect(Collectors.toList());
 	}
 
-	public static int generateFixedLengthRandomNumber(int length) {
+	public static String generateFixedLengthRandomNumber(int length) {
 		if (length > 18) {
 			throw new IllegalStateException("To many digits");
 		}
 		int powInt = length - 1;
 		int tLen = (int) Math.pow(10, powInt) * 9;
 		int number = (int) (Math.random() * tLen) + (int) Math.pow(10, powInt) * 1;
-		String randomNumber = number + "";
+		String randomNumber = String.valueOf(number);
 		if (randomNumber.length() != length) {
 			throw new IllegalStateException("The random number '" + randomNumber + "' is not '" + length + "' digits");
 		}
-		return number;
+		return randomNumber;
 	}
 
 }

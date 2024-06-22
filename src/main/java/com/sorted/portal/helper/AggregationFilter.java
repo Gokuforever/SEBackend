@@ -277,4 +277,15 @@ public class AggregationFilter {
 		private String correlatedField; // Field in the main query used for correlation
 	}
 
+//	public Object getQuery(SEFilter f) {
+//		
+//		f.getClause();
+//		if(!CollectionUtils.isEmpty(f.nodes)){
+//			for (SEFilterNode node : f.nodes) {
+//				getQuery(node.getSubQuertClause());
+//			}
+//		}
+//		return null;
+//	}
+
 }
