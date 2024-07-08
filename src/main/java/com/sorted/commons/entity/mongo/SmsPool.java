@@ -18,6 +18,8 @@ public class SmsPool extends BaseMongoEntity<String> {
 	private String mobile_no;
 	private String content;
 	private String raw_response;
+	private String status;
+	private String response_id;
 	private boolean is_sent;
 
 }

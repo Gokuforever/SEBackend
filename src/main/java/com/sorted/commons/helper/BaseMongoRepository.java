@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.sorted.commons.config.StaticMongoAccessor;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
+import com.sorted.commons.enums.EntityDetails;
 import com.sorted.commons.enums.Operators;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -27,6 +28,8 @@ import com.sorted.commons.helper.AggregationFilter.SEFilterNode;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.SortOrder;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+
+import lombok.NonNull;
 
 public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		extends BaseRepository<T, K>, MongoRepository<T, K> {
@@ -42,7 +45,9 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 			Type[] typeArguments = parameterizedType.getActualTypeArguments();
 
 			if (typeArguments.length > 1 && typeArguments[1] instanceof Class) {
-				return (Class<T>) typeArguments[1];
+				Class<T> clazz = (Class<T>) typeArguments[1];
+				EntityDetails.assertExists(clazz);
+				return clazz;
 			}
 		}
 		throw new IllegalStateException("Unable to determine the entity type.");
@@ -54,7 +59,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	}
 
 	@Override
-	default T create(T obj, String cudby) {
+	default T create(@NonNull T obj, String cudby) {
 		obj.setBeforeCreate(cudby);
 		return this.insert(obj);
 	}

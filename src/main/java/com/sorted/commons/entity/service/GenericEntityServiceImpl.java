@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import com.sorted.commons.helper.BaseRepository;
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.BaseRepository;
 
 public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T, K>> implements BaseRepository<T, K> {
 
@@ -74,12 +76,24 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 
 	@Override
 	public T update(K id, T entity, String cudby) {
+		if (id == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_ENTITY);
+		}
 		this.validateBeforeUpdate(id, entity);
 		return repository.update(id, entity, cudby);
 	}
 
 	@Override
+	public T upsert(K id, T obj, String cud_by) {
+		if (id == null) {
+			return this.create(obj, cud_by);
+		}
+		return this.update(id, obj, cud_by);
+	}
+
+	@Override
 	public void deleteOne(K id) {
+		this.validateBeforeDelete(id);
 		repository.deleteOne(id);
 	}
 

@@ -1,7 +1,10 @@
 package com.sorted.commons.entity.mongo;
 
+import java.util.List;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.sorted.commons.beans.Address;
 import com.sorted.commons.enums.UserType;
 
 import lombok.Data;
@@ -25,13 +28,11 @@ public class Users extends BaseMongoEntity<String> {
 	private String password;
 	private String profile_picture_id;
 	private String role_id;
-	private String role_code;
-	private Boolean is_mobile_verified = false;
-	private Boolean is_email_verified = false;
 	private Integer status;
 	private UserType user_type;
-	private Integer user_type_id;
 	private Integer semister;
 	private Integer branch;
+	private Boolean is_verified = false;
+	private List<Address> addresses;
 
 }

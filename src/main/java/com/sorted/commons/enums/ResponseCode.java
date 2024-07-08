@@ -7,14 +7,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResponseCode {
 
+	// @formatter:off
 	SUCCESSFUL("SE_0000", "Successful.", "Successful."),
 	ERR_0001("SE_0001", "Something went wrong.", "Something went wrong."),
 	INVALID_REQ("SE_0002", "Invalid request.", "Invalid request."),
 	MANDATE_CATEGORY("SE_0003", "Category name is mandatory.", "Category name is mandatory."),
 	MANDATE_SUB_CATEGORY("SE_0004", "Sub category name is missing.", "Sub category name is missing."),
 	INVALID_SUB_CATEGORY("SE_0005", "Invalid sub category.", "Invalid sub category."),
-	INVALID_MIN_SUB_CATEGORY("SE_0006", "At least one value is required for sub category.",
-			"At least one value is required for sub category."),
+	INVALID_MIN_SUB_CATEGORY("SE_0006", "At least one value is required for sub category.",	"At least one value is required for sub category."),
 	INVALID_SUB_CATEGORY_VAL("SE_0007", "Invalid sub category value.", "Invalid sub category value"),
 	INVALID_CATEGORY_SELECTED("SE_0008", "Invalid category selected.", "Invalid category selected."),
 	MISSING_PRODUCT_NAME("SE_0009", "Product name is missing.", "Product name is missing."),
@@ -38,8 +38,7 @@ public enum ResponseCode {
 	MISSING_PRODUCT_ID("SE_0026", "Product id is missing.", "Product id is missing."),
 	PRODUCT_NOT_FOUND("SE_0027", "Product not found.", "Product not found."),
 	PRODUCT_OUT_OF_STOCK("SE_0026", "This product out of stock.", "This product out of stock."),
-	STOCK_LIMIT_REACHED("SE_0029", "Stock limit reached. Additional quantities cannot be added at this time.",
-			"Stock limit reached. Additional quantities cannot be added at this time."),
+	STOCK_LIMIT_REACHED("SE_0029", "Stock limit reached. Additional quantities cannot be added at this time.", "Stock limit reached. Additional quantities cannot be added at this time."),
 	MISSING_PRODUCT_QUANTITY("SE_0030", "Product quantity is missing.", "Product quantity is missing."),
 	INVAALID_PRODUCT_QUANTITY("SE_0031", "Product quantity is invalid.", "Product quantity is invalid."),
 	CART_NOT_FOUND("SE_0032", "First crete a cart for this user by adding an item.", "First crete a cart for this user by adding an item."),
@@ -72,7 +71,12 @@ public enum ResponseCode {
 	USER_NOT_FOUND("SE_0057", "User Not found.", "User Not found."),
 	INVALID_SEMISTER("SE_0058", "Invalid branch.", "Invalid semister selected."),
 	INVALID_BRANCH("SE_0059", "Invalid branch.", "Branch not found."),
+	ENTITY_DEFINATION_INCOMPLETE("SE_0060", "Entity defination missing in EntityDetails.", "Something went wrong."),
+	ALREADY_SIGNED_UP("SE_0061", "This mobile no is already used, please sign in or use a different mobile no.", "This mobile no is already used, please sign in or use a different mobile no."),
+	MISSING_OTP_REF("SE_0062", "OTP reference id is missing.", "OTP reference id is missing."),
+	MSSING_CUST_DEF_ROLE("SE_0063", "Customer default role not found.", "Something went wrong."),
 	INVALID_CATEGORY("SE_000", "Invalid category name.", "Invalid category name.");
+	// @formatter:on
 
 	private final String code;
 	private final String errorMessage;

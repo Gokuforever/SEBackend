@@ -2,10 +2,12 @@ package com.sorted.commons.entity.mongo;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.commons.beans.Attempt_Details;
+import com.sorted.commons.enums.EntityDetails;
 import com.sorted.commons.enums.ProcessType;
 
 import lombok.Data;
@@ -32,8 +34,10 @@ public class Otp extends BaseMongoEntity<String> {
 	private String mobile_no;
 	private String email_id;
 	private String entity_id;
-	private LocalDateTime expiry_time;
-	private LocalDateTime verification_time;
+	private String uuid = UUID.randomUUID().toString();
+	private EntityDetails entity_type;
+	private LocalDateTime expiry_at;
+	private LocalDateTime verified_at;
 	private List<Attempt_Details> attempt_details;
 	private ProcessType process_type;
 }

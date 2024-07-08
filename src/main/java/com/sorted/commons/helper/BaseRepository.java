@@ -18,7 +18,9 @@ public interface BaseRepository<T, K> {
 
 	long totalCount();
 
-	T update(K id,T obj, String cud_by);
+	T update(K id, T obj, String cud_by);
+
+	T upsert(K id, T obj, String cud_by);
 
 	void deleteOne(K id);
 
