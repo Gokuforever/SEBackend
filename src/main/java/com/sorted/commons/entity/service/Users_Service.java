@@ -15,6 +15,7 @@ import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.repository.mongo.Users_Repository;
+import com.sorted.commons.utils.GsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +48,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 
 	}
 
-	public UsersBean validateUserForLogin(String req_user_id, String req_role_id) {
+	public UsersBean validateAndGetUserInfo(String req_user_id, String req_role_id) {
 		try {
 			log.info("validateUserForLogin started.");
 			SEFilter filterU = new SEFilter(SEFilterType.AND);
@@ -68,14 +69,15 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 			if (role == null) {
 				throw new CustomIllegalArgumentsException(ResponseCode.ROLE_MISSING);
 			}
-			
-			
-			Gson gson = new Gson();
+
+			Gson gson = GsonUtils.getGson();
 			UsersBean usersBean = gson.fromJson(gson.toJson(users), UsersBean.class);
 			usersBean.setPassword("");
 			usersBean.setRole(role);
 			log.info("validateUserForLogin ended.");
 			return usersBean;
+		} catch (CustomIllegalArgumentsException ex) {
+			throw ex;
 		} catch (Exception e) {
 			log.error("validateUserForLogin:: error occerred:: {}", e.getMessage());
 			throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);

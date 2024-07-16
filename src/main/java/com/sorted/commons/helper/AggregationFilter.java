@@ -71,6 +71,15 @@ public class AggregationFilter {
 			}
 			this.nodes.add(nodes);
 		}
+		
+		public void addProjection(String... fields) {
+			if(CollectionUtils.isEmpty(selection)) {
+				this.selection = new ArrayList<>();
+			}
+			for (String field : fields) {
+				this.selection.add(field);
+			}
+		}
 	}
 
 	@Data

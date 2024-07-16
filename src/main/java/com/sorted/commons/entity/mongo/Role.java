@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.commons.beans.Role_Activity_Permissions;
+import com.sorted.commons.enums.UserType;
 import com.sorted.commons.enums.All_Status.Role_Status;
 
 import lombok.Data;
@@ -22,7 +23,9 @@ public class Role extends BaseMongoEntity<String> {
 	private String code;
 	private String name;
 	private Integer status;
-	private List<Role_Activity_Permissions> activity_Permissions;
+	private Integer user_type_id;
+	private UserType user_type;
+	private List<Role_Activity_Permissions> role_permissions;
 
 	public void setStatus(Role_Status status) {
 		this.status = status.getId();

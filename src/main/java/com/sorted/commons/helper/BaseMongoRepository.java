@@ -76,6 +76,14 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		obj.setBeforeModification(cudby);
 		return this.save(obj);
 	}
+	
+	@Override
+	default T upsert(K id, T obj, String cud_by) {
+		if(id==null) {
+			return this.create(obj, cud_by);
+		}
+		return update(id, obj, cud_by);
+	}
 
 	@Override
 	default long totalCount() {

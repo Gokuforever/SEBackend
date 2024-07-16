@@ -29,7 +29,6 @@ public class Users extends BaseMongoEntity<String> {
 	private String profile_picture_id;
 	private String role_id;
 	private Integer status;
-	private UserType user_type;
 	private Integer semister;
 	private Integer branch;
 	private Boolean is_verified = false;

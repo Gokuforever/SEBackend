@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.gson.Gson;
 import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.utils.GsonUtils;
 
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +37,7 @@ public class SEResponse implements Serializable {
 
 		return apiResponse;
 	}
-	
+
 	@JsonIgnore
 	public static SEResponse getEmptySuccessResponse(String message) {
 		SEResponse apiResponse;
@@ -57,7 +57,7 @@ public class SEResponse implements Serializable {
 
 		return SEResponse.builder().status(HttpStatus.OK).userMessage(message.getUserMessage())
 				.responseCode(message.getCode()).errorMessage(message.getErrorMessage())
-				.responseData(new Gson().toJson(e)).responseDataType(e.getClass().getSimpleName()).build();
+				.responseData(GsonUtils.getGson().toJson(e)).responseDataType(e.getClass().getSimpleName()).build();
 	}
 
 	@JsonIgnore
@@ -65,7 +65,8 @@ public class SEResponse implements Serializable {
 
 		return SEResponse.builder().status(HttpStatus.OK).userMessage(message.getUserMessage())
 				.responseCode(message.getCode()).errorMessage(message.getErrorMessage())
-				.responseData(new Gson().toJson(list)).responseDataType(list.getClass().getSimpleName()).build();
+				.responseData(GsonUtils.getGson().toJson(list)).responseDataType(list.getClass().getSimpleName())
+				.build();
 	}
 
 	@JsonIgnore

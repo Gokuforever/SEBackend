@@ -4,32 +4,18 @@ import java.util.List;
 
 import com.sorted.commons.enums.Activity;
 
+import lombok.Data;
+
+@Data
 public class Role_Activity_Permissions {
 
 	private Integer activity_id;
-
-	public Activity getActivity() {
-		return activity;
-	}
+	private String activity_name;
+	private List<Integer> permissions;
 
 	public void setActivity(Activity activity) {
-		this.activity = activity;
+		this.activity_name = activity.getName();
 		this.activity_id = activity.getId();
 	}
-
-	public List<ActivityPermissions> getPermissions() {
-		return permissions;
-	}
-
-	public void setPermissions(List<ActivityPermissions> permissions) {
-		this.permissions = permissions;
-	}
-
-	public Integer getActivity_id() {
-		return activity_id;
-	}
-
-	private Activity activity;
-	private List<ActivityPermissions> permissions;
 
 }

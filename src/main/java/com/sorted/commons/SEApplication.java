@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan("com.sorted.commons")
+//@ComponentScan("com.sorted.commons")
 public class SEApplication {
 
 	public static void main(String[] args) {
