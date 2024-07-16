@@ -27,6 +27,7 @@ public class Products extends BaseMongoEntity<String> {
 	private String category_code;
 	private String seller_id;
 	private String seller_code;
+	private String varient_mapping_id;
 	private List<SelectedSubCatagories> selected_sub_catagories;
 
 	@Data
