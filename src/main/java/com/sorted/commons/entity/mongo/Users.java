@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.commons.beans.Address;
-import com.sorted.commons.enums.UserType;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

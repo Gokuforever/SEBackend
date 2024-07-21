@@ -7,5 +7,6 @@ public class Defaults {
 	public static final String AUTO = "Auto";
 	public static final String SIGN_UP = "Sign Up";
 	public static final String SIGN_IN = "Sign In";
+	public static final String RESEND = "Resend";
 	public static final String SMS_SERVICE = "Sms Service";
 }

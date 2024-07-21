@@ -3,13 +3,23 @@ package com.sorted.commons.utils;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 
+@Component
 public class SERegExpUtils {
 
 	@Value("${se.portal.otp_length}")
-	private static int otp_length;
+	private int otp_length;
+	
+	private static int otp_length_new;
+	
+	@PostConstruct
+	private void init() {
+		otp_length_new = otp_length;
+    }
 
 	public static boolean isString(@NonNull String val) {
 		val = val.trim();
@@ -26,8 +36,8 @@ public class SERegExpUtils {
 	public static boolean isOtp(@NonNull String val) {
 		val = val.trim();
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("\\d{{");
-		stringBuilder.append(otp_length);
+		stringBuilder.append("\\d{");
+		stringBuilder.append(otp_length_new);
 		stringBuilder.append("}");
 		String regex = stringBuilder.toString();
 		Pattern pattern = Pattern.compile(regex);

@@ -1,12 +1,14 @@
 package com.sorted.commons.manage.otp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.google.gson.JsonObject;
@@ -17,6 +19,7 @@ import com.sorted.commons.entity.mongo.Otp;
 import com.sorted.commons.entity.mongo.SmsPool;
 import com.sorted.commons.entity.service.Otp_Service;
 import com.sorted.commons.entity.service.SmsPool_Service;
+import com.sorted.commons.enums.EntityDetails;
 import com.sorted.commons.enums.ProcessType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -49,7 +52,21 @@ public class ManageOtp {
 	@Value("${fast2sms.auth.token}")
 	private String sms_auth_token;
 
-	public String send(@NonNull String mobileNumber, @NonNull String entity_id, @NonNull ProcessType processType) {
+	public String send(@NonNull String mobile_number, @NonNull String entity_id, @NonNull ProcessType process_type,
+			EntityDetails entity, String cud_by) {
+		SEFilter filterO = new SEFilter(SEFilterType.AND);
+		filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, mobile_number));
+		filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
+		filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		List<Otp> listOtp = otp_Service.repoFind(filterO);
+		if (!CollectionUtils.isEmpty(listOtp)) {
+			for (Otp tempOtp : listOtp) {
+				tempOtp.setStatus(false);
+				otp_Service.update(tempOtp.getId(), tempOtp, cud_by);
+			}
+		}
+
 		Otp otp = new Otp();
 		String random_otp = null;
 		if ("prod".equalsIgnoreCase(profile)) {
@@ -60,23 +77,23 @@ public class ManageOtp {
 		otp.setOtp_value(random_otp);
 		otp.setStatus(true);
 		otp.setExpiry_at(LocalDateTime.now().plusMinutes(3));
-		otp.setMobile_no(mobileNumber);
+		otp.setMobile_no(mobile_number);
 		otp.setEntity_id(entity_id);
-		otp.setProcess_type(processType);
+		otp.setProcess_type(process_type);
 		otp.setIs_verified(false);
+		otp.setEntity_type(entity);
 
-		otp = otp_Service.create(otp, Defaults.SIGN_UP);
-
-		this.sendSMS(mobileNumber, random_otp);
+		otp = otp_Service.create(otp, cud_by);
+		this.sendSMS(mobile_number, random_otp);
 		return otp.getUuid();
 	}
 
-	public void verify(@NonNull String mobile_no, @NonNull String entity_id, @NonNull String uuid, @NonNull String otp,
+	public void verify(EntityDetails entity, @NonNull String uuid, @NonNull String otp, @NonNull String entity_id,
 			@NonNull ProcessType processType, String cud_by) {
 		SEFilter filterO = new SEFilter(SEFilterType.AND);
 		filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+		filterO.addClause(WhereClause.eq(Otp.Fields.entity_type, entity.name()));
 		filterO.addClause(WhereClause.eq(Otp.Fields.entity_id, entity_id));
-		filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, mobile_no));
 		filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
 		filterO.addClause(WhereClause.eq(Otp.Fields.is_verified, false));
 		filterO.addClause(WhereClause.eq(Otp.Fields.otp_value, otp));
@@ -130,5 +147,24 @@ public class ManageOtp {
 			smsPool.set_sent(true);
 		}
 		smsPool_Service.update(smsPool.getId(), smsPool, Defaults.SMS_SERVICE);
+	}
+
+	public String resendOtp(@NonNull ProcessType process, @NonNull String uuid, @NonNull String entity_id) {
+		SEFilter filterO = new SEFilter(SEFilterType.AND);
+		filterO.addClause(WhereClause.eq(Otp.Fields.process_type, process.name()));
+		filterO.addClause(WhereClause.eq(Otp.Fields.entity_id, entity_id));
+		filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
+		filterO.addClause(WhereClause.eq(Otp.Fields.is_verified, false));
+		filterO.addClause(WhereClause.eq(Otp.Fields.uuid, uuid));
+		filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		Otp oldOtp = otp_Service.repoFindOne(filterO);
+		if (oldOtp == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_RESEND_REQUEST);
+		}
+		oldOtp.setStatus(false);
+		otp_Service.update(oldOtp.getId(), oldOtp, Defaults.RESEND);
+		return this.send(oldOtp.getMobile_no(), oldOtp.getEntity_id(), process, oldOtp.getEntity_type(),
+				Defaults.RESEND);
 	}
 }

@@ -1,19 +1,27 @@
 package com.sorted.commons.entity.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.google.gson.Gson;
+import com.sorted.commons.beans.OTPResponse;
 import com.sorted.commons.beans.UsersBean;
+import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Role;
 import com.sorted.commons.entity.mongo.Users;
 import com.sorted.commons.enums.All_Status.User_Status;
+import com.sorted.commons.enums.EntityDetails;
+import com.sorted.commons.enums.ProcessType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.manage.otp.ManageOtp;
 import com.sorted.commons.repository.mongo.Users_Repository;
 import com.sorted.commons.utils.GsonUtils;
 
@@ -23,7 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class Users_Service extends GenericEntityServiceImpl<String, Users, Users_Repository> {
 
-//	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+	@Autowired
+	private ManageOtp manageOtp;
 
 	@Autowired
 	private RoleService roleService;
@@ -48,18 +59,61 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 
 	}
 
+	public OTPResponse validateUserForLogin(String mobile_no, String password) {
+		SEFilter filterU = new SEFilter(SEFilterType.AND);
+		filterU.addClause(WhereClause.eq(Users.Fields.mobile_no, mobile_no));
+		filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		Users user = this.repoFindOne(filterU);
+		if (user == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.LOGIN_FAILED);
+		}
+		String pass = user.getPassword();
+		if (!passwordEncoder.matches(password, pass)) {
+			throw new CustomIllegalArgumentsException(ResponseCode.LOGIN_FAILED);
+		}
+		if (user.getStatus() != User_Status.ACTIVE.getId() || !Boolean.TRUE.equals(user.getIs_verified())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.USER_BLOCKED);
+		}
+
+		SEFilter filterR = new SEFilter(SEFilterType.AND);
+		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, user.getRole_id()));
+		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		Role role = roleService.repoFindOne(filterR);
+		if (role == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.ROLE_MISSING);
+		}
+		String uuid = manageOtp.send(mobile_no, user.getId(), ProcessType.SIGN_IN, EntityDetails.USERS,
+				Defaults.SIGN_IN);
+		OTPResponse response = new OTPResponse();
+		response.setReference_id(uuid);
+		response.setProcess_type(ProcessType.SIGN_IN.name());
+		response.setEntity_id(user.getId());
+		return response;
+	}
+
+	public UsersBean validateAndGetUserInfo(String req_user_id) {
+		return this.validateAndGetUserInfo(req_user_id, null);
+	}
+
 	public UsersBean validateAndGetUserInfo(String req_user_id, String req_role_id) {
 		try {
 			log.info("validateUserForLogin started.");
 			SEFilter filterU = new SEFilter(SEFilterType.AND);
 			filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_user_id));
-			filterU.addClause(WhereClause.eq(Users.Fields.role_id, req_role_id));
+			if(StringUtils.hasText(req_role_id)) {
+				filterU.addClause(WhereClause.eq(Users.Fields.role_id, req_role_id));
+			}
 			filterU.addClause(WhereClause.eq(Users.Fields.is_verified, true));
 			filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
 			Users users = this.repoFindOne(filterU);
 			if (users == null) {
 				throw new CustomIllegalArgumentsException(ResponseCode.USER_NOT_FOUND);
+			}
+			if (!StringUtils.hasText(req_role_id)) {
+				req_role_id = users.getRole_id();
 			}
 			SEFilter filterR = new SEFilter(SEFilterType.AND);
 			filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_role_id));
