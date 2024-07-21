@@ -73,10 +73,12 @@ public enum ResponseCode {
 	INVALID_BRANCH("SE_0059", "Invalid branch.", "Branch not found."),
 	ENTITY_DEFINATION_INCOMPLETE("SE_0060", "Entity defination missing in EntityDetails.", "Something went wrong."),
 	ALREADY_SIGNED_UP("SE_0061", "This mobile no is already used, please sign in or use a different mobile no.", "This mobile no is already used, please sign in or use a different mobile no."),
-	MISSING_OTP_REF("SE_0062", "OTP reference id is missing.", "OTP reference id is missing."),
+	MISSING_REF_ID("SE_0062", "Reference id is missing.", "Reference id is missing."),
 	MSSING_CUST_DEF_ROLE("SE_0063", "Customer default role not found.", "Something went wrong."),
 	MISSING_PROCESS_TYPE("SE_0064", "Process type missing", "Something went wrong."),
 	INVALID_RESEND_REQUEST("SE_0065", "No OTP found for resend process.", "Please go back and start the process again."),
+	SESSION_EXPIRED("SE_0066", "Session expired.", "Session expired, please restart the process."),
+	BR_OLD_PASSWORD("SE_0067", "Use a different password.", "Use a different password."),
 	INVALID_CATEGORY("SE_000", "Invalid category name.", "Invalid category name.");
 	// @formatter:on
 
