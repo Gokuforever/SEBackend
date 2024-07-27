@@ -9,7 +9,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "products")
+@Document(collection = "varient_mapping")
 public class Varient_Mapping extends BaseMongoEntity<String> {
 	/**
 	* 

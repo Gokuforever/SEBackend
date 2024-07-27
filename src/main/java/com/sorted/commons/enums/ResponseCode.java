@@ -23,8 +23,7 @@ public enum ResponseCode {
 	INVALID_PRODUCT_PRICE("SE_0012", "Invalid product price.", "Invalid product price."),
 	MISSING_QUANTITY("SE_0013", "Quantity is missing.", "Quantity is missing."),
 	INVALID_QUANTITY("SE_0014", "Invalid quantity.", "Invalid quantity."),
-	CATALORY_NOT_SELECTED("SE_0015", "Category not selected.", "Category not selected."),
-	CATALORY_NOT_FOUND("SE_0015", "Selected category not found.", "Selected category not found."),
+	CATEGORY_NOT_SELECTED("SE_0015", "Category not selected.", "Category not selected."),
 	EMPTY_SUB_CATEGORY("SE_0016", "Select atleast 1 sub-category.", "Select atleast 1 sub-category."),
 	EMPTY_ATTRIBUTE("SE_0017", "Attribute is missing.", "Attribute is missing."),
 	INVALID_ATTRIBUTE("SE_0018", "Invalid attribute selected.", "Invalid attribute selected."),
@@ -79,7 +78,10 @@ public enum ResponseCode {
 	INVALID_RESEND_REQUEST("SE_0065", "No OTP found for resend process.", "Please go back and start the process again."),
 	SESSION_EXPIRED("SE_0066", "Session expired.", "Session expired, please restart the process."),
 	BR_OLD_PASSWORD("SE_0067", "Use a different password.", "Use a different password."),
-	INVALID_CATEGORY("SE_000", "Invalid category name.", "Invalid category name.");
+	CATEGORY_NOT_FOUND("SE_0068", "Selected category not found.", "Selected category not found."),
+	INVALID_CATEGORY("SE_0069", "Invalid category name.", "Invalid category name."),
+	PLEASE_SELECT_SELLER("SE_0070", "Please select seller", "Please select seller"),
+	SELLER_NOT_FOUND("SE_0071", "Seller not found", "Seller not found");
 	// @formatter:on
 
 	private final String code;

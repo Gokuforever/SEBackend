@@ -11,6 +11,7 @@ import com.sorted.commons.entity.mongo.Otp;
 import com.sorted.commons.entity.mongo.Product_Category_Mapping;
 import com.sorted.commons.entity.mongo.Products;
 import com.sorted.commons.entity.mongo.Role;
+import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.entity.mongo.SmsPool;
 import com.sorted.commons.entity.mongo.Third_Party_Api;
 import com.sorted.commons.entity.mongo.Transaction_Details;
@@ -36,6 +37,7 @@ public enum EntityDetails {
 	PRODUCTS(Products.class),
 	ROLE(Role.class),
 	SMSPOOL(SmsPool.class),
+	SELLER(Seller.class),
 	THIRD_PARTY_API(Third_Party_Api.class),
 	TRANSACTION_DETAILS(Transaction_Details.class),
 	USERS(Users.class),

@@ -20,7 +20,10 @@ public class Products extends BaseMongoEntity<String> {
 	private static final long serialVersionUID = 1L;
 	private String product_code;
 	private String name;
+	private BigDecimal cost_price;
 	private BigDecimal selling_price;
+	private BigDecimal maximum_retail_price;
+	private String discount_tag;
 	private String description;
 	private Long quantity;
 	private String category_id;
@@ -32,7 +35,7 @@ public class Products extends BaseMongoEntity<String> {
 
 	@Data
 	@FieldNameConstants
-	public static class SelectedSubCatagories{
+	public static class SelectedSubCatagories {
 		private String sub_category;
 		private List<String> selected_attributes;
 	}
