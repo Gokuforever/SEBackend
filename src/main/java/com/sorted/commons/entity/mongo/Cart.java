@@ -20,9 +20,7 @@ public class Cart extends BaseMongoEntity<String> {
 	* 
 	*/
 	private static final long serialVersionUID = 1L;
-	private String code;
 	private String user_id;
-	private String role_id;
 	private String promotion_id;
 	private List<Item> cart_items;
 	private BigDecimal total_price;

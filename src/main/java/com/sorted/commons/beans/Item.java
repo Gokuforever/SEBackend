@@ -1,8 +1,7 @@
 package com.sorted.commons.beans;
 
-import java.math.BigDecimal;
-
-import com.sorted.commons.enums.CartItemsStatus;
+import com.sorted.commons.enums.ProductType;
+import com.sorted.commons.enums.PurchaseType;
 
 import lombok.Data;
 
@@ -11,7 +10,7 @@ public class Item {
 	private String product_id;
 	private String product_code;
 	private Long quantity;
-	private BigDecimal price;
-	private BigDecimal sub_total;
-	private Integer status = CartItemsStatus.ADDED.getId();
+	private PurchaseType purchase_type;
+	private ProductType product_type;
+	private String bundle_id;
 }
