@@ -81,7 +81,9 @@ public enum ResponseCode {
 	CATEGORY_NOT_FOUND("SE_0068", "Selected category not found.", "Selected category not found."),
 	INVALID_CATEGORY("SE_0069", "Invalid category name.", "Invalid category name."),
 	PLEASE_SELECT_SELLER("SE_0070", "Please select seller", "Please select seller"),
-	SELLER_NOT_FOUND("SE_0071", "Seller not found", "Seller not found");
+	SELLER_NOT_FOUND("SE_0071", "Seller not found", "Seller not found"),
+	NO_ITEMS("SE_0072", "Items list is empty.", "Something went wrong."),
+	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 
 	private final String code;
