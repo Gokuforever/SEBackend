@@ -83,6 +83,9 @@ public enum ResponseCode {
 	PLEASE_SELECT_SELLER("SE_0070", "Please select seller", "Please select seller"),
 	SELLER_NOT_FOUND("SE_0071", "Seller not found", "Seller not found"),
 	NO_ITEMS("SE_0072", "Items list is empty.", "Something went wrong."),
+	MANDATE_MRP("SE_0075", "MRP is missing.", "MRP is missing."),
+	MANDATE_SP("SE_0078", "Selling price is missing.", "Selling price is missing."),
+	ACCESS_DENIED("SE_0079", "Access Denied.", "Access Denied."),
 	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 

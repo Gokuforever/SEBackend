@@ -71,9 +71,9 @@ public class AggregationFilter {
 			}
 			this.nodes.add(nodes);
 		}
-		
+
 		public void addProjection(String... fields) {
-			if(CollectionUtils.isEmpty(selection)) {
+			if (CollectionUtils.isEmpty(selection)) {
 				this.selection = new ArrayList<>();
 			}
 			for (String field : fields) {
@@ -186,6 +186,10 @@ public class AggregationFilter {
 
 		public static WhereClause in(String field, List<?> value) {
 			return new WhereClause(field, value, Operators.IN);
+		}
+
+		public static WhereClause nin(String field, List<?> value) {
+			return new WhereClause(field, value, Operators.NIN);
 		}
 
 		public static WhereClause all(String field, List<?> value) {

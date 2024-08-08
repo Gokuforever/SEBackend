@@ -21,10 +21,12 @@ public class Category_Master extends BaseMongoEntity<String> {
 	private String name;
 	private String category_code;
 	private List<SubCategory> sub_categories;
+	private List<SubCategory> related_sub_catagories;
 
 	@Data
 	public static class SubCategory {
 		private String name;
 		private List<String> attributes;
+		private boolean mandate;
 	}
 }

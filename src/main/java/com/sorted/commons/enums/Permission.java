@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum Permissions {
+public enum Permission {
 
 	VIEW(1),
 	EDIT(2);

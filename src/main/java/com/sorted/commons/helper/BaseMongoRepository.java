@@ -76,10 +76,10 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		obj.setBeforeModification(cudby);
 		return this.save(obj);
 	}
-	
+
 	@Override
 	default T upsert(K id, T obj, String cud_by) {
-		if(id==null) {
+		if (id == null) {
 			return this.create(obj, cud_by);
 		}
 		return update(id, obj, cud_by);
@@ -225,6 +225,8 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 			return new Criteria(clause.getField()).gt(clause.getValueAsObject());
 		case IN:
 			return new Criteria(clause.getField()).in(clause.getValueList());
+		case NIN:
+			return new Criteria(clause.getField()).nin(clause.getValueList());
 		case ALL:
 			return new Criteria(clause.getField()).all(clause.getValueList());
 		case ELEMMATCH_IN:
