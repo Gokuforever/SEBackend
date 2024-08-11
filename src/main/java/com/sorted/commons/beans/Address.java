@@ -7,11 +7,12 @@ import lombok.Data;
 @Data
 public class Address {
 
-	private String street;
+	private String street_1;
+	private String street_2;
+	private String landmark;
 	private String city;
 	private String state;
 	private String pincode;
-	private String landmark;
 	private AddressType address_type;
 	private String address_type_desc;
 	private Boolean is_default;

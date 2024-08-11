@@ -1,9 +1,11 @@
 package com.sorted.commons.entity.mongo;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.sorted.commons.beans.Media;
+import com.sorted.commons.beans.SelectedSubCatagories;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,9 +22,9 @@ public class Products extends BaseMongoEntity<String> {
 	private static final long serialVersionUID = 1L;
 	private String product_code;
 	private String name;
-	private BigDecimal cost_price;
-	private BigDecimal selling_price;
-	private BigDecimal maximum_retail_price;
+	private Long cost_price;
+	private Long selling_price;
+	private Long mrp;
 	private String discount_tag;
 	private String description;
 	private Long quantity;
@@ -32,11 +34,6 @@ public class Products extends BaseMongoEntity<String> {
 	private String seller_code;
 	private String varient_mapping_id;
 	private List<SelectedSubCatagories> selected_sub_catagories;
+	private List<Media> media;
 
-	@Data
-	@FieldNameConstants
-	public static class SelectedSubCatagories {
-		private String sub_category;
-		private List<String> selected_attributes;
-	}
 }

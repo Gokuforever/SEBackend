@@ -1,5 +1,8 @@
 package com.sorted.commons.entity.service;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -105,7 +108,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 		return this.validateAndGetUserInfo(req_user_id, null);
 	}
 
-	public UsersBean validateAndGetUserInfo(@NonNull String req_user_id, String req_role_id) {
+	private UsersBean validateAndGetUserInfo(@NonNull String req_user_id, String req_role_id) {
 		try {
 			log.info("validateUserForLogin started.");
 			SEFilter filterU = new SEFilter(SEFilterType.AND);
@@ -147,12 +150,17 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 		}
 	}
 
-	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull String req_role_id,
-			@NonNull Activity activity, @NonNull Permission permission) {
+	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull Activity... activity) {
+		return this.validateUserForActivity(req_user_id, Permission.VIEW, activity);
+	}
+
+	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull Permission permission,
+			@NonNull Activity... activity) {
 		log.info("validateUserForActivity started.");
+		List<Activity> activities = Arrays.asList(activity);
 		SEFilter filterU = new SEFilter(SEFilterType.AND);
 		filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_user_id));
-		filterU.addClause(WhereClause.eq(Users.Fields.role_id, req_role_id));
+//		filterU.addClause(WhereClause.eq(Users.Fields.role_id, req_role_id));
 		filterU.addClause(WhereClause.eq(Users.Fields.is_verified, true));
 		filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
@@ -161,7 +169,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 			throw new CustomIllegalArgumentsException(ResponseCode.USER_NOT_FOUND);
 		}
 		SEFilter filterR = new SEFilter(SEFilterType.AND);
-		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_role_id));
+		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, users.getRole_id()));
 		filterR.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
 		Role role = roleService.repoFindOne(filterR);
@@ -171,8 +179,14 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 		if (CollectionUtils.isEmpty(role.getRole_permissions())) {
 			throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
 		}
-		boolean hasAccess = role.getRole_permissions().stream().anyMatch(
-				e -> (e.getActivity_id() == activity.getId() && e.getPermissions().contains(permission.getId())));
+		boolean hasAccess = false;
+		for (Activity act : activities) {
+			hasAccess = role.getRole_permissions().stream().anyMatch(
+					e -> (e.getActivity_id() == act.getId() && e.getPermissions().contains(permission.getId())));
+			if (hasAccess) {
+				break;
+			}
+		}
 		if (!hasAccess) {
 			throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
 		}
@@ -189,11 +203,11 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 	private void validateHierarchy(Role role, UsersBean usersBean) {
 		switch (role.getUser_type()) {
 		case SELLER:
-			if (!StringUtils.hasText(role.getSe_id())) {
+			if (!StringUtils.hasText(role.getSeller_id())) {
 				throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
 			}
 			SEFilter filterS = new SEFilter(SEFilterType.AND);
-			filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, role.getSe_id()));
+			filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, role.getSeller_id()));
 			filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
 			Seller seller = seller_Service.repoFindOne(filterS);

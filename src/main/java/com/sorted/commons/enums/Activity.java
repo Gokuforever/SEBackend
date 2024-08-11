@@ -7,14 +7,17 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Activity {
 
+	// @formatter:off
 	HOME(100,"Home"),
 	PRODUCTS(101,"Products"),
-	INVENTORY_MANAGEMENT(102,"InventoryManagement"),
-	CART_MANAGEMENT(103,"CartManagement"),
+	INVENTORY_MANAGEMENT(102,"Inventory Management"),
+	CART_MANAGEMENT(103,"Cart Management"),
 	PURCHASE(104,"Purchase"),
-	ORDER_MANAGEMENT(105,"OrderManagement"),
+	ORDER_MANAGEMENT(105,"Order Management"),
 	SUBSCRIBE(106,"Subscribe"),
-	USER_MANAGEMENT(107,"UserManagement");
+	USER_MANAGEMENT(107,"User Management"),
+	MANAGE_ADDRESS(108,"Manage Address");
+	// @formatter:on
 
 	private int id;
 	private String name;

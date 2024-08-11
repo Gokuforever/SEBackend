@@ -13,17 +13,23 @@ public class SERegExpUtils {
 
 	@Value("${se.portal.otp_length}")
 	private int otp_length;
-	
+
 	private static int otp_length_new;
-	
+
 	@PostConstruct
 	private void init() {
 		otp_length_new = otp_length;
-    }
+	}
 
 	public static boolean isString(@NonNull String val) {
 		val = val.trim();
 		Pattern pattern = Pattern.compile("[a-zA-Z]*");
+		return pattern.matcher(val).matches();
+	}
+
+	public static boolean isPincode(@NonNull String val) {
+		val = val.trim();
+		Pattern pattern = Pattern.compile("^[1-9][0-9]{5}$");
 		return pattern.matcher(val).matches();
 	}
 
@@ -62,7 +68,7 @@ public class SERegExpUtils {
 		return pattern.matcher(val).matches();
 	}
 
-	public static boolean isPrice(String value) {
+	public static boolean isPriceInDecimal(String value) {
 		value = value.strip();
 		if (!value.contains(".")) {
 			value = value.concat(".00");
@@ -78,6 +84,15 @@ public class SERegExpUtils {
 		}
 		Pattern pattern = Pattern.compile("^(?!0*\\.0*$)\\d{1,10}(?:\\.\\d{0,2})?$");
 		return pattern.matcher(value).matches();
+	}
+
+	public static boolean isPrice(@NonNull String val) {
+		val = val.strip();
+		if (val.length() > 10) {
+			return false;
+		}
+		Pattern pattern = Pattern.compile("\\d+");
+		return pattern.matcher(val).matches();
 	}
 
 	public static boolean isEmail(String email_id) {

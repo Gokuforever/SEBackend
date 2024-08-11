@@ -18,5 +18,7 @@ public class Varient_Mapping extends BaseMongoEntity<String> {
 
 	private String name;
 	private String code;
-
+	private String seller_id;
+	private String seller_code;
+	// hard code by publication
 }
