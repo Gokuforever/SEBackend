@@ -195,11 +195,11 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 			List<Criteria> whereCriterias = node.getClause().stream().map(BaseMongoRepository::buildWhereClauseCriteria)
 					.collect(Collectors.toList());
 
-			if (node.getType() == SEFilterType.AND) {
+//			if (node.getType() == SEFilterType.AND) {
 				criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
-			} else if (node.getType() == SEFilterType.OR) {
-				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
-			}
+//			} else if (node.getType() == SEFilterType.OR) {
+//				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
+//			}
 		}
 		return criteria;
 	}
