@@ -28,6 +28,7 @@ import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.helper.ReqBaseBean;
 import com.sorted.commons.manage.otp.ManageOtp;
 import com.sorted.commons.repository.mongo.Users_Repository;
 import com.sorted.commons.utils.GsonUtils;
@@ -152,6 +153,11 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 
 	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull Activity... activity) {
 		return this.validateUserForActivity(req_user_id, Permission.VIEW, activity);
+	}
+
+	public <T extends ReqBaseBean> UsersBean validateUserForActivity(@NonNull T bean, @NonNull Permission permission,
+			@NonNull Activity... activity) {
+		return this.validateUserForActivity(bean.getReq_user_id(), permission, activity);
 	}
 
 	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull Permission permission,

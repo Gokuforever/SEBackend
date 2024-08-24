@@ -5,8 +5,9 @@ import com.sorted.commons.enums.AddressType;
 import lombok.Data;
 
 @Data
-public class Address {
+public class AddressDTO {
 
+	private String code;
 	private String street_1;
 	private String street_2;
 	private String landmark;

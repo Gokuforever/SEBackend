@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.sorted.commons.beans.Address;
+import com.sorted.commons.beans.AddressDTO;
 import com.sorted.commons.beans.Item;
 import com.sorted.commons.beans.Order_Status_History;
 import com.sorted.commons.enums.OrderStatus;
@@ -35,7 +35,7 @@ public class Order_Details extends BaseMongoEntity<String> {
 	private List<Item> items;
 	private String transaction_id;
 	private List<Order_Status_History> order_status_history;
-	private List<Address> delivery_address;
+	private List<AddressDTO> delivery_address;
 	private String payment_status;
 	private String shipment_status;
 	private LocalDateTime expected_delivery_date;

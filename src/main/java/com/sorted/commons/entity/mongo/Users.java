@@ -1,11 +1,8 @@
 package com.sorted.commons.entity.mongo;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.sorted.commons.beans.Address;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,6 +32,5 @@ public class Users extends BaseMongoEntity<String> {
 	private Boolean is_verified = false;
 	private LocalDateTime reset_pass_request_expiry;
 	private String uuid;
-	private List<Address> addresses;
 
 }

@@ -1,5 +1,6 @@
 package com.sorted.commons.utils;
 
+import java.security.SecureRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -7,6 +8,14 @@ import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 
 public class PasswordValidatorUtils {
+
+	private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+	private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	private static final String DIGITS = "0123456789";
+	private static final String SPECIAL_CHARACTERS = "!@#$%&*+<>?";
+	private static final int PASSWORD_LENGTH = 20;
+
+	private static final SecureRandom random = new SecureRandom();
 
 	public static void validatePassword(String password) {
 
@@ -41,7 +50,57 @@ public class PasswordValidatorUtils {
 		if (!hasEight.find()) {
 			throw new CustomIllegalArgumentsException(ResponseCode.PASS_VALIDATION_FAILURE_5);
 		}
-
+//		int nextInt = Integer.valueOf(CommonUtils.generateFixedLengthRandomNumber(1));
+//		System.out.println(nextInt);
+//		if (nextInt > 5) {
+//			throw new CustomIllegalArgumentsException(ResponseCode.PASS_VALIDATION_FAILURE_5);
+//		}
 	}
+
+	public static String generatePassword() {
+		StringBuilder password = new StringBuilder();
+
+		// Ensure at least one character from each category
+		password.append(getRandomChar(LOWERCASE));
+		password.append(getRandomChar(UPPERCASE));
+		password.append(getRandomChar(DIGITS));
+		password.append(getRandomChar(SPECIAL_CHARACTERS));
+
+		// Fill the rest with random characters from all categories
+		String allChars = LOWERCASE + UPPERCASE + DIGITS + SPECIAL_CHARACTERS;
+		while (password.length() < PASSWORD_LENGTH) {
+			password.append(getRandomChar(allChars));
+		}
+
+		// Shuffle the characters in the password for randomness
+		String shuffleString = shuffleString(password.toString());
+//		System.out.println(shuffleString);
+		try {
+			validatePassword(shuffleString);
+			return shuffleString;
+		} catch (Exception e) {
+			return generatePassword();
+		}
+	}
+
+	private static char getRandomChar(String characters) {
+		int index = random.nextInt(characters.length());
+		return characters.charAt(index);
+	}
+
+	private static String shuffleString(String input) {
+		char[] chars = input.toCharArray();
+		for (int i = 0; i < chars.length; i++) {
+			int randomIndex = random.nextInt(chars.length);
+			char temp = chars[i];
+			chars[i] = chars[randomIndex];
+			chars[randomIndex] = temp;
+		}
+		return new String(chars);
+	}
+
+//	public static void main(String[] args) {
+//		System.out.println(generatePassword());
+//	}
 
 }

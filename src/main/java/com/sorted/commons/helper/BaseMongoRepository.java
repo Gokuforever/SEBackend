@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -196,7 +197,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 					.collect(Collectors.toList());
 
 //			if (node.getType() == SEFilterType.AND) {
-				criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
+			criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
 //			} else if (node.getType() == SEFilterType.OR) {
 //				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
 //			}
@@ -230,25 +231,21 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		case ALL:
 			return new Criteria(clause.getField()).all(clause.getValueList());
 		case ELEMMATCH_IN:
-			String keyName = null;
-			String keyVal = null;
-			String valName = null;
-			List<?> val = null;
-			for (String v : clause.getValMap().keySet()) {
-				valName = v;
-				val = clause.getValMap().get(v);
+			String keyName = clause.getField();
+			Criteria elemMatchCriteria = new Criteria();
+			Map<String, Object> elemMap = clause.getElemMap();
+			for (Map.Entry<String, Object> entry : elemMap.entrySet()) {
+				String key = entry.getKey();
+				Object value = entry.getValue();
+				if (value instanceof List<?>) {
+					// Use 'in' for list values
+					elemMatchCriteria = elemMatchCriteria.and(key).in((List<?>) value);
+				} else {
+					// Use 'is' for single values
+					elemMatchCriteria = elemMatchCriteria.and(key).is(value);
+				}
 			}
-
-			for (String key : clause.getKeyMap().keySet()) {
-				keyName = key;
-				keyVal = clause.getKeyMap().get(key);
-			}
-			if (keyName == null || keyVal == null || valName == null || val == null) {
-				// TODO: throw appropriate exception
-				throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
-			}
-			Criteria keyValCriteria = new Criteria(keyName).is(keyVal).and(valName).in(val);
-			return new Criteria(clause.getField()).elemMatch(keyValCriteria);
+			return new Criteria(keyName).elemMatch(elemMatchCriteria);
 		default:
 			return null;
 		}

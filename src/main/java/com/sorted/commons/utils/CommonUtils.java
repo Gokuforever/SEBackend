@@ -98,7 +98,7 @@ public class CommonUtils {
 		// Remove the last extra space
 		return titleCased.toString().trim();
 	}
-
+	
 	public static void main(String[] args) {
 		Long rupeeToPaise = rupeeToPaise(new BigDecimal("1.16"));
 		System.out.println(rupeeToPaise);

@@ -16,7 +16,9 @@ public enum Activity {
 	ORDER_MANAGEMENT(105,"Order Management"),
 	SUBSCRIBE(106,"Subscribe"),
 	USER_MANAGEMENT(107,"User Management"),
-	MANAGE_ADDRESS(108,"Manage Address");
+	MANAGE_ADDRESS(108,"Manage Address"),
+	SELLER_ONBOARDING(109,"Seller Onboarding"),
+	;
 	// @formatter:on
 
 	private int id;

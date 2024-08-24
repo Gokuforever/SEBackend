@@ -26,7 +26,7 @@ public class AggregationFilter {
 
 	private static final Logger logger = LoggerFactory.getLogger(AggregationFilter.class);
 
-	@Data
+	@Getter
 	public static class SEFilter {
 
 		private List<WhereClause> clause;
@@ -39,6 +39,10 @@ public class AggregationFilter {
 		// Don't use below
 		private List<JoinClause> joins;
 		private List<SubqueryClause> subqueries;
+
+		public void setOrderBy(OrderBy orderBy) {
+			this.orderBy = orderBy;
+		}
 
 		public SEFilter(SEFilterType type) {
 			this.type = type;
@@ -107,7 +111,7 @@ public class AggregationFilter {
 		}
 	}
 
-	@Data
+	@Getter
 	public static class WhereClause {
 		private String field;
 		private String value;
@@ -115,6 +119,7 @@ public class AggregationFilter {
 		private List<?> valueList;
 		private Map<String, String> keyMap;
 		private Map<String, List<?>> valMap;
+		private Map<String, Object> elemMap;
 		private Operators operator;
 
 		public WhereClause(@NonNull String field, @NonNull List<?> valueList, @NonNull Operators operator) {
@@ -128,19 +133,30 @@ public class AggregationFilter {
 			this.valueList = valueList;
 		}
 
-		public WhereClause(@NonNull String field, @NonNull Map<String, String> keyMap,
-				@NonNull Map<String, List<?>> valMap) {
+		public WhereClause(@NonNull String field, @NonNull Map<String, Object> map) {
 			super();
 			this.field = field;
 			this.operator = Operators.ELEMMATCH_IN;
-			if (CollectionUtils.isEmpty(keyMap) || CollectionUtils.isEmpty(valMap)) {
-				// TODO: raise appropriate exception
-				throw new CustomIllegalArgumentsException(ResponseCode.NOT_A_LIST);
+			if (CollectionUtils.isEmpty(map)) {
+				throw new CustomIllegalArgumentsException(ResponseCode.NOT_A_MAP);
 			}
 			this.valueClassType = "Map";
-			this.keyMap = keyMap;
-			this.valMap = valMap;
+			this.elemMap = map;
 		}
+
+//		public WhereClause(@NonNull String field, @NonNull Map<String, String> keyMap,
+//				@NonNull Map<String, List<?>> valMap) {
+//			super();
+//			this.field = field;
+//			this.operator = Operators.ELEMMATCH_IN;
+//			if (CollectionUtils.isEmpty(keyMap) || CollectionUtils.isEmpty(valMap)) {
+//				// TODO: raise appropriate exception
+//				throw new CustomIllegalArgumentsException(ResponseCode.NOT_A_LIST);
+//			}
+//			this.valueClassType = "Map";
+//			this.keyMap = keyMap;
+//			this.valMap = valMap;
+//		}
 
 		public WhereClause(@NonNull String field, Object value, @NonNull Operators operator) {
 			this.field = field;
@@ -196,8 +212,12 @@ public class AggregationFilter {
 			return new WhereClause(field, value, Operators.ALL);
 		}
 
-		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
-			return new WhereClause(field, keyMap, valMap);
+//		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
+//			return new WhereClause(field, keyMap, valMap);
+//		}
+
+		public static WhereClause elem_match(String field, Map<String, Object> keyMap) {
+			return new WhereClause(field, keyMap);
 		}
 
 		@JsonIgnore

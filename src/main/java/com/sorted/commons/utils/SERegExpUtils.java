@@ -21,9 +21,15 @@ public class SERegExpUtils {
 		otp_length_new = otp_length;
 	}
 
-	public static boolean isString(@NonNull String val) {
+	public static boolean isAlphabeticString(@NonNull String val) {
 		val = val.trim();
 		Pattern pattern = Pattern.compile("[a-zA-Z]*");
+		return pattern.matcher(val).matches();
+	}
+
+	public static boolean isAlphabeticStringWithSpaces(@NonNull String val) {
+		val = val.trim();
+		Pattern pattern = Pattern.compile("^[A-Za-z\\s]+$");
 		return pattern.matcher(val).matches();
 	}
 
@@ -92,6 +98,15 @@ public class SERegExpUtils {
 			return false;
 		}
 		Pattern pattern = Pattern.compile("\\d+");
+		return pattern.matcher(val).matches();
+	}
+
+	public static boolean isPan(@NonNull String val) {
+		val = val.strip();
+		if (val.length() != 10) {
+			return false;
+		}
+		Pattern pattern = Pattern.compile("[A-Z]{5}[0-9]{4}[A-Z]{1}");
 		return pattern.matcher(val).matches();
 	}
 

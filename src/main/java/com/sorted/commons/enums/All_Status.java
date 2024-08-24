@@ -1,5 +1,8 @@
 package com.sorted.commons.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,12 +15,36 @@ public class All_Status {
 
 		private int id;
 	}
-	
+
 	@Getter
 	@AllArgsConstructor
 	public enum User_Status {
 		ACTIVE(1), INACTIVE(2), BLOCK(3);
 
 		private int id;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public enum Seller_Status {
+		IN_PROGRESS(1), VERIFICATION_PENDING(2), ACTIVE(3), INACTIVE(4), BLOCKED(5);
+
+		private int id;
+
+		private static final Map<Integer, Seller_Status> valMap = new HashMap<>();
+
+		static {
+			for (Seller_Status s : values()) {
+				valMap.put(s.getId(), s);
+			}
+		}
+
+		public static Seller_Status getById(int id) {
+			try {
+				return valMap.get(id);
+			} catch (Exception e) {
+				return null;
+			}
+		}
 	}
 }
