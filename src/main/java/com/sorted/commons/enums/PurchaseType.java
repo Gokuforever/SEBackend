@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PurchaseType {
 
-	BUY, SUBSCRIBE;
+	BUY, SECURE;
 }
