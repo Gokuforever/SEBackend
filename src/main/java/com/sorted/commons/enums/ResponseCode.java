@@ -142,6 +142,10 @@ public enum ResponseCode {
 	MANDATE_SERVICEABLE_PINCODE("SE_0130", "Please input serviceablle pincodes, this can be modified later.", "Please input serviceablle pincodes, this can be modified later."),
 	INVALID_SELLER_STATUS("SE_0131", "Invalid seller status.", "Something went wrong."),
 	MISSING_PRIMARY_SPOC("SE_0132", "No primary SPOC.", "Something went wrong."),
+	RECIPIENT_MISSING("SE_0133", "Recipient email is missing.", "Recipient email is missing."),
+	SUBJECT_IS_MISSING("SE_0134", "Email subject is missing.", "Email subject is missing."),
+	CONTENT_IS_MISSING("SE_0135", "Email content is missing.", "Email content is missing."),
+	TEMPLATE_IS_MISSING("SE_0136", "Email template is missing.", "Email template is missing."),
 	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 
