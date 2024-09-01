@@ -11,6 +11,7 @@ public class Item {
 	private String product_code;
 	private Long quantity;
 	private PurchaseType purchase_type;
+	private boolean is_secure;
 	private ProductType product_type;
 	private String bundle_id;
 }

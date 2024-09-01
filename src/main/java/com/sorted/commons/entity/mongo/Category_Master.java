@@ -22,7 +22,7 @@ public class Category_Master extends BaseMongoEntity<String> {
 	private String category_code;
 	private List<SubCategory> sub_categories;
 	// not all products can be secured
-	private boolean secure;
+	private boolean secure_item;
 
 	@Data
 	public static class SubCategory {

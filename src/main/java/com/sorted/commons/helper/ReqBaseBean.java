@@ -13,4 +13,6 @@ public class ReqBaseBean {
 
 	private String req_user_id;
 	private String req_role_id;
+	private int page;
+	private int size;
 }
