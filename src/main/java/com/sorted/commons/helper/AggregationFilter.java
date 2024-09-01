@@ -34,11 +34,16 @@ public class AggregationFilter {
 		private List<SEFilterNode> nodes;
 //		private SEFilterType subquery_type;
 		private OrderBy orderBy;
+		private Pagination pagination;
 		private List<String> selection;
 
 		// Don't use below
 		private List<JoinClause> joins;
 		private List<SubqueryClause> subqueries;
+
+		public void setPagination(Pagination pagination) {
+			this.pagination = pagination;
+		}
 
 		public void setOrderBy(OrderBy orderBy) {
 			this.orderBy = orderBy;

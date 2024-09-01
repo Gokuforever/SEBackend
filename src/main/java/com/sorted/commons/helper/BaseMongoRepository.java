@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -135,7 +137,10 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		if (filter.getSelection() != null && !filter.getSelection().isEmpty()) {
 			query.fields().include(filter.getSelection().toArray(new String[0]));
 		}
-
+		if (filter.getPagination() != null) {
+			Pageable pageable = PageRequest.of(filter.getPagination().getPage(), filter.getPagination().getSize());
+			query.with(pageable);
+		}
 		return query;
 	}
 
