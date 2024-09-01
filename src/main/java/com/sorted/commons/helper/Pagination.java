@@ -1,30 +1,18 @@
 package com.sorted.commons.helper;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Component
+@NoArgsConstructor
 public class Pagination {
 
-	@Value("${se.portal.default.page}")
-	private int default_page;
+	private int page = 0;
+	private int size = 21;
 
-	@Value("${se.portal.default.size}")
-	private int default_size;
-
-	private int page;
-	private int size;
-
+	// Parameterized constructor
 	public Pagination(int page, int size) {
-		if (page < 0 || size <= 0) {
-			this.page = default_page;
-			this.size = default_size;
-		} else {
-			this.page = page;
-			this.size = size;
-		}
+		this.page = (page >= 0) ? page : this.page;
+		this.size = (size > 0) ? size : this.size;
 	}
 }
