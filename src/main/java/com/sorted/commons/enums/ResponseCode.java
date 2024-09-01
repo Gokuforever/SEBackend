@@ -146,6 +146,8 @@ public enum ResponseCode {
 	SUBJECT_IS_MISSING("SE_0134", "Email subject is missing.", "Email subject is missing."),
 	CONTENT_IS_MISSING("SE_0135", "Email content is missing.", "Email content is missing."),
 	TEMPLATE_IS_MISSING("SE_0136", "Email template is missing.", "Email template is missing."),
+	MISSING_CATAGORY("SE_0137", "Catagory not found.", "Something went wrong."),
+	CANNOT_SECURE("SE_0138", "This item cannot be secured.", "This item cannot be secured."),
 	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 
