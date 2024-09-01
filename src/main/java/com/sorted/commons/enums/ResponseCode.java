@@ -148,6 +148,7 @@ public enum ResponseCode {
 	TEMPLATE_IS_MISSING("SE_0136", "Email template is missing.", "Email template is missing."),
 	MISSING_CATAGORY("SE_0137", "Catagory not found.", "Something went wrong."),
 	CANNOT_SECURE("SE_0138", "This item cannot be secured.", "This item cannot be secured."),
+	MISSING_DEF_SELLER_PLAN("SE_0139", "Default seller plan is missing.", "Default seller plan is missing."),
 	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 
