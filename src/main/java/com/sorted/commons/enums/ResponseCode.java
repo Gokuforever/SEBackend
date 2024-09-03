@@ -151,6 +151,8 @@ public enum ResponseCode {
 	MISSING_DEF_SELLER_PLAN("SE_0139", "Default seller plan is missing.", "Default seller plan is missing."),
 	MISSING_DELIVERY_ADD("SE_0140", "Please add or select a delivery address.", "Please add or select a delivery address."),
 	ADDRESS_NOT_FOUND("SE_0141", "Address not found.", "Address not found."),
+	MISSING_RETURN_DATE("SE_0142", "Return date is missing.", "Please select a return date."),
+	INVALID_RETURN_DATE("SE_0143", "Return date is invalid.", "Return date is invalid."),
 	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
 	// @formatter:on
 

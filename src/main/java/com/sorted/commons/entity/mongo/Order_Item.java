@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -32,6 +33,7 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private String bundle_id;
 	private Integer status_id;
 	private String status;
+	private LocalDateTime return_date;
 	private List<Order_Status_History> status_history;
 	private Order_Status_History latest_order_history;
 	private Refund_Details refund_details;
