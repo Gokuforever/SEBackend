@@ -11,7 +11,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "products")
+@Document(collection = "plans")
 public class Plans extends BaseMongoEntity<String> {
 
 	/**

@@ -18,7 +18,7 @@ public class ValidationUtil {
 		String city = address.getCity();
 		String state = address.getState();
 		String pincode = address.getPincode();
-		AddressType address_type = address.getAddress_type();
+
 		String address_type_desc = address.getAddress_type_desc();
 
 		Address address2 = new Address();
@@ -57,6 +57,10 @@ public class ValidationUtil {
 		if (!SERegExpUtils.isPincode(pincode)) {
 			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_PINCODE);
 		}
+		if (!StringUtils.hasText(address.getAddress_type())) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
+		}
+		AddressType address_type = AddressType.getByName(address.getAddress_type());
 		if (address_type == null) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
 		}

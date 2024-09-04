@@ -11,5 +11,5 @@ public class Spoc_Details {
 	private String mobile_no;
 	private String email_id;
 	private String designation;
-	private boolean is_primary;
+	private boolean primary;
 }

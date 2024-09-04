@@ -19,7 +19,7 @@ import com.sorted.commons.helper.MailBuilder;
 
 import jakarta.mail.internet.MimeMessage;
 
-@Component
+//@Component
 public class EmailSenderImpl {
 
 	@Value("${spring.mail.username}")
