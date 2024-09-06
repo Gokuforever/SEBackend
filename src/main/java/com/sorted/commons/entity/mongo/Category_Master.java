@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.sorted.commons.enums.InputType;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
@@ -30,5 +32,6 @@ public class Category_Master extends BaseMongoEntity<String> {
 		private List<String> attributes;
 		private boolean mandate;
 		private int order;
+		private InputType input_type;
 	}
 }
