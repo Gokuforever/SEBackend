@@ -83,7 +83,11 @@ public enum ResponseCode {
 	PLEASE_SELECT_SELLER("SE_0070", "Please select seller", "Please select seller"),
 	SELLER_NOT_FOUND("SE_0071", "Seller not found", "Seller not found"),
 	NO_ITEMS("SE_0072", "Items list is empty.", "Something went wrong."),
+	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong."),
+	SELLER_STATUS_UNCHANGED("SE_0074", "Seller status unchanged", "Seller status unchanged"),
 	MANDATE_MRP("SE_0075", "MRP is missing.", "MRP is missing."),
+	SELLER_ID_MANDATE("SE_0076", "Seller ID is mandatory", "Something went wrong"),
+	ACTION_NOT_ALLOWED("SE_0077", "Action not allowed", "Something went wrong"),
 	MANDATE_SP("SE_0078", "Selling price is missing.", "Selling price is missing."),
 	INVALID_SELLING_PRICE("SE_0079", "Invalid Selling Price.", "Invalid Selling Price."),
 	ACCESS_DENIED("SE_0080", "Access Denied.", "Access Denied."),
@@ -153,7 +157,7 @@ public enum ResponseCode {
 	ADDRESS_NOT_FOUND("SE_0141", "Address not found.", "Address not found."),
 	MISSING_RETURN_DATE("SE_0142", "Return date is missing.", "Please select a return date."),
 	INVALID_RETURN_DATE("SE_0143", "Return date is invalid.", "Return date is invalid."),
-	ITEM_NOT_FOUND("SE_0073", "Item not found.", "Something went wrong.");
+	;
 	// @formatter:on
 
 	private final String code;

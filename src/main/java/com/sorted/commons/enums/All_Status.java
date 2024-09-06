@@ -27,7 +27,7 @@ public class All_Status {
 	@Getter
 	@AllArgsConstructor
 	public enum Seller_Status {
-		IN_PROGRESS(1), VERIFICATION_PENDING(2), ACTIVE(3), INACTIVE(4), BLOCKED(5);
+		VERIFICATION_PENDING(1), ACTIVE(2), INACTIVE(3), BLOCKED(4);
 
 		private int id;
 

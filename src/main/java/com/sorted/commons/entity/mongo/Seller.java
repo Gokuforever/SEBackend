@@ -27,7 +27,7 @@ public class Seller extends BaseMongoEntity<String> {
 	private List<String> serviceable_pincodes;
 	private String company_pan;
 	private Bank_Details bank_details;
-	private Seller_Status status = Seller_Status.IN_PROGRESS;
+	private Seller_Status status = Seller_Status.VERIFICATION_PENDING;
 
 	// Not In Use
 	private String cin;
