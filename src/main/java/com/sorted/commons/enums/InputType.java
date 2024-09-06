@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum InputType {
-	DROPDOWN(1), RADIO_BUTTON(2), INPUT(3), CHECK_BOX(4);
+	SELECT(1), RADIO_BUTTON(2), INPUT_FIELD(3), CHECK_BOX(4), MULTI_SELECT(5);
 
 	private int id;
 }
