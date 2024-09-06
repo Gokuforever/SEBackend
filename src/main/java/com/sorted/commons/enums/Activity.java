@@ -20,6 +20,7 @@ public enum Activity {
 	SELLER_ONBOARDING(109,"Seller Onboarding"),
 	SIGN_UP(110,"Sign Up"),
 	SELLER_MANAGEMENT(111,"Seller Management"),
+	STORE_MANAGEMENT(112,"Store Management"),
 	;
 	// @formatter:on
 
