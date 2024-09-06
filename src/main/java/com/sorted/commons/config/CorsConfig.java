@@ -15,10 +15,14 @@ public class CorsConfig {
 	public CorsFilter corsFilter() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(
-				Arrays.asList("http://localhost:5173/", "https://stz-frontend-service-ts.vercel.app"));
-		config.addAllowedMethod("*");
-		config.addAllowedHeader("*");
+		config.setAllowedOrigins(Arrays.asList("https://stz-frontend-service-ts.vercel.app", // Vercel frontend
+				"http://localhost:5173" // Local development
+		));
+
+		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
+		config.addAllowedHeader("*"); // Allow all headers
+		config.setAllowCredentials(true); // Allow credentials if needed (for cookies, etc.)
+
 		source.registerCorsConfiguration("/**", config);
 		return new CorsFilter(source);
 	}
