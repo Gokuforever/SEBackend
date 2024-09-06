@@ -16,7 +16,7 @@ public class CorsConfig {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(
-				Arrays.asList("http://localhost:5173/", "https://stz-frontend-service-ts.vercel.app/"));
+				Arrays.asList("http://localhost:5173/", "https://stz-frontend-service-ts.vercel.app"));
 		config.addAllowedMethod("*");
 		config.addAllowedHeader("*");
 		source.registerCorsConfiguration("/**", config);
