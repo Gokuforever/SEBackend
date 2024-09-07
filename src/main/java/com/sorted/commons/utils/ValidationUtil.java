@@ -11,7 +11,7 @@ import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 
 public class ValidationUtil {
 
-	public static Address validateAddress(AddressDTO address) {
+	public static Address validateAddress(AddressDTO address, Address address2) {
 		String street_1 = address.getStreet_1();
 		String street_2 = address.getStreet_2();
 		String landmark = address.getLandmark();
@@ -21,7 +21,6 @@ public class ValidationUtil {
 
 		String address_type_desc = address.getAddress_type_desc();
 
-		Address address2 = new Address();
 		if (!StringUtils.hasText(street_1)) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_STREET);
 		}
