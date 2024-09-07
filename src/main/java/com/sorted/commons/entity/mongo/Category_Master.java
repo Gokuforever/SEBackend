@@ -9,8 +9,10 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sorted.commons.enums.InputType;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 
 @Data
@@ -56,5 +58,12 @@ public class Category_Master extends BaseMongoEntity<String> {
 		private boolean mandate;
 		private int order;
 		private InputType input_type;
+		private TypescriptDataTypes data_type;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public enum TypescriptDataTypes {
+		String, Number;
 	}
 }
