@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,5 +21,6 @@ public class Product_Master extends BaseMongoEntity<String> {
 
 	private String catagory_id;
 	private String name;
-	private Map<String, String> attributes;
+	private String img_src;
+	private Map<String, List<String>> attributes;
 }
