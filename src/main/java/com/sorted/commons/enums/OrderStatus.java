@@ -1,8 +1,5 @@
 package com.sorted.commons.enums;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -19,7 +16,7 @@ public enum OrderStatus {
 	OUT_FOR_DELIVERY(6, "OUT FOR DELIVERY","OUT FOR DELIVERY"), 
 	DELIVERED(7, "DELIVERED","DELIVERED");
 	// @formatter:on
-	
+
 	private int id;
 	private String status;
 	private String sub_status;
