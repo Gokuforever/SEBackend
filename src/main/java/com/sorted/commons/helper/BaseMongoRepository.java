@@ -1,7 +1,5 @@
 package com.sorted.commons.helper;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,6 @@ import org.springframework.util.CollectionUtils;
 
 import com.sorted.commons.config.StaticMongoAccessor;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.enums.EntityDetails;
 import com.sorted.commons.enums.Operators;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -39,21 +36,8 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 
 	static Logger logger = LoggerFactory.getLogger(AggregationFilter.class);
 
-	@SuppressWarnings("unchecked")
 	default Class<T> getEntityType() {
-		Type genericSuperclass = getClass().getGenericSuperclass();
-
-		if (genericSuperclass instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
-			Type[] typeArguments = parameterizedType.getActualTypeArguments();
-
-			if (typeArguments.length > 1 && typeArguments[1] instanceof Class) {
-				Class<T> clazz = (Class<T>) typeArguments[1];
-				EntityDetails.assertExists(clazz);
-				return clazz;
-			}
-		}
-		throw new IllegalStateException("Unable to determine the entity type.");
+		throw new UnsupportedOperationException("This method must be overridden in the child interface.");
 	}
 
 	@Override
