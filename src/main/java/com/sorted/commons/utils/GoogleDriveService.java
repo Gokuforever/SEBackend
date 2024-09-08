@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
@@ -18,52 +22,155 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.sorted.commons.beans.UsersBean;
+import com.sorted.commons.entity.mongo.File_Upload_Details;
+import com.sorted.commons.entity.service.File_Upload_Details_Service;
+import com.sorted.commons.enums.DocumentType;
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.enums.UserType;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class GoogleDriveService {
 
-	private static final String SERVICE_ACCOUNT_FILE = "D:\\google_auth\\service_account.json";
-	private static final String PARENT_FOLDER_ID = "1gzz7LRmeLT0bsJhF7OeuWfMkyBTgautX";
+	@Autowired
+	private File_Upload_Details_Service file_upload_details_service;
+
+	@Value("${se.google.service_account_file_path}")
+	private String service_account_file_path;
+
+	@Value("${se.folder_id.product.image}")
+	private String product_image_folder_id;
+
+	@Value("${se.folder_id.profile.image}")
+	private String profile_image_folder_id;
+
 	private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
 	private Drive getDriveService() throws GeneralSecurityException, IOException {
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(SERVICE_ACCOUNT_FILE)) // Changed
-																												// to
-																												// FileInputStream
+		log.debug("Initializing Google Drive service");
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(service_account_file_path))
 				.createScoped(Collections.singleton(DriveScopes.DRIVE));
 		return new Drive.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY,
 				new HttpCredentialsAdapter(credentials)).setApplicationName("My Google Drive App").build();
 	}
 
-	public String uploadPhoto(String filePath) throws IOException, GeneralSecurityException {
+	public String uploadPhoto(@NonNull MultipartFile multipart_file, @NonNull UsersBean users_bean,
+			@NonNull DocumentType document_type) throws IOException, GeneralSecurityException {
+
+		log.info("Uploading photo for user: {}", users_bean.getId());
+		File_Upload_Details upload_details = new File_Upload_Details();
+		UserType user_type = users_bean.getRole().getUser_type();
+		List<UserType> allowed_users = document_type.getAllowed_to();
+
+		if (!allowed_users.contains(user_type)) {
+			log.error("User type {} is not allowed to upload document type {}", user_type, document_type);
+			throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
+		}
+
+		String folder_id = this.getFolderIdByDocumentType(document_type);
+		this.populateUploadDetails(upload_details, users_bean, user_type, document_type);
+
+		java.io.File file_to_upload = convertMultipartFileToFile(multipart_file);
 		Drive service = getDriveService();
-		File fileMetadata = new File();
-		fileMetadata.setName("Image");
-		fileMetadata.setParents(Collections.singletonList(PARENT_FOLDER_ID));
 
-		java.io.File filePathObj = new java.io.File(filePath);
-		FileContent mediaContent = new FileContent("image/jpeg", filePathObj);
+		log.debug("Uploading file to Google Drive");
+		File file_metadata = new File();
+		file_metadata.setName(multipart_file.getOriginalFilename());
+		file_metadata.setParents(Collections.singletonList(folder_id));
 
-		File file = service.files().create(fileMetadata, mediaContent).setFields("id").execute();
-		System.out.printf("File '%s' uploaded successfully with ID: %s%n", filePath, file.getId());
+		FileContent media_content = new FileContent(multipart_file.getContentType(), file_to_upload);
+		File file = service.files().create(file_metadata, media_content).setFields("id, size, fileExtension").execute();
+
+		log.info("File uploaded successfully: ID = {}, Name = {}", file.getId(), file_to_upload.getName());
+
+		this.storeFileDetails(upload_details, file, file_to_upload, users_bean);
 		return file.getId();
 	}
 
-	public void fetchPhoto(String fileId, String destinationPath) {
+	private void storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
+			UsersBean users_bean) {
+		upload_details.setDocument_id(file.getId());
+		upload_details.setFile_extension(file.getFileExtension());
+		long size_in_bytes = file.getSize();
+		double size_in_kb = size_in_bytes / 1024.0;
+		upload_details.setSize(size_in_kb + "kb");
+
+		file_to_upload.delete();
+		file_upload_details_service.create(upload_details, users_bean.getId());
+		log.info("File details stored in the database for user: {}", users_bean.getId());
+	}
+
+	private String getFolderIdByDocumentType(DocumentType document_type) {
+		String folder_id;
+		switch (document_type) {
+		case PRODUCT_IMAGE:
+			folder_id = product_image_folder_id;
+			break;
+		case PROFILE_PICTURE:
+			folder_id = profile_image_folder_id;
+			break;
+		default:
+			log.error("Unsupported document type: {}", document_type);
+			throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+		}
+		return folder_id;
+	}
+
+	private void populateUploadDetails(File_Upload_Details upload_details, UsersBean users_bean, UserType user_type,
+			DocumentType document_type) {
+		if (user_type == UserType.SELLER) {
+			upload_details.setEntity_id(users_bean.getRole().getSeller_id());
+		} else {
+			upload_details.setEntity_id(users_bean.getId());
+		}
+		upload_details.setUser_type(user_type);
+		upload_details.setDocument_type_id(document_type.getId());
+	}
+
+	private java.io.File convertMultipartFileToFile(MultipartFile multipart_file) throws IOException {
+		log.debug("Converting MultipartFile to java.io.File");
+		java.io.File conv_file = new java.io.File(multipart_file.getOriginalFilename());
+		try (FileOutputStream fos = new FileOutputStream(conv_file)) {
+			fos.write(multipart_file.getBytes());
+		}
+		return conv_file;
+	}
+
+	public void fetchPhoto(String file_id, String destination_path) {
 		try {
+			log.info("Fetching photo with ID: {}", file_id);
 			Drive service = getDriveService();
-			Drive.Files.Get request = service.files().get(fileId);
-			try (InputStream inputStream = request.executeMediaAsInputStream();
-					FileOutputStream outputStream = new FileOutputStream(destinationPath)) {
+			try (InputStream input_stream = service.files().get(file_id).executeMediaAsInputStream();
+					FileOutputStream output_stream = new FileOutputStream(destination_path)) {
+
 				byte[] buffer = new byte[1024];
-				int bytesRead;
-				while ((bytesRead = inputStream.read(buffer)) != -1) {
-					outputStream.write(buffer, 0, bytesRead);
+				int bytes_read;
+				while ((bytes_read = input_stream.read(buffer)) != -1) {
+					output_stream.write(buffer, 0, bytes_read);
 				}
-				System.out.printf("File downloaded successfully to '%s'%n", destinationPath);
+				log.info("File downloaded successfully to {}", destination_path);
 			}
 		} catch (Exception e) {
-			System.out.println("An error occurred: " + e.getMessage());
+			log.error("Error fetching file with ID: {}, Message: {}", file_id, e.getMessage(), e);
 		}
+	}
+
+	@SuppressWarnings("unused")
+	private String createFolder(String folder_name) throws IOException, GeneralSecurityException {
+		log.info("Creating folder: {}", folder_name);
+		Drive service = getDriveService();
+		File file_metadata = new File();
+		file_metadata.setName(folder_name);
+		file_metadata.setMimeType("application/vnd.google-apps.folder");
+
+		File folder = service.files().create(file_metadata).setFields("id").execute();
+
+		log.info("Folder '{}' created successfully with ID: {}", folder_name, folder.getId());
+		return folder.getId();
 	}
 }
