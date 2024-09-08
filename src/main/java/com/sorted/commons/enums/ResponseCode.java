@@ -157,6 +157,10 @@ public enum ResponseCode {
 	ADDRESS_NOT_FOUND("SE_0141", "Address not found.", "Address not found."),
 	MISSING_RETURN_DATE("SE_0142", "Return date is missing.", "Please select a return date."),
 	INVALID_RETURN_DATE("SE_0143", "Return date is invalid.", "Return date is invalid."),
+	INVALID_AMOUNT("SE_0144", "Invalid Amount", "Invalid Amount"),
+	PG_ORDER_GEN_FAILED("SE_0145", "PG order generation failed", "Something went wrong."),
+	MANDATE_ORDER_ID("SE_0146", "Order id is mandatory", "Something went wrong."),
+	PG_BAD_REQ("SE_0147", "PG mandatory req param missing", "Something went wrong."),
 	;
 	// @formatter:on
 

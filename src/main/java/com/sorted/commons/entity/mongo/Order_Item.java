@@ -24,6 +24,8 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private static final long serialVersionUID = 1L;
 	private String order_id;
 	private String order_code;
+	private String seller_id;
+	private String seller_code;
 	private String product_id;
 	private String product_code;
 	private Long quantity;
