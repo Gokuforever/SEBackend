@@ -15,7 +15,7 @@ public enum ResponseCode {
 	MANDATE_SUB_CATEGORY("SE_0004", "Sub category name is missing.", "Sub category name is missing."),
 	INVALID_SUB_CATEGORY("SE_0005", "Invalid sub category.", "Invalid sub category."),
 	INVALID_MIN_SUB_CATEGORY("SE_0006", "At least one value is required for sub category.",	"At least one value is required for sub category."),
-	INVALID_SUB_CATEGORY_VAL("SE_0007", "Invalid sub category value.", "Invalid sub category value"),
+	MISSING_SUB_CATEGORY_VAL("SE_0007", "Missing sub category value.", "Missing sub category value"),
 	INVALID_CATEGORY_SELECTED("SE_0008", "Invalid category selected.", "Invalid category selected."),
 	MISSING_PRODUCT_NAME("SE_0009", "Product name is missing.", "Product name is missing."),
 	INVALID_PRODUCT_NAME("SE_0010", "Invalid product name.", "Invalid product name."),
@@ -161,6 +161,7 @@ public enum ResponseCode {
 	PG_ORDER_GEN_FAILED("SE_0145", "PG order generation failed", "Something went wrong."),
 	MANDATE_ORDER_ID("SE_0146", "Order id is mandatory", "Something went wrong."),
 	PG_BAD_REQ("SE_0147", "PG mandatory req param missing", "Something went wrong."),
+	SP_MAX_MRP("SE_0148", "Selling price cannot be greater than MRP.", "Selling price cannot be greater than MRP."),
 	;
 	// @formatter:on
 
