@@ -162,6 +162,9 @@ public enum ResponseCode {
 	MANDATE_ORDER_ID("SE_0146", "Order id is mandatory", "Something went wrong."),
 	PG_BAD_REQ("SE_0147", "PG mandatory req param missing", "Something went wrong."),
 	SP_MAX_MRP("SE_0148", "Selling price cannot be greater than MRP.", "Selling price cannot be greater than MRP."),
+	INVALID_FILE_TYPE("SE_0149", "Invalid file type.", "Invalid file type."),
+	IMAGES_NOT_FOUND("SE_0150", "Image/s not found.", "Image/s not found."),
+	DOC_IDS_MISSING("SE_0151", "Invalid document details.", "Invalid document details."),
 	;
 	// @formatter:on
 

@@ -63,6 +63,11 @@ public class GoogleDriveService {
 			@NonNull DocumentType document_type) throws IOException, GeneralSecurityException {
 
 		log.info("Uploading photo for user: {}", users_bean.getId());
+
+		boolean image = CommonUtils.isImage(multipart_file);
+		if (!image) {
+			throw new CustomIllegalArgumentsException(ResponseCode.INVALID_FILE_TYPE);
+		}
 		File_Upload_Details upload_details = new File_Upload_Details();
 		UserType user_type = users_bean.getRole().getUser_type();
 		List<UserType> allowed_users = document_type.getAllowed_to();
@@ -88,11 +93,10 @@ public class GoogleDriveService {
 
 		log.info("File uploaded successfully: ID = {}, Name = {}", file.getId(), file_to_upload.getName());
 
-		this.storeFileDetails(upload_details, file, file_to_upload, users_bean);
-		return file.getId();
+		return this.storeFileDetails(upload_details, file, file_to_upload, users_bean);
 	}
 
-	private void storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
+	private String storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
 			UsersBean users_bean) {
 		upload_details.setDocument_id(file.getId());
 		upload_details.setFile_extension(file.getFileExtension());
@@ -100,9 +104,15 @@ public class GoogleDriveService {
 		double size_in_kb = size_in_bytes / 1024.0;
 		upload_details.setSize(size_in_kb + "kb");
 
-		file_to_upload.delete();
-		file_upload_details_service.create(upload_details, users_bean.getId());
-		log.info("File details stored in the database for user: {}", users_bean.getId());
+		File_Upload_Details file_Upload_Details = file_upload_details_service.create(upload_details,
+				users_bean.getId());
+		boolean delete = file_to_upload.delete();
+		if (delete) {
+			log.info("temp file deleted.");
+		}
+		log.info("File details stored in the database for user: {} and File_Upload_Details id: {}", users_bean.getId(),
+				file_Upload_Details.getId());
+		return file_Upload_Details.getId();
 	}
 
 	private String getFolderIdByDocumentType(DocumentType document_type) {

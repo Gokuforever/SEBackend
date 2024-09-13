@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -28,7 +29,7 @@ public class CommonUtils {
 	}
 
 	public static <T> List<T> convertS2L(Set<T> set) {
-		return set.stream().collect(Collectors.toList());
+		return set.stream().toList();
 	}
 
 	public static String generateFixedLengthRandomNumber(int length) {
@@ -57,7 +58,7 @@ public class CommonUtils {
 
 	public static String createCode(@NonNull String prefix) {
 		long nanoseconds = CommonUtils.getNanoseconds();
-		StringBuffer stringBuffer = new StringBuffer();
+		StringBuilder stringBuffer = new StringBuilder();
 		stringBuffer.append(prefix);
 		stringBuffer.append(nanoseconds);
 		stringBuffer.append("-");
@@ -67,8 +68,8 @@ public class CommonUtils {
 
 	public static <T extends ReqBaseBean> void extractHeaders(HttpServletRequest httpServletRequest, T bean) {
 		try {
-			String req_user_id = httpServletRequest.getHeader("req_user_id").toString();
-			String req_role_id = httpServletRequest.getHeader("req_role_id").toString();
+			String req_user_id = httpServletRequest.getHeader("req_user_id");
+			String req_role_id = httpServletRequest.getHeader("req_role_id");
 			bean.setReq_user_id(req_user_id);
 			bean.setReq_role_id(req_role_id);
 		} catch (Exception e2) {
@@ -98,10 +99,44 @@ public class CommonUtils {
 		// Remove the last extra space
 		return titleCased.toString().trim();
 	}
-	
+
+	public static boolean isImage(MultipartFile file) {
+		// Check if the file is empty
+		if (file.isEmpty()) {
+			return false;
+		}
+
+		// Get the content type of the file
+		String contentType = file.getContentType();
+		if (contentType != null && contentType.startsWith("image/")) {
+			return true;
+		}
+
+		// Alternatively, you can also check the file extension (optional)
+		String fileName = file.getOriginalFilename();
+		if (fileName != null) {
+			String extension = getFileExtension(fileName);
+			return isImageExtension(extension);
+		}
+
+		return false;
+	}
+
+	// Extract file extension
+	private static String getFileExtension(String fileName) {
+		int dotIndex = fileName.lastIndexOf('.');
+		return (dotIndex != -1) ? fileName.substring(dotIndex + 1) : "";
+	}
+
+	// Check if the extension belongs to an image type
+	private static boolean isImageExtension(String extension) {
+		// Add more image extensions as needed
+		return extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg")
+				|| extension.equalsIgnoreCase("png");
+	}
+
 	public static void main(String[] args) {
 		Long rupeeToPaise = rupeeToPaise(new BigDecimal("1.16"));
-		System.out.println(rupeeToPaise);
 		BigDecimal paiseToRupee = paiseToRupee(rupeeToPaise);
 		System.out.println(paiseToRupee);
 	}
