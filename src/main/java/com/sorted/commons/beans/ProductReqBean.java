@@ -12,6 +12,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ProductReqBean extends ReqBaseBean {
+	private String seller_id;
 	private String category_id;
 	private Map<String, List<String>> sub_categories;
 	private String name;
