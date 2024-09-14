@@ -18,11 +18,11 @@ public class File_Upload_Details extends BaseMongoEntity<String> {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private String document_id;
+	private String file_id;
 	private UserType user_type;
 	private String entity_id;
 	private Integer document_type_id;
-	private String document_url;
+	private String document_id;
 	private String file_extension;
 	private String size;
 
