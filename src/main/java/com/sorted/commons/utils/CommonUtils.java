@@ -7,6 +7,7 @@ import java.time.Year;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sorted.commons.enums.ResponseCode;
@@ -70,6 +71,9 @@ public class CommonUtils {
 		try {
 			String req_user_id = httpServletRequest.getHeader("req_user_id");
 			String req_role_id = httpServletRequest.getHeader("req_role_id");
+			if (!StringUtils.hasText(req_user_id) || !StringUtils.hasText(req_role_id)) {
+				throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
+			}
 			bean.setReq_user_id(req_user_id);
 			bean.setReq_role_id(req_role_id);
 		} catch (Exception e2) {
