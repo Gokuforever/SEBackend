@@ -27,9 +27,10 @@ public class All_Status {
 	@Getter
 	@AllArgsConstructor
 	public enum Seller_Status {
-		VERIFICATION_PENDING(1), ACTIVE(2), INACTIVE(3), BLOCKED(4);
+		VERIFICATION_PENDING(1, "Verification Pending"), ACTIVE(2, "Active"), INACTIVE(3, "Inactive"), BLOCKED(4, "Blocked");
 
 		private int id;
+		private String status;
 
 		private static final Map<Integer, Seller_Status> valMap = new HashMap<>();
 
