@@ -17,6 +17,7 @@ public class CorsConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(Arrays.asList("https://stz-frontend-service-ts.vercel.app", // Vercel frontend
 				"http://localhost:5173", // Local development
+				"https://stz-frontend-service-ts-git-749429-anand-suryawanshis-projects.vercel.app",
 				"https://seller.studeaze.in"
 		));
 
