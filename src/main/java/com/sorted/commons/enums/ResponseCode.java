@@ -165,6 +165,7 @@ public enum ResponseCode {
 	INVALID_FILE_TYPE("SE_0149", "Invalid file type.", "Invalid file type."),
 	IMAGES_NOT_FOUND("SE_0150", "Image/s not found.", "Image/s not found."),
 	DOC_IDS_MISSING("SE_0151", "Invalid document details.", "Invalid document details."),
+	MISSING_PRODUCTS("SE_0152", "Missing product details.", "Missing product details."),
 	;
 	// @formatter:on
 
