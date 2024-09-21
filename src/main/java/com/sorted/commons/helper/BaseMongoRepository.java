@@ -52,6 +52,16 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	}
 
 	@Override
+	default List<T> bulkCreate(@NonNull List<T> list, String cudby) {
+		List<T> newList = new ArrayList<>();
+		for (T t : list) {
+			t.setBeforeCreate(cudby);
+			newList.add(t);
+		}
+		return this.insert(newList);
+	}
+
+	@Override
 	default T update(K id, T obj, String cudby) {
 		Optional<T> optional = this.findById(id);
 		if (!optional.isPresent()) {

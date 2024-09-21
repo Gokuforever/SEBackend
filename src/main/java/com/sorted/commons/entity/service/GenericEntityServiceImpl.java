@@ -70,6 +70,14 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 	}
 
 	@Override
+	public List<T> bulkCreate(List<T> entity, String cudby) {
+		for (T t : entity) {
+			this.validateBeforeCreate(t);
+		}
+		return repository.bulkCreate(entity, cudby);
+	}
+
+	@Override
 	public long countByFilter(SEFilter filter) {
 		return repository.countByFilter(filter);
 	}

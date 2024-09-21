@@ -14,6 +14,8 @@ public interface BaseRepository<T, K> {
 
 	T create(T obj, String cudby);
 
+	List<T> bulkCreate(List<T> list, String cudby);
+
 	long countByFilter(SEFilter f);
 
 	long totalCount();
