@@ -24,6 +24,6 @@ public interface BaseRepository<T, K> {
 
 	T upsert(K id, T obj, String cud_by);
 
-	void deleteOne(K id);
+	void deleteOne(K id, String cud_by);
 
 }

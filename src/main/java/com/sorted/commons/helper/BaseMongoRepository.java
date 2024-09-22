@@ -109,13 +109,14 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	}
 
 	@Override
-	default void deleteOne(K id) {
+	default void deleteOne(K id, String cud_by) {
 		Optional<T> optional = this.findById(id);
-		if (optional.isEmpty() || !optional.isPresent()) {
+		if (optional.isPresent()) {
 			return;
 		}
 		T t = optional.get();
 		t.setDeleted(true);
+		t.setBeforeModification(cud_by);
 		this.save(t);
 	}
 
@@ -153,8 +154,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 					.collect(Collectors.toList());
 		}
 		if (!CollectionUtils.isEmpty(filter.getNodes())) {
-			nodeCriterias = filter.getNodes().stream().map(BaseMongoRepository::buildCriteria)
-					.collect(Collectors.toList());
+			nodeCriterias = filter.getNodes().stream().map(BaseMongoRepository::buildCriteria).toList();
 
 		}
 		Criteria[] arrComb = null;
@@ -193,7 +193,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 
 		if (!CollectionUtils.isEmpty(node.getClause())) {
 			List<Criteria> whereCriterias = node.getClause().stream().map(BaseMongoRepository::buildWhereClauseCriteria)
-					.collect(Collectors.toList());
+					.toList();
 
 //			if (node.getType() == SEFilterType.AND) {
 			criteria.andOperator(whereCriterias.toArray(new Criteria[0]));

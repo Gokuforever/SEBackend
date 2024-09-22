@@ -100,9 +100,9 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 	}
 
 	@Override
-	public void deleteOne(K id) {
+	public void deleteOne(K id, String cud_by) {
 		this.validateBeforeDelete(id);
-		repository.deleteOne(id);
+		repository.deleteOne(id, cud_by);
 	}
 
 }
