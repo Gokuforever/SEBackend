@@ -7,6 +7,7 @@ import lombok.NonNull;
 public abstract class BaseException extends RuntimeException {
 
 	private static final long serialVersionUID = -3093653763733424129L;
+	private ResponseCode responseCode;
 	private String messageCode;
 	private Object[] messageArgs;
 	private String userMessage;
@@ -66,11 +67,13 @@ public abstract class BaseException extends RuntimeException {
 
 	protected BaseException(@NonNull ResponseCode err) {
 		this(err.getErrorMessage(), err.getUserMessage());
+		this.responseCode = err;
 		this.messageCode = err.getCode();
 	}
-	
+
 	protected BaseException(@NonNull ResponseCode err, String argsResponseCode, String argsUser) {
 		this(err.getErrorMessage() + argsResponseCode, err.getUserMessage() + argsUser);
+		this.responseCode = err;
 		this.messageCode = err.getCode();
 	}
 
@@ -93,6 +96,10 @@ public abstract class BaseException extends RuntimeException {
 
 	public String getUserMessage() {
 		return userMessage;
+	}
+
+	public ResponseCode getResponseCode() {
+		return responseCode;
 	}
 
 }
