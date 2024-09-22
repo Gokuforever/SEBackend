@@ -27,7 +27,8 @@ public class All_Status {
 	@Getter
 	@AllArgsConstructor
 	public enum Seller_Status {
-		VERIFICATION_PENDING(1, "Verification Pending"), ACTIVE(2, "Active"), INACTIVE(3, "Inactive"), BLOCKED(4, "Blocked");
+		VERIFICATION_PENDING(1, "Verification Pending"), ACTIVE(2, "Active"), INACTIVE(3, "Inactive"),
+		BLOCKED(4, "Blocked");
 
 		private int id;
 		private String status;
@@ -47,5 +48,14 @@ public class All_Status {
 				return null;
 			}
 		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public enum ProductCurrentStatus {
+		IN_STOCK(1, "In stock"), OUT_OF_STOCK(2, "Out of stock"), CURRENTLY_UNAVAILABLE(3, "Currently unawailable");
+
+		private int status_id;
+		private String status;
 	}
 }
