@@ -166,6 +166,8 @@ public enum ResponseCode {
 	IMAGES_NOT_FOUND("SE_0150", "Image/s not found.", "Image/s not found."),
 	DOC_IDS_MISSING("SE_0151", "Invalid document details.", "Invalid document details."),
 	MISSING_PRODUCTS("SE_0152", "Missing product details.", "Missing product details."),
+	ALREADY_DELETED("SE_0153", "This product is already deleted.", "This product is already deleted."),
+	PRODUCT_DELETED("SE_0154", "Product deleted successfully.", "Product deleted successfully."),
 	;
 	// @formatter:on
 
