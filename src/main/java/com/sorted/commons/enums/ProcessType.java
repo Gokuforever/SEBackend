@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ProcessType {
 
-	SIGN_UP, SIGN_IN, FORGOT_PASS, SELLER_ONBOARDING;
+	SIGN_UP, SIGN_IN, FORGOT_PASS, SELLER_ONBOARDING, UPDATE_PASS;
 }

@@ -9,6 +9,7 @@ public class Defaults {
 	public static final String SIGN_IN = "Sign In";
 	public static final String RESEND = "Resend";
 	public static final String FORGOT_PASS = "Forgot Pass";
+	public static final String UPDATE_PASS = "Update Pass";
 	public static final String SMS_SERVICE = "Sms Service";
 	public static final String DEFAULT_SELLER_PLAN = "Default Seller Plan";
 }

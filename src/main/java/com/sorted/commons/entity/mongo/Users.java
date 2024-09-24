@@ -27,10 +27,13 @@ public class Users extends BaseMongoEntity<String> {
 	private String profile_picture_id;
 	private String role_id;
 	private Integer status;
-	private Integer semister;
-	private Integer branch;
+	private String semister;
+	private String branch;
+	private String college;
+	private String branch_desc;
 	private Boolean is_verified = false;
 	private LocalDateTime reset_pass_request_expiry;
 	private String uuid;
+	private boolean pass_changed;
 
 }
