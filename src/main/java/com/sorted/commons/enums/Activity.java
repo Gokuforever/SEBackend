@@ -21,6 +21,7 @@ public enum Activity {
 	SIGN_UP(110,"Sign Up"),
 	SELLER_MANAGEMENT(111,"Seller Management"),
 	STORE_MANAGEMENT(112,"Store Management"),
+	USER_PROFILE(113,"User Profile"),
 	;
 	// @formatter:on
 
