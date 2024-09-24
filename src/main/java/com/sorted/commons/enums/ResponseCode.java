@@ -171,7 +171,7 @@ public enum ResponseCode {
 	PASSWORD_ALREADY_RESET("SE_0155", "Password already set.", "User has already reset the password, please ask to login or proceed with forgot pass."),
 	RESEND_SUCCESS("SE_0156", "Mail sent with a new password.", "Mail sent with a new password."),
 	MANDATE_SEMISTER("SE_0157", "Semister is missing.", "Semister is missing."),
-	MANDATE_SEMISTER_DESC("SE_0158", "Semister description is missing.", "Semister description is missing."),
+	MANDATE_SEMESTER_DESC("SE_0158", "Semester description is missing.", "Semester description is missing."),
 	INVALID_COLLEGE_NAME("SE_0159", "Invalid characters in college name.", "Invalid characters in college name."),
 	;
 	// @formatter:on
