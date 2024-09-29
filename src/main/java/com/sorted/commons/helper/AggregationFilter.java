@@ -217,6 +217,22 @@ public class AggregationFilter {
 			return new WhereClause(field, value, Operators.ALL);
 		}
 
+		public static WhereClause gte(String field, Object value) {
+			return new WhereClause(field, value, Operators.GTE);
+		}
+
+		public static WhereClause lte(String field, Object value) {
+			return new WhereClause(field, value, Operators.LTE);
+		}
+
+		public static WhereClause gt(String field, Object value) {
+			return new WhereClause(field, value, Operators.GT);
+		}
+
+		public static WhereClause lt(String field, Object value) {
+			return new WhereClause(field, value, Operators.LT);
+		}
+
 //		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
 //			return new WhereClause(field, keyMap, valMap);
 //		}

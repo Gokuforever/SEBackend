@@ -219,16 +219,20 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 			return new Criteria(clause.getField()).is(clause.getValueAsObject());
 		case NOT_EQUALS:
 			return new Criteria(clause.getField()).ne(clause.getValueAsObject());
-		case LESS_THAN:
-			return new Criteria(clause.getField()).lt(clause.getValueAsObject());
-		case GREATER_THAN:
-			return new Criteria(clause.getField()).gt(clause.getValueAsObject());
 		case IN:
 			return new Criteria(clause.getField()).in(clause.getValueList());
 		case NIN:
 			return new Criteria(clause.getField()).nin(clause.getValueList());
 		case ALL:
 			return new Criteria(clause.getField()).all(clause.getValueList());
+		case GT:
+			return new Criteria(clause.getField()).gt(clause.getValueAsObject());
+		case LT:
+			return new Criteria(clause.getField()).lt(clause.getValueAsObject());
+		case GTE:
+			return new Criteria(clause.getField()).gte(clause.getValueAsObject());
+		case LTE:
+			return new Criteria(clause.getField()).lte(clause.getValueAsObject());
 		case ELEMMATCH_IN:
 			String keyName = clause.getField();
 			Criteria elemMatchCriteria = new Criteria();

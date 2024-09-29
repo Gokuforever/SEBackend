@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Operators {
 
-	EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, LIKE, IN, NIN, NOT_LIKE, ALL, ELEMMATCH_IN;
+	EQUALS, NOT_EQUALS, LIKE, IN, NIN, NOT_LIKE, ALL, ELEMMATCH_IN, GTE, LTE, GT, LT;
 }
