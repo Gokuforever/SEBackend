@@ -111,7 +111,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 	@Override
 	default void deleteOne(K id, String cud_by) {
 		Optional<T> optional = this.findById(id);
-		if (optional.isPresent()) {
+		if (!optional.isPresent()) {
 			return;
 		}
 		T t = optional.get();
