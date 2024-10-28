@@ -16,13 +16,6 @@ public class SearchHistoryAsyncHelper {
 
 	@Async
 	public void createSearchHistory(String user_id, int user_type_id, SEFilter filterSE) {
-		try {
-			// Adding a 10-second wait
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt(); // Restore interrupted status
-			// Log or handle the exception as needed
-		}
 
 		Search_History history = new Search_History();
 		history.setFilter(filterSE);
