@@ -67,9 +67,6 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 		if (!optional.isPresent()) {
 			throw new CustomIllegalArgumentsException(ResponseCode.MISSING_ID);
 		}
-		T t = optional.get();
-		obj.setCreated_by(t.getCreated_by());
-		obj.setCreation_date(t.getCreation_date());
 		obj.setBeforeModification(cudby);
 		return this.save(obj);
 	}

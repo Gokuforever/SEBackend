@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Data
@@ -16,12 +18,19 @@ public abstract class BaseMongoEntity<K> implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	@Setter(AccessLevel.PRIVATE)
 	private K id;
+	@Setter(AccessLevel.PRIVATE)
 	private String created_by;
+	@Setter(AccessLevel.PRIVATE)
 	private String modified_by;
+	@Setter(AccessLevel.PRIVATE)
 	private LocalDateTime creation_date;
+	@Setter(AccessLevel.PRIVATE)
 	private LocalDateTime modification_date;
+	@Setter(AccessLevel.PRIVATE)
 	private String creation_date_str;
+	@Setter(AccessLevel.PRIVATE)
 	private String modification_date_str;
 	private boolean deleted = false;
 
