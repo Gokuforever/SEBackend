@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
@@ -151,22 +152,24 @@ public class GoogleDriveService {
 		return conv_file;
 	}
 
-	public void fetchPhoto(String file_id, String destination_path) {
+	public String fetchPhoto(String fileId) throws Exception {
 		try {
-			log.info("Fetching photo with ID: {}", file_id);
+			log.info("Fetching photo with ID: {}", fileId);
 			Drive service = getDriveService();
-			try (InputStream input_stream = service.files().get(file_id).executeMediaAsInputStream();
-					FileOutputStream output_stream = new FileOutputStream(destination_path)) {
+			try (InputStream input_stream = service.files().get(fileId).executeMediaAsInputStream()) {
 
-				byte[] buffer = new byte[1024];
-				int bytes_read;
-				while ((bytes_read = input_stream.read(buffer)) != -1) {
-					output_stream.write(buffer, 0, bytes_read);
-				}
-				log.info("File downloaded successfully to {}", destination_path);
+				// Read the image bytes
+				byte[] imageBytes = input_stream.readAllBytes();
+
+				// Encode image bytes to Base64
+				String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+				// Return a success response with the Base64-encoded image
+				return base64Image;
 			}
 		} catch (Exception e) {
-			log.error("Error fetching file with ID: {}, Message: {}", file_id, e.getMessage(), e);
+			log.error("Error fetching file with ID: {}, Message: {}", fileId, e.getMessage(), e);
+			throw e;
 		}
 	}
 
