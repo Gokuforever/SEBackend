@@ -8,18 +8,27 @@ import lombok.Getter;
 public enum OrderStatus {
 
 	//@formatter:off
-	ORDER_REQUESTED(1, "PENDING","ORDER REQUESTED"),
-	PAYMENT_PROCESSED(2, "PENDING","PAYMENT PROCESSED"),
-	PAYMENT_FAILED(3, "PENDING","PAYMENT FAILED"),
-	DELIVERY_REQUESTED(4, "ORDER CONFIRMED","DELIVERY REQUESTED"),
-	SHIPPED(5, "ORDER SHIPPED","ORDER SHIPPED"), 
-	OUT_FOR_DELIVERY(6, "OUT FOR DELIVERY","OUT FOR DELIVERY"), 
-	DELIVERED(7, "DELIVERED","DELIVERED");
+	
+
+	
+	ORDER_PLACED(0, "Order Placed", "Order Placed"),
+	TRANSACTION_PROCESSED(1, "Order Placed", "Payment Processed"),
+	ORDER_ACCEPTED(2, "Order Confirmed", "Seller Accepted"),
+	READY_FOR_PICK_UP(3, "Ready For Pick Up", "Ready For Pick Up"), // SELLER - Ready for pick up
+	RIDER_ASSIGNED(4, "Delivery Partner Assigned", "Delivery Partner Assigned"), // Delivery partner accepts the order
+	OUT_FOR_DELIVERY(5, "Out For Delivery", "Out For Delivery"), 
+	DELIVERED(6, "Delivered", "Delivered"),
+	TRANSACTION_FAILED(7, "Payment Failed","Payment Failed"),
+	TRANSACTION_PENDING(8, "Payment Pending", "Payment Pending"),
+	FULLY_REFUNDED(9, "Fully Refunded", "Fully Refunded"), // 
+	PARTIALLY_REFUNDED(10, "Partially Refunded", "Partially Refunded"),
+	ORDER_REJECTED(11, "Order Rejected", "Order Rejected"), // Initiate complete refund
+	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"); // Once cancelled - Complete amount refunded
 	// @formatter:on
 
 	private int id;
-	private String status;
-	private String sub_status;
+	private String customer_status;
+	private String internal_status;
 
 //	final static Map<String, Integer> getByStatus = new HashMap<>();
 //	final static Map<Integer, String> getById = new HashMap<>();
