@@ -173,6 +173,8 @@ public enum ResponseCode {
 	MANDATE_SEMISTER("SE_0157", "Semister is missing.", "Semister is missing."),
 	MANDATE_SEMESTER_DESC("SE_0158", "Semester description is missing.", "Semester description is missing."),
 	INVALID_COLLEGE_NAME("SE_0159", "Invalid characters in college name.", "Invalid characters in college name."),
+	UNAUTHORIZED("SE_0160", "Unauthorized.", "Unauthorized, token expired."),
+	INVALID_ORDER_STATUS("SE_0161", "Invalid order status.", "Invalid order status."),
 	;
 	// @formatter:on
 
