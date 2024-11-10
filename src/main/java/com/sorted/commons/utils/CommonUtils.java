@@ -2,8 +2,10 @@ package com.sorted.commons.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
@@ -139,9 +141,11 @@ public class CommonUtils {
 				|| extension.equalsIgnoreCase("png");
 	}
 
+	public static LocalDateTime convertEpochToLocalDateTime(long epochMillis) {
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault());
+	}
+
 	public static void main(String[] args) {
-		Long rupeeToPaise = rupeeToPaise(new BigDecimal("1.16"));
-		BigDecimal paiseToRupee = paiseToRupee(rupeeToPaise);
-		System.out.println(paiseToRupee);
+		System.out.println(convertEpochToLocalDateTime(1668081552000L));
 	}
 }

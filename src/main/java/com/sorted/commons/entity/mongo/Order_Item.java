@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.commons.beans.Order_Status_History;
 import com.sorted.commons.beans.Refund_Details;
+import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.PurchaseType;
 
 import lombok.Data;
@@ -32,9 +33,13 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private Long selling_price;
 	private Long total_cost;
 	private PurchaseType type;
+	private Long estimated_secure_amount;
+	private Long actual_secure_amount;
+	private String item_review_remarks;
+	private Integer secure_item_rating;
 	private String bundle_id;
 	private Integer status_id;
-	private String status;
+	private OrderStatus status;
 	private LocalDateTime return_date;
 	private List<Order_Status_History> status_history;
 	private Order_Status_History latest_order_history;

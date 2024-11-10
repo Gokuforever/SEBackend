@@ -1,0 +1,299 @@
+package com.sorted.commons.utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.sorted.commons.beans.DeliveryRequestAttempts;
+import com.sorted.commons.entity.mongo.BaseMongoEntity;
+import com.sorted.commons.entity.mongo.Order_Details;
+import com.sorted.commons.entity.mongo.Third_Party_Api;
+import com.sorted.commons.entity.service.Order_Details_Service;
+import com.sorted.commons.entity.service.Third_Party_Api_Service;
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.porter.req.beans.CreateOrderBean;
+import com.sorted.commons.porter.res.beans.CreateOrderResBean;
+import com.sorted.commons.porter.res.beans.CreateOrderResBean.CreateOrderResBeanBuilder;
+import com.sorted.commons.porter.res.beans.CreateOrderResBean.EstimatedFareDetails;
+import com.sorted.commons.porter.res.beans.CreateOrderResBean.EstimatedFareDetails.EstimatedFareDetailsBuilder;
+import com.sorted.commons.porter.res.beans.FetchOrderRes;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareDetailsBuilder;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.Location;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.MobileNo;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.OrderTimings;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo.PartnerInfoBuilder;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.Status;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class PorterUtility {
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	@Autowired
+	private Order_Details_Service order_Details_Service;
+
+	@Autowired
+	private Third_Party_Api_Service third_Party_Api_Service;
+
+	public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
+
+		SEFilter filterOD = new SEFilter(SEFilterType.AND);
+		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, order.getRequest_id()));
+		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		Order_Details order_Details = order_Details_Service.repoFindOne(filterOD);
+		if (order_Details == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ORDER_ID);
+		}
+
+		List<DeliveryRequestAttempts> delivery_request_attempts = CollectionUtils
+				.isEmpty(order_Details.getDelivery_request_attempts()) ? new ArrayList<>()
+						: order_Details.getDelivery_request_attempts();
+
+		RestTemplate restTemplate = new RestTemplate();
+		String url = "https://pfe-apigw-uat.porter.in/v1/orders/create";
+
+		// Set the headers
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+
+		Gson gson = GsonUtils.getGson();
+		String payload = gson.toJson(order);
+
+		HttpEntity<String> request = new HttpEntity<>(payload, headers);
+
+		Third_Party_Api third_Party_Api = new Third_Party_Api();
+		third_Party_Api.setRaw_request(payload);
+		third_Party_Api.setRequest_type("Porter:: create order");
+
+		third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
+		// Make the POST request
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+		HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+		third_Party_Api.setRaw_response(response.getBody());
+		third_Party_Api.setStatus(httpStatus);
+		third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, order.getRequest_id());
+
+		if (httpStatus == null) {
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		}
+		switch (httpStatus) {
+		case CREATED, OK:
+			break;
+		default:
+
+			JsonObject jsonResponse = gson.fromJson(response.getBody(), JsonObject.class);
+			String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+			String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+
+			delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1)
+					.message(message).type(type).response_code(httpStatus.value()).build());
+			order_Details.setDelivery_request_attempts(delivery_request_attempts);
+
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		}
+
+		JsonNode root = mapper.readTree(response.getBody());
+
+		CreateOrderResBeanBuilder createOrderResBeanBuilder = CreateOrderResBean.builder();
+
+		String request_id = root.path("request_id").asText(null);
+		String order_id = root.path("order_id").asText(null);
+		String tracking_url = root.path("tracking_url").asText(null);
+		Long estimated_pickup_time = root.path("estimated_pickup_time").asLong();
+
+		EstimatedFareDetailsBuilder estimatedFareDetailsBuilder = EstimatedFareDetails.builder();
+		JsonNode estimated_fare_details = root.path("estimated_fare_details");
+
+		if (!estimated_fare_details.isNull()) {
+			String currency = estimated_fare_details.path("currency").asText(null);
+			Long minor_amount = estimated_fare_details.path("minor_amount").asLong();
+			estimatedFareDetailsBuilder.currency(currency).minor_amount(minor_amount);
+		}
+
+		EstimatedFareDetails estimatedFareDetails = estimatedFareDetailsBuilder.build();
+
+		return createOrderResBeanBuilder.request_id(request_id).order_id(order_id).tracking_url(tracking_url)
+				.estimated_pickup_time(estimated_pickup_time).estimated_fare_details(estimatedFareDetails).build();
+	}
+
+	public FetchOrderRes getOrder(String proter_order_id) {
+		RestTemplate restTemplate = new RestTemplate();
+
+		// Define the URL
+		String url = "https://pfe-apigw-uat.porter.in/v1/orders/" + proter_order_id;
+
+		// Set up headers
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+
+		// Create an HttpEntity with the headers (no body needed)
+		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+		// Make the GET request
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+
+		// Print the response
+		log.info("Response:: " + response.getBody());
+		String body = response.getBody();
+		return this.parseAndAccessFields(body);
+
+	}
+
+	// @formatter:off
+	private FetchOrderRes parseAndAccessFields(String jsonResponse) {
+	    try {
+	        JsonNode root = mapper.readTree(jsonResponse);
+
+	        // Safely access basic fields
+	        String orderId = root.path("order_id").asText(null);
+	        String statusStr = root.path("status").asText(null);
+
+	        // Build PartnerInfo
+	        PartnerInfo partnerInfo = buildPartnerInfo(root.path("partner_info"));
+
+	        // Build OrderTimings
+	        OrderTimings orderTimings = buildOrderTimings(root.path("order_timings"));
+
+	        // Build FareDetails
+	        FareDetails fareDetails = buildFareDetails(root.path("fare_details"));
+
+	        // Convert status to enum
+	        Status status = convertStatus(statusStr);
+
+	        // Build and return the FetchOrderRes object
+	        return FetchOrderRes.builder()
+	                .order_id(orderId)
+	                .status(status)
+	                .partner_info(partnerInfo)
+	                .order_timings(orderTimings)
+	                .fare_details(fareDetails)
+	                .build();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        log.error("Failed to parse JSON response.");
+	        return null;
+	    }
+	}
+
+	private static PartnerInfo buildPartnerInfo(JsonNode partnerInfoNode) {
+	    if (partnerInfoNode.isNull()) return null;
+
+	    PartnerInfoBuilder partnerInfoBuilder = PartnerInfo.builder()
+	            .name(partnerInfoNode.path("name").asText(null))
+	            .vehicle_number(partnerInfoNode.path("vehicle_number").asText(null))
+	            .vehicle_type(partnerInfoNode.path("vehicle_type").asText(null));
+
+	    // Mobile
+	    JsonNode mobileNode = partnerInfoNode.path("mobile");
+	    if (!mobileNode.isNull()) {
+	        MobileNo mobile = MobileNo.builder()
+	                .country_code(mobileNode.path("country_code").asText(null))
+	                .mobile_number(mobileNode.path("mobile_number").asText(null))
+	                .build();
+	        partnerInfoBuilder.mobile(mobile);
+	    }
+
+	    // Partner Secondary Mobile
+	    JsonNode secondaryMobileNode = partnerInfoNode.path("partner_secondary_mobile");
+	    if (!secondaryMobileNode.isNull()) {
+	        MobileNo secondaryMobile = MobileNo.builder()
+	                .country_code(secondaryMobileNode.path("country_code").asText(null))
+	                .mobile_number(secondaryMobileNode.path("mobile_number").asText(null))
+	                .build();
+	        partnerInfoBuilder.partner_secondary_mobile(secondaryMobile);
+	    }
+
+	    // Location
+	    JsonNode locationNode = partnerInfoNode.path("location");
+	    if (!locationNode.isNull()) {
+	        Location location = Location.builder()
+	                .lat(locationNode.path("lat").asText(null))
+	                .lng(locationNode.path("long").asText(null))
+	                .build();
+	        partnerInfoBuilder.location(location);
+	    }
+
+	    return partnerInfoBuilder.build();
+	}
+
+	private static OrderTimings buildOrderTimings(JsonNode orderTimingsNode) {
+	    if (orderTimingsNode.isNull()) return null;
+
+	    return OrderTimings.builder()
+	            .pickup_time(orderTimingsNode.path("pickup_time").asLong())
+	            .order_accepted_time(orderTimingsNode.path("order_accepted_time").asLong())
+	            .order_started_time(orderTimingsNode.path("order_started_time").asLong())
+	            .order_ended_time(orderTimingsNode.path("order_ended_time").asLong())
+	            .build();
+	}
+
+	private static FareDetails buildFareDetails(JsonNode fareDetailsNode) {
+	    if (fareDetailsNode.isNull()) return null;
+
+	    FareDetailsBuilder fareDetailsBuilder = FareDetails.builder();
+
+	    // Estimated Fare Details
+	    JsonNode estimatedFareNode = fareDetailsNode.path("estimated_fare_details");
+	    if (!estimatedFareNode.isNull()) {
+	        FareAmountDetails estimatedFare = FareAmountDetails.builder()
+	                .currency(estimatedFareNode.path("currency").asText(null))
+	                .minor_amount(estimatedFareNode.path("minor_amount").asLong())
+	                .build();
+	        fareDetailsBuilder.estimated_fare_details(estimatedFare);
+	    }
+
+	    // Actual Fare Details
+	    JsonNode actualFareNode = fareDetailsNode.path("actual_fare_details");
+	    if (!actualFareNode.isNull()) {
+	        FareAmountDetails actualFare = FareAmountDetails.builder()
+	                .currency(actualFareNode.path("currency").asText(null))
+	                .minor_amount(actualFareNode.path("minor_amount").asLong())
+	                .build();
+	        fareDetailsBuilder.actual_fare_details(actualFare);
+	    }
+
+	    return fareDetailsBuilder.build();
+	}
+
+	private static Status convertStatus(String statusStr) {
+	    for (Status status : Status.values()) {
+	        if (status.toString().equals(statusStr)) {
+	            return status;
+	        }
+	    }
+	    return null; // or a default status if applicable
+	}
+	// @formatter:on
+
+	public static void main(String[] args) {
+
+	}
+}
