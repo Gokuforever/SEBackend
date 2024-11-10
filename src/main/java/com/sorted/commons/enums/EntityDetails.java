@@ -15,6 +15,7 @@ import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.entity.mongo.SmsPool;
 import com.sorted.commons.entity.mongo.Third_Party_Api;
 import com.sorted.commons.entity.mongo.Transaction_Details;
+import com.sorted.commons.entity.mongo.Transaction_Req_Response;
 import com.sorted.commons.entity.mongo.Users;
 import com.sorted.commons.entity.mongo.Varient_Mapping;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -40,6 +41,7 @@ public enum EntityDetails {
 	SELLER(Seller.class),
 	THIRD_PARTY_API(Third_Party_Api.class),
 	TRANSACTION_DETAILS(Transaction_Details.class),
+	TRANSACTION_REQ_RESPONSE(Transaction_Req_Response.class),
 	USERS(Users.class),
 	VARIENT_MAPPING(Varient_Mapping.class);
 	// @formatter:on
