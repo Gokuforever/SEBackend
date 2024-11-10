@@ -1,5 +1,7 @@
 package com.sorted.commons.entity.mongo;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.sorted.commons.enums.AddressType;
@@ -27,5 +29,7 @@ public class Address extends BaseMongoEntity<String> {
 	private String entity_id;
 	private AddressType address_type;
 	private String address_type_desc;
+	private BigDecimal lat;
+	private BigDecimal lng;
 	private Boolean is_default;
 }

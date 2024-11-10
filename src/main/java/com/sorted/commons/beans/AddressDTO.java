@@ -1,5 +1,7 @@
 package com.sorted.commons.beans;
 
+import java.math.BigDecimal;
+
 import lombok.Data;
 
 @Data
@@ -15,4 +17,6 @@ public class AddressDTO {
 	private String address_type;
 	private String address_type_desc;
 	private Boolean is_default;
+	private BigDecimal lat;
+	private BigDecimal lng;
 }
