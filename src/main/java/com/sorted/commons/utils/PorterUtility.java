@@ -15,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -31,6 +32,7 @@ import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.porter.req.beans.CreateOrderBean;
+import com.sorted.commons.porter.req.beans.GetQuoteRequest;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean.CreateOrderResBeanBuilder;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean.EstimatedFareDetails;
@@ -45,6 +47,11 @@ import com.sorted.commons.porter.res.beans.FetchOrderRes.OrderTimings;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo.PartnerInfoBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.Status;
+import com.sorted.commons.porter.res.beans.GetQuoteResponse;
+import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle;
+import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare;
+import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare.FareBuilder;
+import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -166,6 +173,110 @@ public class PorterUtility {
 
 	}
 
+	public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby)
+			throws JsonMappingException, JsonProcessingException {
+		RestTemplate restTemplate = new RestTemplate();
+
+		String url = "https://pfe-apigw-uat.porter.in/v1/get_quote";
+
+		// Set headers
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+
+		// @formatter:off
+        // Build the request object using Builder
+//        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
+//                .pickup_details(GetQuoteRequest.PickupDetails.builder()
+//                        .lat(19.9982)
+//                        .lng(73.7531)
+//                        .build())
+//                .drop_details(GetQuoteRequest.DropDetails.builder()
+//                        .lat(12.89795704454522)
+//                        .lng(77.62119799020186)
+//                        .build())
+//                .customer(GetQuoteRequest.Customer.builder()
+//                        .name("Porter Test User")
+//                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
+//                                .country_code("+91")
+//                                .number("7678139714")
+//                                .build())
+//                        .build())
+//                .build();
+//        // @formatter:on
+
+		Third_Party_Api third_Party_Api = new Third_Party_Api();
+		third_Party_Api.setRaw_request(GsonUtils.getGson().toJson(quoteRequest));
+		third_Party_Api.setRequest_type("Porter:: get quote");
+
+		third_Party_Api = third_Party_Api_Service.create(third_Party_Api, cudby);
+
+		// Create the HttpEntity with headers and the request body
+		HttpEntity<GetQuoteRequest> request = new HttpEntity<>(quoteRequest, headers);
+
+		// Make the POST request
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+		HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+		third_Party_Api.setRaw_response(response.getBody());
+		third_Party_Api.setStatus(httpStatus);
+		third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
+
+		if (httpStatus == null) {
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		}
+		JsonObject jsonResponse = GsonUtils.getGson().fromJson(response.getBody(), JsonObject.class);
+		switch (httpStatus) {
+		case OK:
+			break;
+		case BAD_REQUEST:
+			String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+			if (type != null && type.equals("different_city_error")) {
+				throw new CustomIllegalArgumentsException("pickup and drop address belongs to different cities");
+			}
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		case UNPROCESSABLE_ENTITY:
+			String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+			log.error("Exception occurred:: message: {}", message);
+			throw new CustomIllegalArgumentsException(message);
+		default:
+			String type1 = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+			String message1 = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+			log.error("Exception occurred:: type: {}, message: {}", type1, message1);
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode = objectMapper.readTree(response.getBody());
+		JsonNode vehicles = rootNode.get("vehicles");
+		VehicleBuilder vehicleBuilder = Vehicle.builder();
+		if (vehicles.isNull() || !vehicles.isArray()) {
+			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+		}
+		for (JsonNode vehicle : vehicles) {
+			String prettyString = vehicle.toPrettyString();
+			log.debug("prettyString:: {}", prettyString);
+			String type = vehicle.get("type").asText(null);
+			if (type == null || !type.equals("2 Wheeler")) {
+				continue;
+			}
+			long eta = vehicle.get("eta").asLong();
+			JsonNode fareNode = vehicle.get("fare");
+			FareBuilder fareBuilder = Fare.builder();
+			if (!fareNode.isNull()) {
+				String currency = fareNode.get("currency").asText();
+				long minor_amount = fareNode.get("minor_amount").asLong();
+				fareBuilder.currency(currency).minor_amount(minor_amount);
+			}
+			vehicleBuilder.type(type).eta(eta).fare(fareBuilder.build());
+		}
+
+		Vehicle vehicle = vehicleBuilder.build();
+		log.info("Quote fetched successfully: {}", response.getBody());
+		return GetQuoteResponse.builder().vehicle(vehicle).build();
+
+	}
+
 	// @formatter:off
 	private FetchOrderRes parseAndAccessFields(String jsonResponse) {
 	    try {
@@ -203,7 +314,7 @@ public class PorterUtility {
 	    }
 	}
 
-	private static PartnerInfo buildPartnerInfo(JsonNode partnerInfoNode) {
+	private PartnerInfo buildPartnerInfo(JsonNode partnerInfoNode) {
 	    if (partnerInfoNode.isNull()) return null;
 
 	    PartnerInfoBuilder partnerInfoBuilder = PartnerInfo.builder()
@@ -244,7 +355,7 @@ public class PorterUtility {
 	    return partnerInfoBuilder.build();
 	}
 
-	private static OrderTimings buildOrderTimings(JsonNode orderTimingsNode) {
+	private OrderTimings buildOrderTimings(JsonNode orderTimingsNode) {
 	    if (orderTimingsNode.isNull()) return null;
 
 	    return OrderTimings.builder()
@@ -255,7 +366,7 @@ public class PorterUtility {
 	            .build();
 	}
 
-	private static FareDetails buildFareDetails(JsonNode fareDetailsNode) {
+	private FareDetails buildFareDetails(JsonNode fareDetailsNode) {
 	    if (fareDetailsNode.isNull()) return null;
 
 	    FareDetailsBuilder fareDetailsBuilder = FareDetails.builder();
@@ -283,7 +394,7 @@ public class PorterUtility {
 	    return fareDetailsBuilder.build();
 	}
 
-	private static Status convertStatus(String statusStr) {
+	private Status convertStatus(String statusStr) {
 	    for (Status status : Status.values()) {
 	        if (status.toString().equals(statusStr)) {
 	            return status;
@@ -294,6 +405,5 @@ public class PorterUtility {
 	// @formatter:on
 
 	public static void main(String[] args) {
-
 	}
 }
