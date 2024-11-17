@@ -1,5 +1,7 @@
 package com.sorted.commons.porter.res.beans;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,8 +9,12 @@ import lombok.Getter;
 
 @Data
 @Builder
-public class FetchOrderRes {
+public class FetchOrderRes implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String order_id;
 	private Status status;
 	private PartnerInfo partner_info;
@@ -23,7 +29,11 @@ public class FetchOrderRes {
 
 	@Data
 	@Builder
-	public static class PartnerInfo {
+	public static class PartnerInfo implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String name;
 		private String vehicle_number;
 		private String vehicle_type;
@@ -35,21 +45,33 @@ public class FetchOrderRes {
 
 	@Data
 	@Builder
-	public static class Location {
+	public static class Location implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String lat;
 		private String lng;
 	}
 
 	@Data
 	@Builder
-	public static class MobileNo {
+	public static class MobileNo implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String country_code;
 		private String mobile_number;
 	}
 
 	@Data
 	@Builder
-	public static class OrderTimings {
+	public static class OrderTimings implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private Long pickup_time;
 		private Long order_accepted_time;
 		private Long order_started_time;
@@ -58,16 +80,25 @@ public class FetchOrderRes {
 
 	@Data
 	@Builder
-	public static class FareDetails {
+	public static class FareDetails implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private FareAmountDetails estimated_fare_details;
 		private FareAmountDetails actual_fare_details;
 
 		@Data
 		@Builder
-		public static class FareAmountDetails {
+		public static class FareAmountDetails implements Serializable {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 			private String currency;
 			private Long minor_amount;
 		}
 
 	}
+
 }

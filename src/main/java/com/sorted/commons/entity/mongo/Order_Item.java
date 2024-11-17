@@ -1,9 +1,11 @@
 package com.sorted.commons.entity.mongo;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.util.CollectionUtils;
 
 import com.sorted.commons.beans.Order_Status_History;
 import com.sorted.commons.beans.Refund_Details;
@@ -12,6 +14,7 @@ import com.sorted.commons.enums.PurchaseType;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.experimental.FieldNameConstants;
 
 @Data
@@ -44,5 +47,15 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private List<Order_Status_History> status_history;
 	private Order_Status_History latest_order_history;
 	private Refund_Details refund_details;
+
+	public void setStatus(@NonNull OrderStatus status, String cud_by) {
+		Order_Status_History order_Status_History = Order_Status_History.builder().status(status)
+				.modification_date(LocalDateTime.now()).modified_by(cud_by).build();
+		List<Order_Status_History> list = CollectionUtils.isEmpty(getStatus_history()) ? new ArrayList<>()
+				: getStatus_history();
+		list.add(order_Status_History);
+		setStatus_history(list);
+		this.status = status;
+	}
 
 }

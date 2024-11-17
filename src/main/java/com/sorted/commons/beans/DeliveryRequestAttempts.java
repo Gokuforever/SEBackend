@@ -1,10 +1,16 @@
 package com.sorted.commons.beans;
 
+import java.io.Serializable;
+
 import lombok.Builder;
 
 @Builder
-public class DeliveryRequestAttempts {
+public class DeliveryRequestAttempts implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String type;
 	private String message;
 	private int count;

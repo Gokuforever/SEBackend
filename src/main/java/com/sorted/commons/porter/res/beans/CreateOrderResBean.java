@@ -1,5 +1,9 @@
 package com.sorted.commons.porter.res.beans;
 
+import java.time.LocalDateTime;
+
+import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,14 +13,8 @@ public class CreateOrderResBean {
 
 	private String request_id;
 	private String order_id;
-	private Long estimated_pickup_time;
-	private EstimatedFareDetails estimated_fare_details;
+	private LocalDateTime estimated_pickup_time;
+	private FareAmountDetails estimated_fare_details;
 	private String tracking_url;
 
-	@Data
-	@Builder
-	public static class EstimatedFareDetails {
-		private String currency;
-		private Long minor_amount;
-	}
 }

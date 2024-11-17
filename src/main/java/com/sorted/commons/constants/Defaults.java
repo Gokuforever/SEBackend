@@ -12,4 +12,5 @@ public class Defaults {
 	public static final String UPDATE_PASS = "Update Pass";
 	public static final String SMS_SERVICE = "Sms Service";
 	public static final String DEFAULT_SELLER_PLAN = "Default Seller Plan";
+	public static final String PORTER_STCHK_CRON = "Porter Status Check Cron";
 }

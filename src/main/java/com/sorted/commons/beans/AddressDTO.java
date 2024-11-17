@@ -1,12 +1,17 @@
 package com.sorted.commons.beans;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import lombok.Data;
 
 @Data
-public class AddressDTO {
+public class AddressDTO implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String code;
 	private String street_1;
 	private String street_2;
