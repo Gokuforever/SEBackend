@@ -60,7 +60,7 @@ public class GoogleDriveService {
 				new HttpCredentialsAdapter(credentials)).setApplicationName("My Google Drive App").build();
 	}
 
-	public String uploadPhoto(@NonNull MultipartFile multipart_file, @NonNull UsersBean users_bean,
+	public File_Upload_Details uploadPhoto(@NonNull MultipartFile multipart_file, @NonNull UsersBean users_bean,
 			@NonNull DocumentType document_type) throws IOException, GeneralSecurityException {
 
 		log.info("Uploading photo for user: {}", users_bean.getId());
@@ -97,7 +97,7 @@ public class GoogleDriveService {
 		return this.storeFileDetails(upload_details, file, file_to_upload, users_bean);
 	}
 
-	private String storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
+	private File_Upload_Details storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
 			UsersBean users_bean) {
 		upload_details.setDocument_id(file.getId());
 		upload_details.setFile_extension(file.getFileExtension());
@@ -113,7 +113,7 @@ public class GoogleDriveService {
 		}
 		log.info("File details stored in the database for user: {} and File_Upload_Details id: {}", users_bean.getId(),
 				file_Upload_Details.getId());
-		return file_Upload_Details.getId();
+		return file_Upload_Details;
 	}
 
 	private String getFolderIdByDocumentType(DocumentType document_type) {
