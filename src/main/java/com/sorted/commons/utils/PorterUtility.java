@@ -1,5 +1,6 @@
 package com.sorted.commons.utils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,11 +36,10 @@ import com.sorted.commons.porter.req.beans.CreateOrderBean;
 import com.sorted.commons.porter.req.beans.GetQuoteRequest;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean.CreateOrderResBeanBuilder;
-import com.sorted.commons.porter.res.beans.CreateOrderResBean.EstimatedFareDetails;
-import com.sorted.commons.porter.res.beans.CreateOrderResBean.EstimatedFareDetails.EstimatedFareDetailsBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails.FareAmountDetailsBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareDetailsBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.Location;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.MobileNo;
@@ -134,8 +134,9 @@ public class PorterUtility {
 		String order_id = root.path("order_id").asText(null);
 		String tracking_url = root.path("tracking_url").asText(null);
 		Long estimated_pickup_time = root.path("estimated_pickup_time").asLong();
+		LocalDateTime estimated_pickup_time_ldt = CommonUtils.convertEpochToLocalDateTime(estimated_pickup_time);
 
-		EstimatedFareDetailsBuilder estimatedFareDetailsBuilder = EstimatedFareDetails.builder();
+		FareAmountDetailsBuilder estimatedFareDetailsBuilder = FareAmountDetails.builder();
 		JsonNode estimated_fare_details = root.path("estimated_fare_details");
 
 		if (!estimated_fare_details.isNull()) {
@@ -144,10 +145,10 @@ public class PorterUtility {
 			estimatedFareDetailsBuilder.currency(currency).minor_amount(minor_amount);
 		}
 
-		EstimatedFareDetails estimatedFareDetails = estimatedFareDetailsBuilder.build();
+		FareAmountDetails estimatedFareDetails = estimatedFareDetailsBuilder.build();
 
 		return createOrderResBeanBuilder.request_id(request_id).order_id(order_id).tracking_url(tracking_url)
-				.estimated_pickup_time(estimated_pickup_time).estimated_fare_details(estimatedFareDetails).build();
+				.estimated_pickup_time(estimated_pickup_time_ldt).estimated_fare_details(estimatedFareDetails).build();
 	}
 
 	public FetchOrderRes getOrder(String proter_order_id) {
