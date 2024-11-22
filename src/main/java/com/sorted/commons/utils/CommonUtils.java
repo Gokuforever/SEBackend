@@ -12,6 +12,7 @@ import java.util.Set;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sorted.commons.entity.mongo.Address;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.ReqBaseBean;
@@ -143,6 +144,35 @@ public class CommonUtils {
 
 	public static LocalDateTime convertEpochToLocalDateTime(long epochMillis) {
 		return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault());
+	}
+
+	// Distance calculation logic (Haversine formula)
+	private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+		final int EARTH_RADIUS = 6371; // Earth's radius in kilometers
+		double latDistance = Math.toRadians(lat2 - lat1);
+		double lonDistance = Math.toRadians(lon2 - lon1);
+
+		double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(lat1))
+				* Math.cos(Math.toRadians(lat2)) * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return EARTH_RADIUS * c; // Distance in kilometers
+	}
+
+	public static String findNearestSeller(double customerLat, double customerLon, List<Address> addresses) {
+		String nearestSeller = null;
+		double minimumDistance = Double.MAX_VALUE;
+
+		for (Address address : addresses) {
+			double distance = calculateDistance(customerLat, customerLon, address.getLat().doubleValue(),
+					address.getLng().doubleValue());
+			if (distance < minimumDistance) {
+				minimumDistance = distance;
+				nearestSeller = address.getId();
+			}
+		}
+
+		return nearestSeller;
 	}
 
 	public static void main(String[] args) {
