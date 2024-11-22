@@ -175,6 +175,7 @@ public enum ResponseCode {
 	INVALID_COLLEGE_NAME("SE_0159", "Invalid characters in college name.", "Invalid characters in college name."),
 	UNAUTHORIZED("SE_0160", "Unauthorized.", "Unauthorized, token expired."),
 	INVALID_ORDER_STATUS("SE_0161", "Invalid order status.", "Invalid order status."),
+	NOT_DELIVERIBLE("SE_0162", "Delivery isn't available at this location yet. Please try another pincode!", "Delivery isn't available at this location yet. Please try another pincode!"),
 	;
 	// @formatter:on
 
