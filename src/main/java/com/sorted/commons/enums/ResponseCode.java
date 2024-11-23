@@ -176,6 +176,7 @@ public enum ResponseCode {
 	UNAUTHORIZED("SE_0160", "Unauthorized.", "Unauthorized, token expired."),
 	INVALID_ORDER_STATUS("SE_0161", "Invalid order status.", "Invalid order status."),
 	NOT_DELIVERIBLE("SE_0162", "Delivery isn't available at this location yet. Please try another pincode!", "Delivery isn't available at this location yet. Please try another pincode!"),
+	UNTRUSTED_RESPONSE("SE_0163", "Invalid or untrusted details provided.", "Something went wrong"),
 	;
 	// @formatter:on
 
