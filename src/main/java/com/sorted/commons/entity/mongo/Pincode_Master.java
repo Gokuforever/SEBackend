@@ -9,7 +9,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
-@Document(collection = "order_details")
+@Document(collection = "pincode_master")
 public class Pincode_Master extends BaseMongoEntity<String> {
 	/**
 	* 
@@ -20,7 +20,7 @@ public class Pincode_Master extends BaseMongoEntity<String> {
 	private String divisionname;
 	private String district;
 	private String statename;
-	private int pincode;
+	private String pincode;
 	private double latitude;
 	private double longitude;
 }
