@@ -1,6 +1,7 @@
 package com.sorted.commons.entity.mongo;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -35,5 +36,6 @@ public class Users extends BaseMongoEntity<String> {
 	private LocalDateTime reset_pass_request_expiry;
 	private String uuid;
 	private boolean pass_changed;
+	private Map<String, String> properties;
 
 }
