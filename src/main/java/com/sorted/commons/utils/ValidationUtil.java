@@ -1,5 +1,7 @@
 package com.sorted.commons.utils;
 
+import java.math.BigDecimal;
+
 import org.springframework.util.StringUtils;
 
 import com.sorted.commons.beans.AddressDTO;
@@ -18,6 +20,8 @@ public class ValidationUtil {
 		String city = address.getCity();
 		String state = address.getState();
 		String pincode = address.getPincode();
+		BigDecimal lat = address.getLat();
+		BigDecimal lng = address.getLng();
 
 		String address_type_desc = address.getAddress_type_desc();
 
@@ -82,6 +86,8 @@ public class ValidationUtil {
 		address2.setPincode(pincode);
 		address2.setAddress_type(address_type);
 		address2.setAddress_type_desc(address_type_desc);
+		address2.setLat(lat);
+		address2.setLng(lng);
 		return address2;
 	}
 
