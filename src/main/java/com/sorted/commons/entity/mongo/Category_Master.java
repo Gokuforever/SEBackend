@@ -59,6 +59,7 @@ public class Category_Master extends BaseMongoEntity<String> {
 		private int order;
 		private InputType input_type;
 		private TypescriptDataTypes data_type;
+		private boolean filterable;
 	}
 
 	@Getter
