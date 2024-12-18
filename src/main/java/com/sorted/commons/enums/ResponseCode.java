@@ -177,6 +177,10 @@ public enum ResponseCode {
 	INVALID_ORDER_STATUS("SE_0161", "Invalid order status.", "Invalid order status."),
 	NOT_DELIVERIBLE("SE_0162", "Delivery isn't available at this location yet. Please try another pincode!", "Delivery isn't available at this location yet. Please try another pincode!"),
 	UNTRUSTED_RESPONSE("SE_0163", "Invalid or untrusted details provided.", "Something went wrong"),
+	SELECT_PINCODE("SE_0164", "Please select a pincode to view products available for delivery in your area.", "Please select a pincode to view products available for delivery in your area."),
+	ORDER_PLACED("SE_0165", "Order placed successfully.", "Order placed successfully."),
+	INVALID_SELLER_FOR_ORDER("SE_0166", "Order does not belong to this shop.", "Order does not belong to this shop."),
+	READY_FOR_DISPATCH("SE_0167", "Request sent to delivery partner for pickup.", "Request sent to delivery partner for pickup."),
 	;
 	// @formatter:on
 
