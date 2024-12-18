@@ -1,10 +1,12 @@
 package com.sorted.commons.utils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,11 +26,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sorted.commons.beans.DeliveryRequestAttempts;
+import com.sorted.commons.beans.NearestSellerRes;
+import com.sorted.commons.entity.mongo.Address;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Order_Details;
+import com.sorted.commons.entity.mongo.Pincode_Master;
+import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.entity.mongo.Third_Party_Api;
+import com.sorted.commons.entity.service.Address_Service;
 import com.sorted.commons.entity.service.Order_Details_Service;
+import com.sorted.commons.entity.service.Pincode_Master_Service;
+import com.sorted.commons.entity.service.Seller_Service;
 import com.sorted.commons.entity.service.Third_Party_Api_Service;
+import com.sorted.commons.enums.All_Status.Seller_Status;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
@@ -60,14 +72,31 @@ import lombok.extern.slf4j.Slf4j;
 public class PorterUtility {
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	@Autowired
-	private Order_Details_Service order_Details_Service;
+	private final Order_Details_Service order_Details_Service;
+	private final Third_Party_Api_Service third_Party_Api_Service;
+	private final Address_Service address_Service;
+	private final Seller_Service seller_Service;
+	private final Pincode_Master_Service pincode_Master_Service;
 
-	@Autowired
-	private Third_Party_Api_Service third_Party_Api_Service;
+	public PorterUtility(Order_Details_Service order_Details_Service, Third_Party_Api_Service third_Party_Api_Service,
+			Address_Service address_Service, Seller_Service seller_Service,
+			Pincode_Master_Service pincode_Master_Service) {
+		this.order_Details_Service = order_Details_Service;
+		this.third_Party_Api_Service = third_Party_Api_Service;
+		this.address_Service = address_Service;
+		this.seller_Service = seller_Service;
+		this.pincode_Master_Service = pincode_Master_Service;
+	}
 
 	public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
+		com.sorted.commons.porter.req.beans.CreateOrderBean.Address pickup_address = order.getPickup_details()
+				.getAddress();
+		com.sorted.commons.porter.req.beans.CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
+		pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
+		pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
+		drop_address.setLat(BigDecimal.valueOf(12.9165757));
+		drop_address.setLng(BigDecimal.valueOf(77.6101163));
 		SEFilter filterOD = new SEFilter(SEFilterType.AND);
 		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, order.getRequest_id()));
 		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
@@ -99,8 +128,17 @@ public class PorterUtility {
 		third_Party_Api.setRequest_type("Porter:: create order");
 
 		third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
+
 		// Make the POST request
-		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+		ResponseEntity<String> response = null;
+		try {
+			response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+		} catch (HttpServerErrorException.InternalServerError ex) {
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
+			String responseBody = ex.getResponseBodyAsString();
+			extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
 		HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
 		third_Party_Api.setRaw_response(response.getBody());
@@ -114,16 +152,7 @@ public class PorterUtility {
 		case CREATED, OK:
 			break;
 		default:
-
-			JsonObject jsonResponse = gson.fromJson(response.getBody(), JsonObject.class);
-			String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
-			String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
-
-			delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1)
-					.message(message).type(type).response_code(httpStatus.value()).build());
-			order_Details.setDelivery_request_attempts(delivery_request_attempts);
-
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+			extractError(order_Details, delivery_request_attempts, response.getBody(), httpStatus);
 		}
 
 		JsonNode root = mapper.readTree(response.getBody());
@@ -149,6 +178,20 @@ public class PorterUtility {
 
 		return createOrderResBeanBuilder.request_id(request_id).order_id(order_id).tracking_url(tracking_url)
 				.estimated_pickup_time(estimated_pickup_time_ldt).estimated_fare_details(estimatedFareDetails).build();
+	}
+
+	private void extractError(Order_Details order_Details, List<DeliveryRequestAttempts> delivery_request_attempts,
+			String response, HttpStatus httpStatus) {
+		Gson gson = GsonUtils.getGson();
+		JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+		String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+		String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+
+		delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1)
+				.message(message).type(type).response_code(httpStatus.value()).build());
+		order_Details.setDelivery_request_attempts(delivery_request_attempts);
+		order_Details_Service.update(order_Details.getId(), order_Details, "porter");
+		throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
 	}
 
 	public FetchOrderRes getOrder(String proter_order_id) {
@@ -394,14 +437,83 @@ public class PorterUtility {
 
 	    return fareDetailsBuilder.build();
 	}
+	
+	private NearestSellerRes getNearestSeller(double lat, double lng, String mobile_no, String user_name, String cud_by)
+			throws JsonProcessingException {
+
+//		SEFilter filterPM = new SEFilter(SEFilterType.AND);
+//		filterPM.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
+//
+//		List<Pincode_Master> pincode_Masters = pincode_Master_Service.repoFind(filterPM);
+//		if (CollectionUtils.isEmpty(pincode_Masters)) {
+//			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
+//		}
+
+		SEFilter filterS = new SEFilter(SEFilterType.AND);
+		filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+		filterS.addClause(WhereClause.eq(Seller.Fields.status, Seller_Status.ACTIVE.name()));
+
+		List<Seller> listS = seller_Service.repoFind(filterS);
+		if (CollectionUtils.isEmpty(listS)) {
+			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
+		}
+		Map<String, String> map = listS.stream().filter(e->StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(e -> e.getAddress_id(), e -> e.getId()));
+
+		SEFilter filterA = new SEFilter(SEFilterType.AND);
+		filterA.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(map.keySet())));
+		filterA.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		List<Address> listAdd = address_Service.repoFind(filterA);
+
+		Map<String, Address> mapA = listAdd.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+
+		String nearestSeller = CommonUtils.findNearestSeller(lat, lng, listAdd);
+
+		Address address = mapA.get(nearestSeller);
+
+		// @formatter:off
+        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
+                .pickup_details(GetQuoteRequest.PickupDetails.builder()
+                        .lat(address.getLat().doubleValue())
+                        .lng(address.getLng().doubleValue())
+                        .build())
+                .drop_details(GetQuoteRequest.DropDetails.builder()
+                        .lat(lat)
+                        .lng(lng)
+                        .build())
+                .customer(GetQuoteRequest.Customer.builder()
+                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
+                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
+                                .country_code("+91")
+                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
+                                .build())
+                        .build())
+                .build();
+        // @formatter:on
+		GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
+		return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).build();
+	}
+
+	public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {
+		SEFilter filterP = new SEFilter(SEFilterType.AND);
+		filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
+		filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+		Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
+		if (pincode_Master == null) {
+			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
+		}
+		return getNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), null, null,
+				"delivery check API");
+	}
 
 	private Status convertStatus(String statusStr) {
-	    for (Status status : Status.values()) {
-	        if (status.toString().equals(statusStr)) {
-	            return status;
-	        }
-	    }
-	    return null; // or a default status if applicable
+		for (Status status : Status.values()) {
+			if (status.toString().equals(statusStr)) {
+				return status;
+			}
+		}
+		return null; // or a default status if applicable
 	}
 	// @formatter:on
 
