@@ -11,8 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ReqBaseBean {
 
-	private String req_user_id;
-	private String req_role_id;
-	private int page;
-	private int size;
+	protected String req_user_id;
+	protected String req_role_id;
+	protected int page;
+	protected int size;
 }
