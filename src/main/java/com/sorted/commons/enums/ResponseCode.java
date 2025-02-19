@@ -181,6 +181,7 @@ public enum ResponseCode {
 	ORDER_PLACED("SE_0165", "Order placed successfully.", "Order placed successfully."),
 	INVALID_SELLER_FOR_ORDER("SE_0166", "Order does not belong to this shop.", "Order does not belong to this shop."),
 	READY_FOR_DISPATCH("SE_0167", "Request sent to delivery partner for pickup.", "Request sent to delivery partner for pickup."),
+	MANDATE_COLLEGE_NAME("SE_0168", "College name is missing.", "College name is missing."),
 	;
 	// @formatter:on
 
