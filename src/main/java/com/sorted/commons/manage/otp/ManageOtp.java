@@ -100,9 +100,7 @@ public class ManageOtp {
 		filterO.addClause(WhereClause.eq(Otp.Fields.uuid, uuid));
 		filterO.addClause(WhereClause.eq(Otp.Fields.process_type, processType.name()));
 
-		OrderBy orderBy = new OrderBy();
-		orderBy.setKey(BaseMongoEntity.Fields.creation_date);
-		orderBy.setType(SortOrder.DESC);
+		OrderBy orderBy = new OrderBy(BaseMongoEntity.Fields.creation_date, SortOrder.DESC);
 		filterO.setOrderBy(orderBy);
 
 		Otp otp2 = otp_Service.repoFindOne(filterO);

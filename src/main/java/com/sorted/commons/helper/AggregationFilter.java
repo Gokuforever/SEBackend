@@ -308,6 +308,11 @@ public class AggregationFilter {
 
 	@Data
 	public static class OrderBy {
+		public OrderBy(String key, SortOrder sortOrder) {
+			this.type = sortOrder;
+			this.key = key;
+		}
+
 		private SortOrder type = SortOrder.DESC;
 		private String key;
 	}
