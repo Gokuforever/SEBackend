@@ -187,6 +187,10 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 		}
 		boolean hasAccess = false;
 		for (Activity act : activities) {
+			if (act == Activity.USER_PROFILE) {
+				hasAccess = true;
+				break;
+			}
 			hasAccess = role.getRole_permissions().stream().anyMatch(
 					e -> (e.getActivity_id() == act.getId() && e.getPermissions().contains(permission.getId())));
 			if (hasAccess) {
