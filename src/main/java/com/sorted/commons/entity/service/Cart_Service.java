@@ -1,5 +1,7 @@
 package com.sorted.commons.entity.service;
 
+import java.util.ArrayList;
+
 import org.springframework.stereotype.Service;
 
 import com.sorted.commons.entity.mongo.Cart;
@@ -20,7 +22,7 @@ public class Cart_Service extends GenericEntityServiceImpl<String, Cart, Cart_Re
 
 	@Override
 	protected void validateBeforeCreate(Cart inE) throws RuntimeException {
-
+		inE.setCart_items(new ArrayList<>());
 	}
 
 	@Override
