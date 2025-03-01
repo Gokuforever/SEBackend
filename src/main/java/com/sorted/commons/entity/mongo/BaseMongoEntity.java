@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +18,7 @@ public abstract class BaseMongoEntity<K> implements Serializable {
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 1L;
 	@Setter(AccessLevel.PRIVATE)
 	private K id;
@@ -53,8 +55,7 @@ public abstract class BaseMongoEntity<K> implements Serializable {
 		this.modification_date = curDate;
 
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		String curDateStr = curDate.format(pattern);
-		this.modification_date_str = curDateStr;
+        this.modification_date_str = curDate.format(pattern);
 	}
 
 }
