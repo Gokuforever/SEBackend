@@ -3,11 +3,14 @@ package com.sorted.commons.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @AllArgsConstructor
 @Getter
 public enum OrderStatus {
 
-	//@formatter:off
+    //@formatter:off
 	
 
 	
@@ -26,32 +29,27 @@ public enum OrderStatus {
 	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"); // Once cancelled - Complete amount refunded
 	// @formatter:on
 
-	private int id;
-	private String customer_status;
-	private String internal_status;
+    private final int id;
+    private final String customer_status;
+    private final String internal_status;
 
-//	final static Map<String, Integer> getByStatus = new HashMap<>();
-//	final static Map<Integer, String> getById = new HashMap<>();
-//	static {
-//		for (OrderStatus e : OrderStatus.values()) {
-//			getById.put(e.getId(), e.getStatus());
-//			getByStatus.put(e.getStatus(), e.getId());
-//		}
-//	}
-//
-//	public String getById(int i) {
-//		if (getById.containsKey(i)) {
-//			return getById.get(i);
-//		} else {
-//			return null;
-//		}
-//	}
-//
-//	public static int getByStatus(String s) {
-//		if (getByStatus.containsKey(s)) {
-//			return getByStatus.get(s);
-//		} else {
-//			return 0;
-//		}
-//	}
+    static final Map<String, OrderStatus> byInternalStatus = new HashMap<>();
+    static final Map<String, OrderStatus> byCustomerStatus = new HashMap<>();
+    static final Map<Integer, OrderStatus> getById = new HashMap<>();
+
+    static {
+        for (OrderStatus e : OrderStatus.values()) {
+            getById.put(e.getId(), e);
+            byInternalStatus.put(e.getInternal_status(), e);
+            byCustomerStatus.put(e.getCustomer_status(), e);
+        }
+    }
+
+    public OrderStatus getById(int i) {
+        return getById.getOrDefault(i, null);
+    }
+
+    public static OrderStatus getByInternalStatus(String s) {
+        return byInternalStatus.getOrDefault(s, null);
+    }
 }
