@@ -1,16 +1,24 @@
 package com.sorted.commons.exceptions;
 
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+
 import com.sorted.commons.enums.ResponseCode;
 
 import lombok.NonNull;
 
+import java.io.Serial;
+
+@Getter
 public abstract class BaseException extends RuntimeException {
 
+	@Serial
 	private static final long serialVersionUID = -3093653763733424129L;
 	private ResponseCode responseCode;
 	private String messageCode;
 	private Object[] messageArgs;
 	private String userMessage;
+    private HttpStatus httpStatus;
 
 	// Constructors
 	// ------------------------------------------------------------------------
@@ -25,7 +33,7 @@ public abstract class BaseException extends RuntimeException {
 		this(messageCode, args, null);
 	}
 
-	/**
+    /**
 	 * Constructs with the message code with its place-holder values and its cause.
 	 * 
 	 * @param messageCode Message Code
@@ -71,6 +79,13 @@ public abstract class BaseException extends RuntimeException {
 		this.messageCode = err.getCode();
 	}
 
+	protected BaseException(@NonNull ResponseCode err, @NonNull HttpStatus status) {
+		this(err.getErrorMessage(), err.getUserMessage());
+		this.responseCode = err;
+		this.messageCode = err.getCode();
+		this.httpStatus = status;
+	}
+
 	protected BaseException(@NonNull ResponseCode err, String argsResponseCode, String argsUser) {
 		this(err.getErrorMessage() + argsResponseCode, err.getUserMessage() + argsUser);
 		this.responseCode = err;
@@ -86,20 +101,9 @@ public abstract class BaseException extends RuntimeException {
 	// Methods
 	// ------------------------------------------------------------------------
 
-	public String getMessageCode() {
-		return messageCode;
-	}
 
 	public Object[] getMessageArgs() {
 		return messageArgs == null ? new Object[] {} : messageArgs;
-	}
-
-	public String getUserMessage() {
-		return userMessage;
-	}
-
-	public ResponseCode getResponseCode() {
-		return responseCode;
 	}
 
 }
