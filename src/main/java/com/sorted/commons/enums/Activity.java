@@ -22,10 +22,11 @@ public enum Activity {
 	SELLER_MANAGEMENT(111,"Seller Management"),
 	STORE_MANAGEMENT(112,"Store Management"),
 	USER_PROFILE(113,"User Profile"),
+	SECURE_RETURN(114,"Secure Return"),
 	;
 	// @formatter:on
 
-	private int id;
-	private String name;
+	private final int id;
+	private final String name;
 
 }
