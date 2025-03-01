@@ -14,7 +14,7 @@ public class CustomExceptionHandler {
 
 	@ExceptionHandler(CustomIllegalArgumentsException.class)
 	public ResponseEntity<Object> handleCustomIllegalArgumentsException(CustomIllegalArgumentsException e) {
-		HttpStatus status = HttpStatus.NOT_ACCEPTABLE;
+		HttpStatus status = null == e.getHttpStatus() ? HttpStatus.NOT_ACCEPTABLE : e.getHttpStatus();
 		if (e.getResponseCode() == ResponseCode.ACCESS_DENIED) {
 			status = HttpStatus.UNAUTHORIZED;
 		}
