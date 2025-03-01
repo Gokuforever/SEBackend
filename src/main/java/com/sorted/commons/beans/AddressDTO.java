@@ -1,5 +1,6 @@
 package com.sorted.commons.beans;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -11,6 +12,7 @@ public class AddressDTO implements Serializable{
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String id;
 	private String code;
@@ -25,4 +27,5 @@ public class AddressDTO implements Serializable{
 	private Boolean is_default;
 	private BigDecimal lat;
 	private BigDecimal lng;
+	private String phone_no;
 }

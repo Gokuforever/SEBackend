@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,6 +18,7 @@ import lombok.experimental.FieldNameConstants;
 @Document(collection = "address")
 public class Address extends BaseMongoEntity<String> {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String code;
 	private String street_1;
@@ -31,5 +33,6 @@ public class Address extends BaseMongoEntity<String> {
 	private String address_type_desc;
 	private BigDecimal lat;
 	private BigDecimal lng;
+	private String phone_no;
 	private Boolean is_default;
 }
