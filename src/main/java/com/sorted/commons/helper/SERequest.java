@@ -1,6 +1,9 @@
 package com.sorted.commons.helper;
 
+import java.io.Serial;
 import java.io.Serializable;
+
+import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +20,7 @@ public class SERequest implements Serializable {
 	/**
 	* 
 	*/
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String source;
 	private String requestDataType;
@@ -32,7 +36,7 @@ public class SERequest implements Serializable {
 				return mapper.convertValue(this.getRequestData(), clazz);
 			} catch (IllegalArgumentException e) {
 				System.out.println(e);
-				throw new CustomIllegalArgumentsException(ResponseCode.INVALID_REQ);
+				throw new CustomIllegalArgumentsException(ResponseCode.INVALID_REQ, HttpStatus.BAD_REQUEST);
 			}
 		} else {
 			String err = "RequestData is null";
