@@ -3,7 +3,9 @@ package com.sorted.commons.entity.service;
 import com.sorted.commons.entity.mongo.Order_Dump;
 import com.sorted.commons.repository.mongo.Order_Dump_Repository;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 
+@Service
 public class Order_Dump_Service extends GenericEntityServiceImpl<String, Order_Dump, Order_Dump_Repository> {
     @Override
     protected Class<Order_Dump_Repository> getRepoClass() {
