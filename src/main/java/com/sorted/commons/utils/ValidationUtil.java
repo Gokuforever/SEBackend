@@ -6,6 +6,7 @@ import com.sorted.commons.entity.mongo.Address;
 import com.sorted.commons.enums.AddressType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
@@ -22,38 +23,27 @@ public class ValidationUtil {
         String phoneNo = address.getPhone_no();
         BigDecimal lat = address.getLat();
         BigDecimal lng = address.getLng();
-
         String address_type_desc = address.getAddress_type_desc();
 
         if (!StringUtils.hasText(street_1)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_STREET);
         }
-        if (!SERegExpUtils.standardTextValidation(street_1)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_STREET);
-        }
+        street_1 = trimAndValidateLength(street_1, ResponseCode.INVALID_STREET);
         if (StringUtils.hasText(street_2)) {
-            if (!SERegExpUtils.standardTextValidation(street_2)) {
-                throw new CustomIllegalArgumentsException(ResponseCode.INVALID_STREET_2);
-            }
+            street_2 = trimAndValidateLength(street_2, ResponseCode.INVALID_STREET_2);
         }
         if (!StringUtils.hasText(landmark)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_LANDMARK);
         }
-        if (!SERegExpUtils.standardTextValidation(landmark)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_LANDMARK);
-        }
+        landmark = trimAndValidateLength(landmark, ResponseCode.INVALID_LANDMARK);
         if (!StringUtils.hasText(city)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_CITY);
         }
-        if (!SERegExpUtils.standardTextValidation(city)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_CITY);
-        }
+        city = trimAndValidateLength(city, ResponseCode.INVALID_CITY);
         if (!StringUtils.hasText(state)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_STATE);
         }
-        if (!SERegExpUtils.standardTextValidation(state)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_STATE);
-        }
+        state = trimAndValidateLength(state, ResponseCode.INVALID_STATE);
         if (!StringUtils.hasText(pincode)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_PINCODE);
         }
@@ -97,6 +87,15 @@ public class ValidationUtil {
         return address2;
     }
 
+    @NotNull
+    private static String trimAndValidateLength(String city, ResponseCode responseCode) {
+        city = city.trim().replaceAll("\\s+", " ");
+        if (city.length() > 100) {
+            throw new CustomIllegalArgumentsException(responseCode);
+        }
+        return city;
+    }
+
     public static void validateBankDetails(Bank_Details bank_details) {
         String account_number = bank_details.getAccount_number();
         String ifsc_code = bank_details.getIfsc_code();
@@ -123,4 +122,5 @@ public class ValidationUtil {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_BANK_NAME);
         }
     }
+
 }
