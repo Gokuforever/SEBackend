@@ -94,8 +94,8 @@ public enum ResponseCode {
 	PROMT_SIGNUP("SE_0081", "Hold on! You need to log in or sign up to buy this. Join us—it's quick and easy!", "Hold on! You need to log in or sign up to buy this. Join us—it's quick and easy!"),
 	CART_EMPTY("SE_0082", "Cart is empty, please add items.", "Cart is empty, please add items."),
 	OUT_OF_STOCK("SE_0083", "Sorry! Your requested item ran out of stock.", "Sorry! Your requested item ran out of stock."),
-	DELETED_PRODUCT("SE_0084", "Product might be deleted.", "Something went wrong."),
-	FEW_OUT_OF_STOCK("SE_0085", "Oops! Few items jist went out of stock, please refresh and try again.", "Oops! Few items jist went out of stock, please refresh and try again."),
+	DELETED_PRODUCT("SE_0084", "Product might be deleted.", "One/Few product/s currently unavailable, please refresh and try again."),
+	FEW_OUT_OF_STOCK("SE_0085", "Oops! Few items just went out of stock, please refresh and try again.", "Oops! Few items just went out of stock, please refresh and try again."),
 	MISSING_ADDRESS("SE_0086", "Address is missing.", "Address is missing."),
 	MANDATE_STREET("SE_0087", "Street 1 is mandatory.", "Street 1 is mandatory."),
 	INVALID_STREET("SE_0088", "Please provide valid Street 1.", "Please provide valid Street 1."),
@@ -184,6 +184,7 @@ public enum ResponseCode {
 	MANDATE_COLLEGE_NAME("SE_0168", "College name is missing.", "College name is missing."),
 	MANDATE_PHONE("SE_0169", "Phone No is mandatory.", "Phone No is mandatory."),
 	INVALID_PHONE("SE_0170", "Please provide valid Phone No.", "Please provide valid Phone No."),
+	MULTIPLE_SELLERS("SE_0171", "Multiple sellers for single order.", "Something went wrong, please contact customer support."),
 	;
 	// @formatter:on
 

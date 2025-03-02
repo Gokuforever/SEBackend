@@ -53,6 +53,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String dp_order_id; // delivery partner order id
     private LocalDateTime estimated_pickup_time;
     private FareDetails fare_details;
+    private String estimated_quote;
     @Version
     private Long version;
 

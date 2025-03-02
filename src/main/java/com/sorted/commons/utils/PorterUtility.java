@@ -1,43 +1,14 @@
 package com.sorted.commons.utils;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sorted.commons.beans.DeliveryRequestAttempts;
 import com.sorted.commons.beans.NearestSellerRes;
-import com.sorted.commons.entity.mongo.Address;
-import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.entity.mongo.Order_Details;
-import com.sorted.commons.entity.mongo.Pincode_Master;
-import com.sorted.commons.entity.mongo.Seller;
-import com.sorted.commons.entity.mongo.Third_Party_Api;
-import com.sorted.commons.entity.service.Address_Service;
-import com.sorted.commons.entity.service.Order_Details_Service;
-import com.sorted.commons.entity.service.Pincode_Master_Service;
-import com.sorted.commons.entity.service.Seller_Service;
-import com.sorted.commons.entity.service.Third_Party_Api_Service;
+import com.sorted.commons.entity.mongo.*;
+import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.All_Status.Seller_Status;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
@@ -49,186 +20,187 @@ import com.sorted.commons.porter.req.beans.GetQuoteRequest;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean.CreateOrderResBeanBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails;
+import com.sorted.commons.porter.res.beans.FetchOrderRes.*;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails.FareAmountDetailsBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareDetailsBuilder;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.Location;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.MobileNo;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.OrderTimings;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.PartnerInfo.PartnerInfoBuilder;
-import com.sorted.commons.porter.res.beans.FetchOrderRes.Status;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare.FareBuilder;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuilder;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class PorterUtility {
-	private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-	private final Order_Details_Service order_Details_Service;
-	private final Third_Party_Api_Service third_Party_Api_Service;
-	private final Address_Service address_Service;
-	private final Seller_Service seller_Service;
-	private final Pincode_Master_Service pincode_Master_Service;
+    private final Order_Details_Service order_Details_Service;
+    private final Third_Party_Api_Service third_Party_Api_Service;
+    private final Address_Service address_Service;
+    private final Seller_Service seller_Service;
+    private final Pincode_Master_Service pincode_Master_Service;
 
-	public PorterUtility(Order_Details_Service order_Details_Service, Third_Party_Api_Service third_Party_Api_Service,
-			Address_Service address_Service, Seller_Service seller_Service,
-			Pincode_Master_Service pincode_Master_Service) {
-		this.order_Details_Service = order_Details_Service;
-		this.third_Party_Api_Service = third_Party_Api_Service;
-		this.address_Service = address_Service;
-		this.seller_Service = seller_Service;
-		this.pincode_Master_Service = pincode_Master_Service;
-	}
+    public PorterUtility(Order_Details_Service order_Details_Service, Third_Party_Api_Service third_Party_Api_Service, Address_Service address_Service, Seller_Service seller_Service, Pincode_Master_Service pincode_Master_Service) {
+        this.order_Details_Service = order_Details_Service;
+        this.third_Party_Api_Service = third_Party_Api_Service;
+        this.address_Service = address_Service;
+        this.seller_Service = seller_Service;
+        this.pincode_Master_Service = pincode_Master_Service;
+    }
 
-	public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
+    public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
-		com.sorted.commons.porter.req.beans.CreateOrderBean.Address pickup_address = order.getPickup_details()
-				.getAddress();
-		com.sorted.commons.porter.req.beans.CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
-		pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
-		pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
-		drop_address.setLat(BigDecimal.valueOf(12.9165757));
-		drop_address.setLng(BigDecimal.valueOf(77.6101163));
-		SEFilter filterOD = new SEFilter(SEFilterType.AND);
-		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, order.getRequest_id()));
-		filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        com.sorted.commons.porter.req.beans.CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
+        com.sorted.commons.porter.req.beans.CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
+        pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
+        pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
+        drop_address.setLat(BigDecimal.valueOf(12.9165757));
+        drop_address.setLng(BigDecimal.valueOf(77.6101163));
+        SEFilter filterOD = new SEFilter(SEFilterType.AND);
+        filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, order.getRequest_id()));
+        filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
-		Order_Details order_Details = order_Details_Service.repoFindOne(filterOD);
-		if (order_Details == null) {
-			throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ORDER_ID);
-		}
+        Order_Details order_Details = order_Details_Service.repoFindOne(filterOD);
+        if (order_Details == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ORDER_ID);
+        }
 
-		List<DeliveryRequestAttempts> delivery_request_attempts = CollectionUtils
-				.isEmpty(order_Details.getDelivery_request_attempts()) ? new ArrayList<>()
-						: order_Details.getDelivery_request_attempts();
+        List<DeliveryRequestAttempts> delivery_request_attempts = CollectionUtils.isEmpty(order_Details.getDelivery_request_attempts()) ? new ArrayList<>() : order_Details.getDelivery_request_attempts();
 
-		RestTemplate restTemplate = new RestTemplate();
-		String url = "https://pfe-apigw-uat.porter.in/v1/orders/create";
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://pfe-apigw-uat.porter.in/v1/orders/create";
 
-		// Set the headers
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        // Set the headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
 
-		Gson gson = GsonUtils.getGson();
-		String payload = gson.toJson(order);
+        Gson gson = GsonUtils.getGson();
+        String payload = gson.toJson(order);
 
-		HttpEntity<String> request = new HttpEntity<>(payload, headers);
+        HttpEntity<String> request = new HttpEntity<>(payload, headers);
 
-		Third_Party_Api third_Party_Api = new Third_Party_Api();
-		third_Party_Api.setRaw_request(payload);
-		third_Party_Api.setRequest_type("Porter:: create order");
+        Third_Party_Api third_Party_Api = new Third_Party_Api();
+        third_Party_Api.setRaw_request(payload);
+        third_Party_Api.setRequest_type("Porter:: create order");
 
-		third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
+        third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
 
-		// Make the POST request
-		ResponseEntity<String> response = null;
-		try {
-			response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-		} catch (HttpServerErrorException.InternalServerError ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-			String responseBody = ex.getResponseBodyAsString();
-			extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+        // Make the POST request
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        } catch (HttpServerErrorException.InternalServerError ex) {
+            log.error("Exception occurred with message: {}", ex.getMessage(), ex);
+            String responseBody = ex.getResponseBodyAsString();
+            extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-		HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
-		third_Party_Api.setRaw_response(response.getBody());
-		third_Party_Api.setStatus(httpStatus);
-		third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, order.getRequest_id());
+        if (response == null) {
+            extractError(order_Details, delivery_request_attempts, "No Response", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        assert response != null;
+        HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+        third_Party_Api.setRaw_response(response.getBody());
+        third_Party_Api.setStatus(httpStatus);
+        third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, order.getRequest_id());
 
-		if (httpStatus == null) {
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-		}
-		switch (httpStatus) {
-		case CREATED, OK:
-			break;
-		default:
-			extractError(order_Details, delivery_request_attempts, response.getBody(), httpStatus);
-		}
+        if (httpStatus == null) {
+            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+        }
+        switch (httpStatus) {
+            case CREATED, OK:
+                break;
+            default:
+                extractError(order_Details, delivery_request_attempts, response.getBody(), httpStatus);
+        }
 
-		JsonNode root = mapper.readTree(response.getBody());
+        JsonNode root = mapper.readTree(response.getBody());
 
-		CreateOrderResBeanBuilder createOrderResBeanBuilder = CreateOrderResBean.builder();
+        CreateOrderResBeanBuilder createOrderResBeanBuilder = CreateOrderResBean.builder();
 
-		String request_id = root.path("request_id").asText(null);
-		String order_id = root.path("order_id").asText(null);
-		String tracking_url = root.path("tracking_url").asText(null);
-		Long estimated_pickup_time = root.path("estimated_pickup_time").asLong();
-		LocalDateTime estimated_pickup_time_ldt = CommonUtils.convertEpochToLocalDateTime(estimated_pickup_time);
+        String request_id = root.path("request_id").asText(null);
+        String order_id = root.path("order_id").asText(null);
+        String tracking_url = root.path("tracking_url").asText(null);
+        long estimated_pickup_time = root.path("estimated_pickup_time").asLong();
+        LocalDateTime estimated_pickup_time_ldt = CommonUtils.convertEpochToLocalDateTime(estimated_pickup_time);
 
-		FareAmountDetailsBuilder estimatedFareDetailsBuilder = FareAmountDetails.builder();
-		JsonNode estimated_fare_details = root.path("estimated_fare_details");
+        FareAmountDetailsBuilder estimatedFareDetailsBuilder = FareAmountDetails.builder();
+        JsonNode estimated_fare_details = root.path("estimated_fare_details");
 
-		if (!estimated_fare_details.isNull()) {
-			String currency = estimated_fare_details.path("currency").asText(null);
-			Long minor_amount = estimated_fare_details.path("minor_amount").asLong();
-			estimatedFareDetailsBuilder.currency(currency).minor_amount(minor_amount);
-		}
+        if (!estimated_fare_details.isNull()) {
+            String currency = estimated_fare_details.path("currency").asText(null);
+            Long minor_amount = estimated_fare_details.path("minor_amount").asLong();
+            estimatedFareDetailsBuilder.currency(currency).minor_amount(minor_amount);
+        }
 
-		FareAmountDetails estimatedFareDetails = estimatedFareDetailsBuilder.build();
+        FareAmountDetails estimatedFareDetails = estimatedFareDetailsBuilder.build();
 
-		return createOrderResBeanBuilder.request_id(request_id).order_id(order_id).tracking_url(tracking_url)
-				.estimated_pickup_time(estimated_pickup_time_ldt).estimated_fare_details(estimatedFareDetails).build();
-	}
+        return createOrderResBeanBuilder.request_id(request_id).order_id(order_id).tracking_url(tracking_url).estimated_pickup_time(estimated_pickup_time_ldt).estimated_fare_details(estimatedFareDetails).build();
+    }
 
-	private void extractError(Order_Details order_Details, List<DeliveryRequestAttempts> delivery_request_attempts,
-			String response, HttpStatus httpStatus) {
-		Gson gson = GsonUtils.getGson();
-		JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
-		String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
-		String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+    private void extractError(Order_Details order_Details, List<DeliveryRequestAttempts> delivery_request_attempts, String response, HttpStatus httpStatus) {
+        Gson gson = GsonUtils.getGson();
+        JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+        String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+        String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
 
-		delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1)
-				.message(message).type(type).response_code(httpStatus.value()).build());
-		order_Details.setDelivery_request_attempts(delivery_request_attempts);
-		order_Details_Service.update(order_Details.getId(), order_Details, "porter");
-		throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-	}
+        delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1).message(message).type(type).response_code(httpStatus.value()).build());
+        order_Details.setDelivery_request_attempts(delivery_request_attempts);
+        order_Details_Service.update(order_Details.getId(), order_Details, "porter");
+        throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+    }
 
-	public FetchOrderRes getOrder(String proter_order_id) {
-		RestTemplate restTemplate = new RestTemplate();
+    public FetchOrderRes getOrder(String porter_order_id) {
+        RestTemplate restTemplate = new RestTemplate();
 
-		// Define the URL
-		String url = "https://pfe-apigw-uat.porter.in/v1/orders/" + proter_order_id;
+        // Define the URL
+        String url = "https://pfe-apigw-uat.porter.in/v1/orders/" + porter_order_id;
 
-		// Set up headers
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
 
-		// Create an HttpEntity with the headers (no body needed)
-		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        // Create an HttpEntity with the headers (no body needed)
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-		// Make the GET request
-		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        // Make the GET request
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
 
-		// Print the response
-		log.info("Response:: " + response.getBody());
-		String body = response.getBody();
-		return this.parseAndAccessFields(body);
+        // Print the response
+        log.info("Response:: " + response.getBody());
+        String body = response.getBody();
+        return this.parseAndAccessFields(body);
 
-	}
+    }
 
-	public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby)
-			throws JsonMappingException, JsonProcessingException {
-		RestTemplate restTemplate = new RestTemplate();
+    public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) throws JsonProcessingException {
+        RestTemplate restTemplate = new RestTemplate();
 
-		String url = "https://pfe-apigw-uat.porter.in/v1/get_quote";
+        String url = "https://pfe-apigw-uat.porter.in/v1/get_quote";
 
-		// Set headers
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        // Set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
 
-		// @formatter:off
+        // @formatter:off
         // Build the request object using Builder
 //        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
 //                .pickup_details(GetQuoteRequest.PickupDetails.builder()
@@ -249,79 +221,83 @@ public class PorterUtility {
 //                .build();
 //        // @formatter:on
 
-		Third_Party_Api third_Party_Api = new Third_Party_Api();
-		third_Party_Api.setRaw_request(GsonUtils.getGson().toJson(quoteRequest));
-		third_Party_Api.setRequest_type("Porter:: get quote");
+        Third_Party_Api third_Party_Api = new Third_Party_Api();
+        third_Party_Api.setRaw_request(GsonUtils.getGson().toJson(quoteRequest));
+        third_Party_Api.setRequest_type("Porter:: get quote");
 
-		third_Party_Api = third_Party_Api_Service.create(third_Party_Api, cudby);
+        third_Party_Api = third_Party_Api_Service.create(third_Party_Api, cudby);
 
-		// Create the HttpEntity with headers and the request body
-		HttpEntity<GetQuoteRequest> request = new HttpEntity<>(quoteRequest, headers);
+        // Create the HttpEntity with headers and the request body
+        HttpEntity<GetQuoteRequest> request = new HttpEntity<>(quoteRequest, headers);
 
-		// Make the POST request
-		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        // Make the POST request
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
-		HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
-		third_Party_Api.setRaw_response(response.getBody());
-		third_Party_Api.setStatus(httpStatus);
-		third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
+        HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+        third_Party_Api.setRaw_response(response.getBody());
+        third_Party_Api.setStatus(httpStatus);
+        third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
 
-		if (httpStatus == null) {
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-		}
-		JsonObject jsonResponse = GsonUtils.getGson().fromJson(response.getBody(), JsonObject.class);
-		switch (httpStatus) {
-		case OK:
-			break;
-		case BAD_REQUEST:
-			String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
-			if (type != null && type.equals("different_city_error")) {
-				throw new CustomIllegalArgumentsException("pickup and drop address belongs to different cities");
-			}
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-		case UNPROCESSABLE_ENTITY:
-			String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
-			log.error("Exception occurred:: message: {}", message);
-			throw new CustomIllegalArgumentsException(message);
-		default:
-			String type1 = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
-			String message1 = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
-			log.error("Exception occurred:: type: {}, message: {}", type1, message1);
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-		}
+        if (httpStatus == null) {
+            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+        }
+        JsonObject jsonResponse = GsonUtils.getGson().fromJson(response.getBody(), JsonObject.class);
+        switch (httpStatus) {
+            case OK:
+                break;
+            case BAD_REQUEST:
+                String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+                if (type != null && type.equals("different_city_error")) {
+                    throw new CustomIllegalArgumentsException("pickup and drop address belongs to different cities");
+                }
+                throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+            case UNPROCESSABLE_ENTITY:
+                String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : httpStatus.getReasonPhrase();
+                log.error("Exception occurred:: message: {}", message);
+                throw new CustomIllegalArgumentsException(message);
+            default:
+                String type1 = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
+                String message1 = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
+                log.error("Exception occurred:: type: {}, message: {}", type1, message1);
+                throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+        }
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode rootNode = objectMapper.readTree(response.getBody());
-		JsonNode vehicles = rootNode.get("vehicles");
-		VehicleBuilder vehicleBuilder = Vehicle.builder();
-		if (vehicles.isNull() || !vehicles.isArray()) {
-			throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
-		}
-		for (JsonNode vehicle : vehicles) {
-			String prettyString = vehicle.toPrettyString();
-			log.debug("prettyString:: {}", prettyString);
-			String type = vehicle.get("type").asText(null);
-			if (type == null || !type.equals("2 Wheeler")) {
-				continue;
-			}
-			long eta = vehicle.get("eta").asLong();
-			JsonNode fareNode = vehicle.get("fare");
-			FareBuilder fareBuilder = Fare.builder();
-			if (!fareNode.isNull()) {
-				String currency = fareNode.get("currency").asText();
-				long minor_amount = fareNode.get("minor_amount").asLong();
-				fareBuilder.currency(currency).minor_amount(minor_amount);
-			}
-			vehicleBuilder.type(type).eta(eta).fare(fareBuilder.build());
-		}
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(response.getBody());
+        JsonNode vehicles = rootNode.get("vehicles");
+        VehicleBuilder vehicleBuilder = Vehicle.builder();
+        if (vehicles.isNull() || !vehicles.isArray()) {
+            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+        }
+        for (JsonNode vehicle : vehicles) {
+            String prettyString = vehicle.toPrettyString();
+            log.debug("prettyString:: {}", prettyString);
+            String type = vehicle.get("type").asText(null);
+            if (type == null || !type.equals("2 Wheeler")) {
+                continue;
+            }
+            JsonNode eta = vehicle.get("eta");
+            Vehicle.Eta.EtaBuilder etaBuilder = Vehicle.Eta.builder();
+            if (!eta.isNull()) {
+                etaBuilder.unit(eta.get("unit").asText()).value(eta.get("value").asLong());
+            }
+            JsonNode fareNode = vehicle.get("fare");
+            FareBuilder fareBuilder = Fare.builder();
+            if (!fareNode.isNull()) {
+                String currency = fareNode.get("currency").asText();
+                long minor_amount = fareNode.get("minor_amount").asLong();
+                fareBuilder.currency(currency).minor_amount(minor_amount);
+            }
+            vehicleBuilder.type(type).eta(etaBuilder.build()).fare(fareBuilder.build());
+        }
 
-		Vehicle vehicle = vehicleBuilder.build();
-		log.info("Quote fetched successfully: {}", response.getBody());
-		return GetQuoteResponse.builder().vehicle(vehicle).build();
+        Vehicle vehicle = vehicleBuilder.build();
+        log.info("Quote fetched successfully: {}", response.getBody());
+        return GetQuoteResponse.builder().vehicle(vehicle).build();
 
-	}
+    }
 
-	// @formatter:off
+    // @formatter:off
 	private FetchOrderRes parseAndAccessFields(String jsonResponse) {
 	    try {
 	        JsonNode root = mapper.readTree(jsonResponse);
@@ -352,8 +328,7 @@ public class PorterUtility {
 	                .build();
 
 	    } catch (Exception e) {
-	        e.printStackTrace();
-	        log.error("Failed to parse JSON response.");
+	        log.error("Failed to parse JSON response with message: {}.", e.getMessage(), e);
 	        return null;
 	    }
 	}
@@ -438,16 +413,17 @@ public class PorterUtility {
 	    return fareDetailsBuilder.build();
 	}
 	
-	private NearestSellerRes getNearestSeller(double lat, double lng, String mobile_no, String user_name, String cud_by)
+	public NearestSellerRes getNearestSeller(String pincode, String mobile_no, String user_name, String cud_by)
 			throws JsonProcessingException {
 
-//		SEFilter filterPM = new SEFilter(SEFilterType.AND);
-//		filterPM.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
-//
-//		List<Pincode_Master> pincode_Masters = pincode_Master_Service.repoFind(filterPM);
-//		if (CollectionUtils.isEmpty(pincode_Masters)) {
-//			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
-//		}
+        SEFilter filterP = new SEFilter(SEFilterType.AND);
+        filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
+        filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
+        if (pincode_Master == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
+        }
 
 		SEFilter filterS = new SEFilter(SEFilterType.AND);
 		filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
@@ -457,7 +433,7 @@ public class PorterUtility {
 		if (CollectionUtils.isEmpty(listS)) {
 			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
 		}
-		Map<String, String> map = listS.stream().filter(e->StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(e -> e.getAddress_id(), e -> e.getId()));
+		Map<String, String> map = listS.stream().filter(e->StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
 
 		SEFilter filterA = new SEFilter(SEFilterType.AND);
 		filterA.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(map.keySet())));
@@ -465,9 +441,9 @@ public class PorterUtility {
 
 		List<Address> listAdd = address_Service.repoFind(filterA);
 
-		Map<String, Address> mapA = listAdd.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+		Map<String, Address> mapA = listAdd.stream().collect(Collectors.toMap(BaseMongoEntity::getId, e -> e));
 
-		String nearestSeller = CommonUtils.findNearestSeller(lat, lng, listAdd);
+		String nearestSeller = CommonUtils.findNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), listAdd);
 
 		Address address = mapA.get(nearestSeller);
 
@@ -478,8 +454,8 @@ public class PorterUtility {
                         .lng(address.getLng().doubleValue())
                         .build())
                 .drop_details(GetQuoteRequest.DropDetails.builder()
-                        .lat(lat)
-                        .lng(lng)
+                        .lat(pincode_Master.getLatitude())
+                        .lng(pincode_Master.getLongitude())
                         .build())
                 .customer(GetQuoteRequest.Customer.builder()
                         .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
@@ -490,33 +466,33 @@ public class PorterUtility {
                         .build())
                 .build();
         // @formatter:on
-		GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
-		return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).build();
-	}
+        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
+        return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).build();
+    }
 
-	public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {
-		SEFilter filterP = new SEFilter(SEFilterType.AND);
-		filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
-		filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+//    public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {
+//        SEFilter filterP = new SEFilter(SEFilterType.AND);
+//        filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
+//        filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+//
+//        Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
+//        if (pincode_Master == null) {
+//            throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
+//        }
+//        return getNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), null, null,
+//                "delivery check API");
+//    }
 
-		Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
-		if (pincode_Master == null) {
-			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
-		}
-		return getNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), null, null,
-				"delivery check API");
-	}
+    private Status convertStatus(String statusStr) {
+        for (Status status : Status.values()) {
+            if (status.toString().equals(statusStr)) {
+                return status;
+            }
+        }
+        return null; // or a default status if applicable
+    }
+    // @formatter:on
 
-	private Status convertStatus(String statusStr) {
-		for (Status status : Status.values()) {
-			if (status.toString().equals(statusStr)) {
-				return status;
-			}
-		}
-		return null; // or a default status if applicable
-	}
-	// @formatter:on
-
-	public static void main(String[] args) {
-	}
+    public static void main(String[] args) {
+    }
 }

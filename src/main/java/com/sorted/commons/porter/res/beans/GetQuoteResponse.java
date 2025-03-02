@@ -13,10 +13,17 @@ public class GetQuoteResponse {
 	@Builder
 	public static class Vehicle {
 		private String type;
-		private Long eta; // ETA is null in the response but keeping it for future handling
+		private Eta eta; // ETA is null in the response but keeping it for future handling
 		private Fare fare;
 		private Capacity capacity;
 		private Size size;
+
+		@Data
+		@Builder
+		public static class Eta {
+			private long value;
+			private String unit;
+		}
 
 		@Data
 		@Builder
