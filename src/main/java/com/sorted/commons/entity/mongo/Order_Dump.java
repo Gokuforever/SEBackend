@@ -1,11 +1,11 @@
 package com.sorted.commons.entity.mongo;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Getter
+@Data
 @EqualsAndHashCode(callSuper = true)
 @FieldNameConstants
 @Document(collection = "order_dump")
