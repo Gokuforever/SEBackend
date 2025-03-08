@@ -185,6 +185,7 @@ public enum ResponseCode {
 	MANDATE_PHONE("SE_0169", "Phone No is mandatory.", "Phone No is mandatory."),
 	INVALID_PHONE("SE_0170", "Please provide valid Phone No.", "Please provide valid Phone No."),
 	MULTIPLE_SELLERS("SE_0171", "Multiple sellers for single order.", "Something went wrong, please contact customer support."),
+	MANDATE_GENDER("SE_0172", "Gender not selected.", "Gender selection is mandatory."),
 	;
 	// @formatter:on
 
