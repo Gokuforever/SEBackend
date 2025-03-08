@@ -1,8 +1,10 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import com.sorted.commons.enums.Gender;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
@@ -17,6 +19,7 @@ public class Users extends BaseMongoEntity<String> {
 	/**
 	* 
 	*/
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String code;
 	private String first_name;
@@ -28,7 +31,7 @@ public class Users extends BaseMongoEntity<String> {
 	private String profile_picture_id;
 	private String role_id;
 	private Integer status;
-	private String semister;
+	private String semester;
 	private String branch;
 	private String college;
 	private String branch_desc;
@@ -36,6 +39,7 @@ public class Users extends BaseMongoEntity<String> {
 	private LocalDateTime reset_pass_request_expiry;
 	private String uuid;
 	private boolean pass_changed;
+	private Gender gender;
 	private Map<String, String> properties;
 
 }
