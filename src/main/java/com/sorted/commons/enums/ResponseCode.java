@@ -186,6 +186,7 @@ public enum ResponseCode {
 	INVALID_PHONE("SE_0170", "Please provide valid Phone No.", "Please provide valid Phone No."),
 	MULTIPLE_SELLERS("SE_0171", "Multiple sellers for single order.", "Something went wrong, please contact customer support."),
 	MANDATE_GENDER("SE_0172", "Gender not selected.", "Gender selection is mandatory."),
+	ADD_ALREADY_DELETED("SE_0173", "This address is already deleted.", "This address is already deleted."),
 	;
 	// @formatter:on
 
