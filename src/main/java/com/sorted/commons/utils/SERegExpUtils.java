@@ -61,7 +61,8 @@ public class SERegExpUtils {
 		if (val.length() > 255) {
 			return false;
 		}
-		Pattern pattern = Pattern.compile("^(?!.*--)(?!.*&&)[a-zA-Z0-9,.-_()'&\\s]+$");
+//		Pattern pattern = Pattern.compile("^(?!.*--)(?!.*&&)[a-zA-Z0-9,.-_()'&\\s]+$");
+		Pattern pattern = Pattern.compile("^[A-Za-z0-9\\s\\-&.,':()]+$");
 		return pattern.matcher(val).matches();
 	}
 
