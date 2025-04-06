@@ -30,7 +30,7 @@ public class SERegExpUtils {
 	public static boolean isAlphabeticStringWithSpaces(@NonNull String val) {
 		val = val.trim();
 		Pattern pattern = Pattern.compile("^[A-Za-z\\s]+$");
-		return pattern.matcher(val).matches();
+		return !pattern.matcher(val).matches();
 	}
 
 	public static boolean isPincode(@NonNull String val) {
@@ -61,7 +61,7 @@ public class SERegExpUtils {
 		if (val.length() > 255) {
 			return false;
 		}
-		Pattern pattern = Pattern.compile("^(?!.*--)(?!.*&&)[a-zA-Z0-9\\,\\.\\-\\_\\(\\)\\'\\s]+$");
+		Pattern pattern = Pattern.compile("^(?!.*--)(?!.*&&)[a-zA-Z0-9,.-_()'&\\s]+$");
 		return pattern.matcher(val).matches();
 	}
 
@@ -114,7 +114,7 @@ public class SERegExpUtils {
 		if (email_id == null || email_id.length() > 100) {
 			return false;
 		}
-		Pattern emailRegExp = Pattern.compile("^[a-zA-Z0-9\\.\\_\\-]{1,64}@[a-zA-Z0-9\\.\\-]{1,253}\\.[a-zA-Z]{2,4}$");
+		Pattern emailRegExp = Pattern.compile("^[a-zA-Z0-9._\\-]{1,64}@[a-zA-Z0-9.\\-]{1,253}\\.[a-zA-Z]{2,4}$");
 
 		return emailRegExp.matcher(email_id).matches();
 	}
