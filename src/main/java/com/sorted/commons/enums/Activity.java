@@ -23,6 +23,7 @@ public enum Activity {
 	STORE_MANAGEMENT(112,"Store Management"),
 	USER_PROFILE(113,"User Profile"),
 	SECURE_RETURN(114,"Secure Return"),
+	SETTLEMENT(115,"Settlement"),
 	;
 	// @formatter:on
 

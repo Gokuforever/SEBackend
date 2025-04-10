@@ -112,13 +112,13 @@ public class ValidationUtil {
         if (!StringUtils.hasText(branch_name)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_BRANCH_NAME);
         }
-        if (!SERegExpUtils.isAlphabeticStringWithSpaces(branch_name)) {
+        if (SERegExpUtils.isAlphabeticStringWithSpaces(branch_name)) {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_BRANCH_NAME);
         }
         if (!StringUtils.hasText(bank_name)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_BANK_NAME);
         }
-        if (!SERegExpUtils.isAlphabeticStringWithSpaces(bank_name)) {
+        if (SERegExpUtils.isAlphabeticStringWithSpaces(bank_name)) {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_BANK_NAME);
         }
     }

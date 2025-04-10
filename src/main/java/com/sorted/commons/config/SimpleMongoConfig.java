@@ -4,7 +4,6 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
 
 import org.bson.codecs.configuration.CodecRegistry;
@@ -32,7 +31,8 @@ public class SimpleMongoConfig {
 
 	@Bean
 	public MongoClient mongo() {
-		final ConnectionString connectionString = new ConnectionString("mongodb+srv://yogeshk:Sorted%402024@sorted.myru7yg.mongodb.net/");
+		final ConnectionString connectionString = new ConnectionString(
+				"mongodb+srv://yogeshk:Sorted%402024@sorted.myru7yg.mongodb.net/");
 		CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 				fromProviders(PojoCodecProvider.builder().automatic(true).build()));
 		final MongoClientSettings mongoClientSettings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry)
@@ -64,7 +64,7 @@ public class SimpleMongoConfig {
 	private static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
 		@Override
 		public Decimal128 convert(@NonNull BigDecimal source) {
-			return new Decimal128(source.setScale(2, RoundingMode.HALF_UP));
+			return new Decimal128(source);
 		}
 	}
 
@@ -73,7 +73,7 @@ public class SimpleMongoConfig {
 
 		@Override
 		public BigDecimal convert(@NonNull Decimal128 source) {
-			return source.bigDecimalValue() == null ? null : source.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+			return source.bigDecimalValue();
 		}
 	}
 

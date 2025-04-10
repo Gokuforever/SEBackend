@@ -1,0 +1,37 @@
+package com.sorted.commons.beans;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sorted.commons.enums.PaymentMode;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+public class SettlementDetails {
+    @JsonProperty("payment_mode")
+    private PaymentMode paymentMode;
+    @JsonProperty("beneficiary_name")
+    private String beneficiaryName;
+    private String vpa;
+    @JsonProperty("account_number")
+    private String accountNumber;
+    @JsonProperty("ifsc_code")
+    private String ifscCode;
+    @JsonProperty("txn_id")
+    private String txnId;
+    @JsonProperty("txn_date")
+    private String txnDate;
+    private String remarks;
+    @JsonProperty("txn_ss_id")
+    private String txnSsId;
+    @JsonProperty("cheque_number")
+    private String chequeNumber;
+    private BigDecimal amount;
+
+}

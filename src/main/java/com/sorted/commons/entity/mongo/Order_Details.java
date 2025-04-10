@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sorted.commons.beans.AddressDTO;
 import com.sorted.commons.beans.DeliveryRequestAttempts;
 import com.sorted.commons.beans.Order_Status_History;
+import com.sorted.commons.beans.SettlementDetails;
 import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails;
 import lombok.Data;
@@ -57,6 +58,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String seller_id;
     @Version
     private Long version;
+    private SettlementDetails settlement_details;
 
     @JsonIgnore
     public void setStatus(@NonNull OrderStatus status, String cud_by) {

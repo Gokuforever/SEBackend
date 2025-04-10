@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ResponseCode {
 
-	// @formatter:off
+    // @formatter:off
 	SUCCESSFUL("SE_0000", "Successful.", "Successful."),
 	ERR_0001("SE_0001", "Something went wrong.", "Something went wrong."),
 	INVALID_REQ("SE_0002", "Invalid request.", "Invalid request."),
@@ -187,10 +187,12 @@ public enum ResponseCode {
 	MULTIPLE_SELLERS("SE_0171", "Multiple sellers for single order.", "Something went wrong, please contact customer support."),
 	MANDATE_GENDER("SE_0172", "Gender not selected.", "Gender selection is mandatory."),
 	ADD_ALREADY_DELETED("SE_0173", "This address is already deleted.", "This address is already deleted."),
+	MISSING_ORDER_ID("SE_0174", "Order id is missing.", "Order id is missing."),
+	MISSING_SETTLEMENT_DETAILS("SE_0175", "Settlement details are missing.", "Settlement details are missing."),
 	;
 	// @formatter:on
 
-	private final String code;
-	private final String errorMessage;
-	private final String userMessage;
+    private final String code;
+    private final String errorMessage;
+    private final String userMessage;
 }

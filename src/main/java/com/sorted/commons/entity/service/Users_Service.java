@@ -2,7 +2,9 @@ package com.sorted.commons.entity.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import com.sorted.commons.enums.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,17 +20,13 @@ import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Role;
 import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.entity.mongo.Users;
-import com.sorted.commons.enums.Activity;
 import com.sorted.commons.enums.All_Status.User_Status;
-import com.sorted.commons.enums.EntityDetails;
-import com.sorted.commons.enums.Permission;
-import com.sorted.commons.enums.ProcessType;
-import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.helper.ReqBaseBean;
+import com.sorted.commons.jwt.JwtTokenUtil;
 import com.sorted.commons.manage.otp.ManageOtp;
 import com.sorted.commons.repository.mongo.Users_Repository;
 import com.sorted.commons.utils.GsonUtils;
@@ -40,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class Users_Service extends GenericEntityServiceImpl<String, Users, Users_Repository> {
 
-	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	@Autowired
 	private ManageOtp manageOtp;
@@ -50,6 +48,9 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 
 	@Autowired
 	private Seller_Service seller_Service;
+
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
 
 	@Override
 	protected Class<Users_Repository> getRepoClass() {
@@ -111,7 +112,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 
 	private UsersBean validateAndGetUserInfo(@NonNull String req_user_id, String req_role_id) {
 		try {
-			log.info("validateUserForLogin started.");
+			log.info("validateAndGetUserInfo started.");
 			SEFilter filterU = new SEFilter(SEFilterType.AND);
 			filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_user_id));
 			if (StringUtils.hasText(req_role_id)) {
@@ -139,14 +140,19 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 			Gson gson = GsonUtils.getGson();
 			UsersBean usersBean = gson.fromJson(gson.toJson(users), UsersBean.class);
 			usersBean.setPassword("");
+			usersBean.setOld_password("");
 			usersBean.setRole(role);
 			this.validateHierarchy(role, usersBean);
-			log.info("validateUserForLogin ended.");
+			String[] tokens = jwtTokenUtil.generateToken(req_user_id);
+			usersBean.setToken(tokens[0]);
+			usersBean.setRefresh_token(tokens[1]);
+
+			log.info("validateAndGetUserInfo ended.");
 			return usersBean;
 		} catch (CustomIllegalArgumentsException ex) {
 			throw ex;
 		} catch (Exception e) {
-			log.error("validateUserForLogin:: error occerred:: {}", e.getMessage());
+			log.error("validateAndGetUserInfo:: error occerred:: {}", e.getMessage());
 			throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
 		}
 	}
@@ -163,8 +169,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 	public UsersBean validateUserForActivity(@NonNull String req_user_id, @NonNull Permission permission,
 			@NonNull Activity... activity) {
 		log.info("validateUserForActivity started.");
-		List<Activity> activities = Arrays.asList(activity);
-		SEFilter filterU = new SEFilter(SEFilterType.AND);
+        SEFilter filterU = new SEFilter(SEFilterType.AND);
 		filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req_user_id));
 //		filterU.addClause(WhereClause.eq(Users.Fields.role_id, req_role_id));
 		filterU.addClause(WhereClause.eq(Users.Fields.is_verified, true));
@@ -186,7 +191,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 			throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
 		}
 		boolean hasAccess = false;
-		for (Activity act : activities) {
+		for (Activity act : activity) {
 			if (act == Activity.USER_PROFILE) {
 				hasAccess = true;
 				break;
@@ -202,7 +207,6 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 		}
 		Gson gson = GsonUtils.getGson();
 		UsersBean usersBean = gson.fromJson(gson.toJson(users), UsersBean.class);
-		usersBean.setPassword("");
 		usersBean.setRole(role);
 
 		this.validateHierarchy(role, usersBean);
@@ -211,23 +215,19 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
 	}
 
 	private void validateHierarchy(Role role, UsersBean usersBean) {
-		switch (role.getUser_type()) {
-		case SELLER:
-			if (!StringUtils.hasText(role.getSeller_id())) {
-				throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
-			}
-			SEFilter filterS = new SEFilter(SEFilterType.AND);
-			filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, role.getSeller_id()));
-			filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        if (Objects.requireNonNull(role.getUser_type()) == UserType.SELLER) {
+            if (!StringUtils.hasText(role.getSeller_id())) {
+                throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
+            }
+            SEFilter filterS = new SEFilter(SEFilterType.AND);
+            filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, role.getSeller_id()));
+            filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
-			Seller seller = seller_Service.repoFindOne(filterS);
-			if (seller == null) {
-				throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
-			}
-			usersBean.setSeller(seller);
-			break;
-		default:
-			break;
-		}
+            Seller seller = seller_Service.repoFindOne(filterS);
+            if (seller == null) {
+                throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
+            }
+            usersBean.setSeller(seller);
+        }
 	}
 }

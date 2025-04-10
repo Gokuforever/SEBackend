@@ -10,15 +10,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
 public class UsersBean extends Users {
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private Role role;
 	private String token;
 	private Seller seller;
+	private String refresh_token;
 
 }

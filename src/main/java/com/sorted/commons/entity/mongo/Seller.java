@@ -1,5 +1,7 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,6 +20,7 @@ import lombok.experimental.FieldNameConstants;
 @Document(collection = "seller")
 public class Seller extends BaseMongoEntity<String> {
 
+	@Serial
 	private static final long serialVersionUID = 7105004513020596023L;
 
 	private String code;
@@ -33,5 +36,6 @@ public class Seller extends BaseMongoEntity<String> {
 	private String cin;
 	private String gstin;
 	private String business_type;
+	private BigDecimal fee_in_percentage;
 
 }
