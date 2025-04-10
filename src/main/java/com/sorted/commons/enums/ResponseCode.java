@@ -188,7 +188,24 @@ public enum ResponseCode {
 	MANDATE_GENDER("SE_0172", "Gender not selected.", "Gender selection is mandatory."),
 	ADD_ALREADY_DELETED("SE_0173", "This address is already deleted.", "This address is already deleted."),
 	MISSING_ORDER_ID("SE_0174", "Order id is missing.", "Order id is missing."),
-	MISSING_SETTLEMENT_DETAILS("SE_0175", "Settlement details are missing.", "Settlement details are missing."),
+	ORDER_NOT_FOUND("SE_0175", "Order not found.", "No order found with the specified ID."),
+	MISSING_SETTLEMENT_DETAILS("SE_0176", "Settlement details are missing.", "Settlement details are missing."),
+	SETTLEMENT_NOT_ALLOWED("SE_0177", "Settlement not allowed.", "Settlement is not allowed for the current order status."),
+	ALREADY_SETTLED("SE_0178", "Already settled.", "This order has already been settled."),
+	MISSING_PAYMENT_MODE("SE_0179", "Payment mode is missing.", "Please specify a payment mode."),
+	INVALID_PAYMENT_AMOUNT("SE_0180", "Invalid payment amount.", "Payment amount must be greater than zero."),
+	AMOUNT_VALIDATION_FAILED("SE_0181", "Amount validation failed.", "Settlement amount must match the order amount."),
+	MISSING_VPA("SE_0182", "VPA is missing.", "Virtual Payment Address is required for UPI payments."),
+	MISSING_ACCOUNT_NUMBER("SE_0183", "Account number is missing.", "Account number is required for bank transfers."),
+	MISSING_IFSC_CODE("SE_0184", "IFSC code is missing.", "IFSC code is required for bank transfers."),
+	INVALID_IFSC_CODE("SE_0185", "Invalid IFSC code.", "Please provide a valid IFSC code."),
+	MISSING_TRANSACTION_ID("SE_0186", "Transaction ID is missing.", "Transaction ID is required for bank transfers."),
+	MISSING_CHEQUE_NUMBER("SE_0187", "Cheque number is missing.", "Cheque number is required for cheque payments."),
+	MISSING_BENEFICIARY_NAME("SE_0188", "Beneficiary name is missing.", "Please provide the beneficiary name."),
+	MISSING_TRANSACTION_DATE("SE_0189", "Transaction date is missing.", "Please provide the transaction date."),
+	INVALID_TRANSACTION_DATE("SE_0190", "Invalid transaction date.", "Transaction date must not be in the future."),
+	MISSING_TRANSACTION_SCREENSHOT("SE_0192", "Transaction screenshot is missing.", "Please provide a screenshot of the transaction."),
+	INTERNAL_SERVER_ERROR("SE_0193", "Internal server error.", "An unexpected error occurred. Please try again later.")
 	;
 	// @formatter:on
 

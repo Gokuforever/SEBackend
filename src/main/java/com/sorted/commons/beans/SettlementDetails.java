@@ -34,4 +34,29 @@ public class SettlementDetails {
     private String chequeNumber;
     private BigDecimal amount;
 
+    public SettlementDetails(SettlementDetails settlementDetails) {
+        this.paymentMode = settlementDetails.getPaymentMode();
+        this.amount = settlementDetails.getAmount();
+        this.remarks = settlementDetails.getRemarks();
+        this.txnDate = settlementDetails.getTxnDate();
+        this.beneficiaryName = settlementDetails.getBeneficiaryName();
+        this.txnSsId = settlementDetails.getTxnSsId();
+
+        switch (this.getPaymentMode()) {
+            case UPI -> {
+                this.vpa = settlementDetails.getVpa();
+                this.txnId = settlementDetails.getTxnId();
+            }
+            case IMPS, NEFT, RTGS -> {
+                this.accountNumber = settlementDetails.getAccountNumber();
+                this.ifscCode = settlementDetails.getIfscCode();
+                this.txnId = settlementDetails.getTxnId();
+            }
+            default -> {
+                this.accountNumber = settlementDetails.getAccountNumber();
+                this.ifscCode = settlementDetails.getIfscCode();
+                this.chequeNumber = settlementDetails.getChequeNumber();
+            }
+        }
+    }
 }
