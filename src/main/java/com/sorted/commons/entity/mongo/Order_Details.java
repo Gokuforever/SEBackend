@@ -59,6 +59,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     @Version
     private Long version;
     private SettlementDetails settlement_details;
+    private String rejection_remarks;
 
     @JsonIgnore
     public void setStatus(@NonNull OrderStatus status, String cud_by) {
