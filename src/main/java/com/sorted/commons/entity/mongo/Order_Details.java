@@ -69,6 +69,7 @@ public class Order_Details extends BaseMongoEntity<String> {
         list.add(order_Status_History);
         setOrder_status_history(list);
         this.status = status;
+        this.status_id = status.getId();
     }
 
     @JsonIgnore
