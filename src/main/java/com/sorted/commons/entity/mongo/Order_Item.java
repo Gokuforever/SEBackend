@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.CollectionUtils;
 
 import com.sorted.commons.beans.Order_Status_History;
-import com.sorted.commons.beans.Refund_Details;
+import com.sorted.commons.beans.Return_Details;
 import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.PurchaseType;
 
@@ -46,7 +46,7 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private LocalDateTime return_date;
 	private List<Order_Status_History> status_history;
 	private Order_Status_History latest_order_history;
-	private Refund_Details refund_details;
+	private Return_Details return_details;
 
 	public void setStatus(@NonNull OrderStatus status, String cud_by) {
 		Order_Status_History order_Status_History = Order_Status_History.builder().status(status)

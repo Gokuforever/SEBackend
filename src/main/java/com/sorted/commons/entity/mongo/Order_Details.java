@@ -60,6 +60,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     private Long version;
     private SettlementDetails settlement_details;
     private String rejection_remarks;
+    private String refund_transaction_id;
 
     @JsonIgnore
     public void setStatus(@NonNull OrderStatus status, String cud_by) {
@@ -71,6 +72,10 @@ public class Order_Details extends BaseMongoEntity<String> {
         setOrder_status_history(list);
         this.status = status;
         this.status_id = status.getId();
+    }
+
+    private void setStatus(OrderStatus status) {
+
     }
 
     @JsonIgnore

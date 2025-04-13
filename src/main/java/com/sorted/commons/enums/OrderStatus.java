@@ -26,7 +26,10 @@ public enum OrderStatus {
 	FULLY_REFUNDED(9, "Fully Refunded", "Fully Refunded"), // 
 	PARTIALLY_REFUNDED(10, "Partially Refunded", "Partially Refunded"),
 	ORDER_REJECTED(11, "Order Rejected", "Order Rejected"), // Initiate complete refund
-	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"); // Once cancelled - Complete amount refunded
+	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"), // Once cancelled - Complete amount refunded
+	PENDING_REFUND(13, "Refund Pending", "Refund Pending"),
+	REFUND_REQUESTED(14, "Refund Requested", "Refund Requested"),
+	REFUND_FAILED(15, "Refund Request Failed", "Refund Request Failed");
 	// @formatter:on
 
     private final int id;
