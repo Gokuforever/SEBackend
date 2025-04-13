@@ -199,7 +199,7 @@ public enum ResponseCode {
 	MISSING_ACCOUNT_NUMBER("SE_0183", "Account number is missing.", "Account number is required for bank transfers."),
 	MISSING_IFSC_CODE("SE_0184", "IFSC code is missing.", "IFSC code is required for bank transfers."),
 	INVALID_IFSC_CODE("SE_0185", "Invalid IFSC code.", "Please provide a valid IFSC code."),
-	MISSING_TRANSACTION_ID("SE_0186", "Transaction ID is missing.", "Transaction ID is required for bank transfers."),
+	MISSING_TRANSACTION_ID("SE_0186", "Transaction ID is missing.", "Transaction ID is missing."),
 	MISSING_CHEQUE_NUMBER("SE_0187", "Cheque number is missing.", "Cheque number is required for cheque payments."),
 	MISSING_BENEFICIARY_NAME("SE_0188", "Beneficiary name is missing.", "Please provide the beneficiary name."),
 	MISSING_TRANSACTION_DATE("SE_0189", "Transaction date is missing.", "Please provide the transaction date."),
