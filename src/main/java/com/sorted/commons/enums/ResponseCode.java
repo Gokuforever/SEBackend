@@ -194,7 +194,7 @@ public enum ResponseCode {
 	ALREADY_SETTLED("SE_0178", "Already settled.", "This order has already been settled."),
 	MISSING_PAYMENT_MODE("SE_0179", "Payment mode is missing.", "Please specify a payment mode."),
 	INVALID_PAYMENT_AMOUNT("SE_0180", "Invalid payment amount.", "Payment amount must be greater than zero."),
-	AMOUNT_VALIDATION_FAILED("SE_0181", "Amount validation failed.", "Settlement amount must match the order amount."),
+	AMOUNT_VALIDATION_FAILED("SE_0181", "Amount validation failed.", "Settlement amount must match the seller fee."),
 	MISSING_VPA("SE_0182", "VPA is missing.", "Virtual Payment Address is required for UPI payments."),
 	MISSING_ACCOUNT_NUMBER("SE_0183", "Account number is missing.", "Account number is required for bank transfers."),
 	MISSING_IFSC_CODE("SE_0184", "IFSC code is missing.", "IFSC code is required for bank transfers."),

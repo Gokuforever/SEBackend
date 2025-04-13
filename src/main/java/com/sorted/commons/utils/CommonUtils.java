@@ -185,7 +185,7 @@ public class CommonUtils {
         long scaledPercentage = Math.round(feePercentage * 100); // e.g., 10.5 → 1050
         long revenue = (totalAmountPaise * scaledPercentage) / 10000;
         long cost = totalAmountPaise - revenue;
-        return new FeeResult(paiseToRupee(revenue), paiseToRupee(cost));
+        return new FeeResult(paiseToRupee(revenue), paiseToRupee(cost), revenue, cost);
     }
 
     public static void main(String[] args) {
