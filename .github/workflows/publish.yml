@@ -24,18 +24,6 @@ jobs:
           server-id: github
           settings-path: ${{ github.workspace }}
 
-      - name: Configure Git user
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-
-      - name: Set default version
-        run: |
-          echo "VERSION=0.0.1-SNAPSHOT" >> $GITHUB_ENV
-
-      - name: Update version in pom.xml
-        run: mvn versions:set -DnewVersion=${{ env.VERSION }}
-
       - name: Build with Maven
         run: mvn clean install -DskipTests
 
