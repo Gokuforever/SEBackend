@@ -5,6 +5,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -13,6 +17,12 @@ import lombok.experimental.FieldNameConstants;
 
 @Data
 @FieldNameConstants
+@CompoundIndexes({
+    @CompoundIndex(name = "created_modified_idx", 
+                  def = "{'creation_date': -1, 'modification_date': -1}"),
+    @CompoundIndex(name = "deleted_created_idx", 
+                  def = "{'deleted': 1, 'creation_date': -1}")
+})
 public abstract class BaseMongoEntity<K> implements Serializable {
 
 	/**
@@ -23,17 +33,22 @@ public abstract class BaseMongoEntity<K> implements Serializable {
 	@Setter(AccessLevel.PRIVATE)
 	private K id;
 	@Setter(AccessLevel.PRIVATE)
+	@Indexed
 	private String created_by;
 	@Setter(AccessLevel.PRIVATE)
+	@Indexed
 	private String modified_by;
 	@Setter(AccessLevel.PRIVATE)
+	@Indexed
 	private LocalDateTime creation_date;
 	@Setter(AccessLevel.PRIVATE)
+	@Indexed
 	private LocalDateTime modification_date;
 	@Setter(AccessLevel.PRIVATE)
 	private String creation_date_str;
 	@Setter(AccessLevel.PRIVATE)
 	private String modification_date_str;
+	@Indexed
 	private boolean deleted = false;
 
 	public void setBeforeCreate(@NonNull String cudby) {
