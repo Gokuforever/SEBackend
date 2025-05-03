@@ -16,6 +16,7 @@
 		<java.version>17</java.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
+		<GITHUB_REPOSITORY>Gokuforever/SEBackend</GITHUB_REPOSITORY>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -184,6 +185,13 @@
 
 	</repositories>
 
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/${GITHUB_REPOSITORY}</url>
+		</repository>
+	</distributionManagement>
 
 	<build>
 		<finalName>common-service-se-1-0</finalName>
