@@ -29,5 +29,4 @@ public enum Activity {
 
 	private final int id;
 	private final String name;
-
 }
