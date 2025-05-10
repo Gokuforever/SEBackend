@@ -3,7 +3,9 @@ package com.sorted.commons.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -37,14 +39,14 @@ public enum OrderStatus {
     private final String internal_status;
 
     static final Map<String, OrderStatus> byInternalStatus = new HashMap<>();
-    static final Map<String, OrderStatus> byCustomerStatus = new HashMap<>();
+    static final Map<OrderStatus, String> byCustomerStatus = new HashMap<>();
     static final Map<Integer, OrderStatus> getById = new HashMap<>();
 
     static {
         for (OrderStatus e : OrderStatus.values()) {
             getById.put(e.getId(), e);
             byInternalStatus.put(e.getInternal_status(), e);
-            byCustomerStatus.put(e.getCustomer_status(), e);
+            byCustomerStatus.put(e, e.getCustomer_status());
         }
     }
 
@@ -55,4 +57,13 @@ public enum OrderStatus {
     public static OrderStatus getByInternalStatus(String s) {
         return byInternalStatus.getOrDefault(s, null);
     }
+
+    public static List<OrderStatus> getByCustomerStatus(String s) {
+        List<OrderStatus> list = new ArrayList<>();
+        byCustomerStatus.forEach((key, val) -> {
+            if (val.equals(s)) list.add(key);
+        });
+        return list;
+    }
+
 }

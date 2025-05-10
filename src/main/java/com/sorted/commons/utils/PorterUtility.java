@@ -466,8 +466,8 @@ public class PorterUtility {
                         .build())
                 .build();
         // @formatter:on
-        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
-        return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).build();
+//        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
+        return NearestSellerRes.builder().response(null).seller_id(address.getEntity_id()).build();
     }
 
 //    public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {
