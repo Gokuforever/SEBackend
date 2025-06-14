@@ -30,6 +30,9 @@ public class EmailSenderImpl {
 	@Value("${se.email.template.base_folder}")
 	private String email_base_folder;
 
+	@Value("${spring.profiles.active}")
+	private String profile;
+
 	private JavaMailSender mailSender;
 
 	public EmailSenderImpl(JavaMailSender mailSender) {
@@ -97,7 +100,9 @@ public class EmailSenderImpl {
 			mimeMessageHelper.setFrom(sender_mail);
 			mimeMessageHelper.setText(str_template, true);
 
-			mailSender.send(mimeMessage);
+			if ("prod-final".equalsIgnoreCase(profile)) {
+				mailSender.send(mimeMessage);
+			}
 			log.info("Email sent successfully");
 		} catch (Exception e) {
 			e.printStackTrace();
