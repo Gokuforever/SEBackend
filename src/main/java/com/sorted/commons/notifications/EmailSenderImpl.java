@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,6 +20,7 @@ import com.sorted.commons.helper.MailBuilder;
 
 import jakarta.mail.internet.MimeMessage;
 
+@Slf4j
 @Component
 public class EmailSenderImpl {
 
@@ -96,6 +98,7 @@ public class EmailSenderImpl {
 			mimeMessageHelper.setText(str_template, true);
 
 			mailSender.send(mimeMessage);
+			log.info("Email sent successfully");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

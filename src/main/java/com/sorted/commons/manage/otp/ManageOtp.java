@@ -69,7 +69,7 @@ public class ManageOtp {
 
         Otp otp = new Otp();
         String random_otp;
-        if (!"prod".equalsIgnoreCase(profile)) {
+        if ("prod-final".equalsIgnoreCase(profile)) {
             random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
         } else {
             random_otp = "111111";
@@ -122,7 +122,7 @@ public class ManageOtp {
         smsPool.setMobile_no(mobileNumber);
         smsPool.setContent(content);
         smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
-        if (!"prod".equalsIgnoreCase(profile)) {
+        if ("prod-final".equalsIgnoreCase(profile)) {
             try {
                 String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + content
                         + "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";

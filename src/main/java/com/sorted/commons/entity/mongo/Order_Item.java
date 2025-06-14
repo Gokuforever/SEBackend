@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class Order_Item extends BaseMongoEntity<String> {
 	/**
 	* 
 	*/
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String order_id;
 	private String order_code;
@@ -32,6 +34,7 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private String seller_code;
 	private String product_id;
 	private String product_code;
+	private String product_name;
 	private Long quantity;
 	private Long selling_price;
 	private Long total_cost;
