@@ -15,7 +15,7 @@ public class Media {
 	private String document_id; // URL or path to the image or video
 	private Integer order; // Order in which the media should be displayed
 	private String key;
-	private String src_url;
+	private String cdn_url;
 
 	public enum MediaType {
 		IMAGE;

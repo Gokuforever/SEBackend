@@ -122,7 +122,7 @@ public class ManageOtp {
         smsPool.setMobile_no(mobileNumber);
         smsPool.setContent(content);
         smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
-        if ("prod".equalsIgnoreCase(profile)) {
+        if ("prod-final".equalsIgnoreCase(profile)) {
             try {
                 String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + content
                         + "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
