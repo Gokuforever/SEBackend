@@ -100,7 +100,7 @@ public class EmailSenderImpl {
 			mimeMessageHelper.setFrom(sender_mail);
 			mimeMessageHelper.setText(str_template, true);
 
-			if ("prod-final".equalsIgnoreCase(profile)) {
+			if ("prod".equalsIgnoreCase(profile)) {
 				mailSender.send(mimeMessage);
 			}
 			log.info("Email sent successfully");
