@@ -50,17 +50,17 @@ public class ValidationUtil {
         if (!SERegExpUtils.isPincode(pincode)) {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_PINCODE);
         }
-        if (!StringUtils.hasText(phoneNo)) {
+        AddressType address_type = AddressType.getByName(address.getAddress_type());
+        if (address_type == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
+        }
+        if (address_type!=AddressType.STORE && !StringUtils.hasText(phoneNo)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_PHONE);
         }
-        if (!SERegExpUtils.isMobileNo(phoneNo)) {
+        if (address_type!=AddressType.STORE && !SERegExpUtils.isMobileNo(phoneNo)) {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_PHONE);
         }
         if (!StringUtils.hasText(address.getAddress_type())) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
-        }
-        AddressType address_type = AddressType.getByName(address.getAddress_type());
-        if (address_type == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
         }
         if (address_type == AddressType.OTHER) {
