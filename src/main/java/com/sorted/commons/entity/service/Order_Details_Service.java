@@ -20,13 +20,12 @@ public class Order_Details_Service extends GenericEntityServiceImpl<String, Orde
 	@Override
 	protected void validateBeforeCreate(Order_Details inE) throws RuntimeException {
 		long nanoseconds = CommonUtils.getNanoseconds();
-		StringBuffer stringBuffer = new StringBuffer();
-		stringBuffer.append("ORD-");
-		stringBuffer.append(LocalDate.now().getMonth());
-		stringBuffer.append(Year.now());
-		stringBuffer.append(nanoseconds);
+        String stringBuffer = "ORD-" +
+                LocalDate.now().getMonth() +
+                Year.now() +
+                nanoseconds;
 
-		inE.setCode(stringBuffer.toString());
+		inE.setCode(stringBuffer);
 	}
 
 	@Override

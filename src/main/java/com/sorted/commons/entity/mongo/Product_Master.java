@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class Product_Master extends BaseMongoEntity<String> {
 	/**
 	* 
 	*/
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private String catagory_id;
@@ -24,4 +26,5 @@ public class Product_Master extends BaseMongoEntity<String> {
 	private String img_src;
 	private String document_id;
 	private Map<String, List<String>> sub_categories;
+	private String cdn_url;
 }
