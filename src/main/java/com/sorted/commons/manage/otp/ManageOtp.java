@@ -69,7 +69,7 @@ public class ManageOtp {
 
         Otp otp = new Otp();
         String random_otp;
-        if ("prod".equalsIgnoreCase(profile)) {
+        if ("prod-final".equalsIgnoreCase(profile)) {
             random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
         } else {
             random_otp = "111111";
