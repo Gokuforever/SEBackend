@@ -99,7 +99,6 @@ public class GoogleDriveService {
 
 	private File_Upload_Details storeFileDetails(File_Upload_Details upload_details, File file, java.io.File file_to_upload,
 			UsersBean users_bean) {
-		upload_details.setDocument_id(file.getId());
 		upload_details.setFile_extension(file.getFileExtension());
 		long size_in_bytes = file.getSize();
 		double size_in_kb = size_in_bytes / 1024.0;

@@ -24,20 +24,20 @@ import jakarta.mail.internet.MimeMessage;
 @Component
 public class EmailSenderImpl {
 
-	@Value("${spring.mail.username}")
-	private String sender_mail;
+    @Value("${spring.mail.username}")
+    private String sender_mail;
 
-	@Value("${se.email.template.base_folder}")
-	private String email_base_folder;
+    @Value("${se.email.template.base_folder}")
+    private String email_base_folder;
 
-	@Value("${spring.profiles.active}")
-	private String profile;
+    @Value("${spring.profiles.active}")
+    private String profile;
 
-	private JavaMailSender mailSender;
+    private JavaMailSender mailSender;
 
-	public EmailSenderImpl(JavaMailSender mailSender) {
-		this.mailSender = mailSender;
-	}
+    public EmailSenderImpl(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
 //	@Async
 //	public void sendEmail(String to, String cc, String bcc, String subject, String message) {
@@ -59,72 +59,70 @@ public class EmailSenderImpl {
 //		mailSender.send(simpleMailMessage);
 //	}
 
-	@Async
-	public void sendEmailHtmlTemplate(MailBuilder builder) {
+    @Async
+    public void sendEmailHtmlTemplate(MailBuilder builder) {
 
-		if (CollectionUtils.isEmpty(builder.getTo())) {
-			throw new CustomIllegalArgumentsException(ResponseCode.RECIPIENT_MISSING);
-		}
+        if (CollectionUtils.isEmpty(builder.getTo())) {
+            throw new CustomIllegalArgumentsException(ResponseCode.RECIPIENT_MISSING);
+        }
 
-		MailTemplate template = builder.getTemplate();
-		if (template == null) {
-			throw new CustomIllegalArgumentsException(ResponseCode.TEMPLATE_IS_MISSING);
-		}
+        MailTemplate template = builder.getTemplate();
+        if (template == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.TEMPLATE_IS_MISSING);
+        }
 
-		String content = builder.getContent();
-		if (!StringUtils.hasText(content)) {
-			throw new CustomIllegalArgumentsException(ResponseCode.CONTENT_IS_MISSING);
-		}
-		String file_name = template.getFile_name();
-		String str_template = loadTemplate(email_base_folder + file_name);
-		if (str_template == null) {
-			throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
-		}
+        String content = builder.getContent();
+        if (!StringUtils.hasText(content)) {
+            throw new CustomIllegalArgumentsException(ResponseCode.CONTENT_IS_MISSING);
+        }
+        String file_name = template.getFile_name();
+        String str_template = loadTemplate(email_base_folder + file_name);
+        if (str_template == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+        }
 
-		str_template = this.replacePlaceholders(str_template, content);
+        str_template = this.replacePlaceholders(str_template, content);
 
-		MimeMessage mimeMessage = mailSender.createMimeMessage();
-		try {
-			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-			mimeMessageHelper.setTo(builder.getTo().toArray(new String[0]));
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            mimeMessageHelper.setTo(builder.getTo().toArray(new String[0]));
 
-			if (!CollectionUtils.isEmpty(builder.getCc())) {
-				mimeMessageHelper.setCc(builder.getCc().toArray(new String[0]));
-			}
+            if (!CollectionUtils.isEmpty(builder.getCc())) {
+                mimeMessageHelper.setCc(builder.getCc().toArray(new String[0]));
+            }
 
-			if (!CollectionUtils.isEmpty(builder.getBcc())) {
-				mimeMessageHelper.setBcc(builder.getBcc().toArray(new String[0]));
-			}
+            if (!CollectionUtils.isEmpty(builder.getBcc())) {
+                mimeMessageHelper.setBcc(builder.getBcc().toArray(new String[0]));
+            }
 
-			mimeMessageHelper.setSubject(template.getSubject());
-			mimeMessageHelper.setFrom(sender_mail);
-			mimeMessageHelper.setText(str_template, true);
+            mimeMessageHelper.setSubject(template.getSubject());
+            mimeMessageHelper.setFrom(sender_mail);
+            mimeMessageHelper.setText(str_template, true);
 
-			if ("prod".equalsIgnoreCase(profile)) {
-				mailSender.send(mimeMessage);
-			}
-			log.info("Email sent successfully");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+            mailSender.send(mimeMessage);
+            log.info("Email sent successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	}
+    }
 
-	private String loadTemplate(String templateFilePath) {
-		try {
-			return new String(Files.readAllBytes(Paths.get(templateFilePath)));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    private String loadTemplate(String templateFilePath) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(templateFilePath)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	private String replacePlaceholders(String str_template, String content) {
+    private String replacePlaceholders(String str_template, String content) {
 
-		String[] values = content.split("\\|");
-		for (int i = 0; i < values.length; i++) {
-			str_template = str_template.replace("{{a" + i + "}}", values[i]);
-		}
-		return str_template;
-	}
+        String[] values = content.split("\\|");
+        for (int i = 0; i < values.length; i++) {
+            str_template = str_template.replace("{{a" + i + "}}", values[i]);
+        }
+        return str_template;
+    }
 }

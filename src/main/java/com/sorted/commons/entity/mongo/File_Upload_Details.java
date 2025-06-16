@@ -22,7 +22,6 @@ public class File_Upload_Details extends BaseMongoEntity<String> {
 	private UserType user_type;
 	private String entity_id;
 	private Integer document_type_id;
-	private String document_id;
 	private String file_url;
 	private String file_extension;
 	private String size;
