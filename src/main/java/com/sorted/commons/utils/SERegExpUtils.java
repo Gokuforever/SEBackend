@@ -129,7 +129,16 @@ public class SERegExpUtils {
         return ifscRegex.matcher(ifsc).matches();
     }
 
+    public static boolean isValidGSTIN(String gstin) {
+        if (gstin == null) {
+            return false;
+        }
+        return gstin.matches("^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9]{1}[A-Z]{1}[0-9A-Z]{1}$");
+    }
+    
     public static void main(String[] args) {
-        System.out.println(isIfsc("HDFC0001333"));
+        // Example usage
+        System.out.println(isValidGSTIN("22AABCU9603R1ZM")); // Should print true for a valid GSTIN
+        System.out.println(isValidGSTIN("12ABCDE1234F1Z5")); // Should print false for invalid GSTIN
     }
 }

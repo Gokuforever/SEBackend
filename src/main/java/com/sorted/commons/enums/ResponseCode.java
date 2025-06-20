@@ -205,7 +205,8 @@ public enum ResponseCode {
 	MISSING_TRANSACTION_DATE("SE_0189", "Transaction date is missing.", "Please provide the transaction date."),
 	INVALID_TRANSACTION_DATE("SE_0190", "Invalid transaction date.", "Transaction date must not be in the future."),
 	MISSING_TRANSACTION_SCREENSHOT("SE_0192", "Transaction screenshot is missing.", "Please provide a screenshot of the transaction."),
-	INTERNAL_SERVER_ERROR("SE_0193", "Internal server error.", "An unexpected error occurred. Please try again later.")
+	INTERNAL_SERVER_ERROR("SE_0193", "Internal server error.", "An unexpected error occurred. Please try again later."),
+	INVALID_GST_NO("SE_0194", "Invalid GSTIN.", "Invalid GSTIN.")
 	;
 	// @formatter:on
 
