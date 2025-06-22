@@ -1,16 +1,25 @@
 package com.sorted.commons.beans;
 
 import com.sorted.commons.enums.WeekDay;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
-public class BusinessHours {
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class BusinessHours implements Serializable {
+    /**
+     *
+     */
+    @Serial
+    private static final long serialVersionUID = 1L;
     private Integer start_time;
     private Integer end_time;
     private List<WeekDay> fixed_off_days;
