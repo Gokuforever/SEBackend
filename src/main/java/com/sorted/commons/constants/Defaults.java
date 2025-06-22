@@ -13,4 +13,6 @@ public class Defaults {
 	public static final String SMS_SERVICE = "Sms Service";
 	public static final String DEFAULT_SELLER_PLAN = "Default Seller Plan";
 	public static final String PORTER_STCHK_CRON = "Porter Status Check Cron";
+	public static final String OPEN_STORE_CRON = "Open Store Cron";
+	public static final String CLOSE_STORE_CRON = "Close Store Cron";
 }

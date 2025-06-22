@@ -206,7 +206,8 @@ public enum ResponseCode {
 	INVALID_TRANSACTION_DATE("SE_0190", "Invalid transaction date.", "Transaction date must not be in the future."),
 	MISSING_TRANSACTION_SCREENSHOT("SE_0192", "Transaction screenshot is missing.", "Please provide a screenshot of the transaction."),
 	INTERNAL_SERVER_ERROR("SE_0193", "Internal server error.", "An unexpected error occurred. Please try again later."),
-	INVALID_GST_NO("SE_0194", "Invalid GSTIN.", "Invalid GSTIN.")
+	INVALID_GST_NO("SE_0194", "Invalid GSTIN.", "Invalid GSTIN."),
+	NO_OPERATIONAL_SELLER("SE_0195", "Store is closed, please try again later.", "Store is closed, please try again later.")
 	;
 	// @formatter:on
 

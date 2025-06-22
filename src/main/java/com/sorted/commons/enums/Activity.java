@@ -24,6 +24,10 @@ public enum Activity {
 	USER_PROFILE(113,"User Profile"),
 	SECURE_RETURN(114,"Secure Return"),
 	SETTLEMENT(115,"Settlement"),
+	OPEN_STORE(116,"Open Store"),
+	CLOSE_STORE(117,"Close Store"),
+	AUTO_OPEN_STORE(118,"Auto Open Store"),
+	AUTO_CLOSE_STORE(119,"Auto Close Store"),
 	;
 	// @formatter:on
 

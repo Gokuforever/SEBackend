@@ -30,6 +30,7 @@ import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare.FareBuilder;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PorterUtility {
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -55,14 +57,7 @@ public class PorterUtility {
     private final Address_Service address_Service;
     private final Seller_Service seller_Service;
     private final Pincode_Master_Service pincode_Master_Service;
-
-    public PorterUtility(Order_Details_Service order_Details_Service, Third_Party_Api_Service third_Party_Api_Service, Address_Service address_Service, Seller_Service seller_Service, Pincode_Master_Service pincode_Master_Service) {
-        this.order_Details_Service = order_Details_Service;
-        this.third_Party_Api_Service = third_Party_Api_Service;
-        this.address_Service = address_Service;
-        this.seller_Service = seller_Service;
-        this.pincode_Master_Service = pincode_Master_Service;
-    }
+    private final StoreActivityService storeActivityService;
 
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
@@ -429,11 +424,17 @@ public class PorterUtility {
 		filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 		filterS.addClause(WhereClause.eq(Seller.Fields.status, Seller_Status.ACTIVE.name()));
 
+        boolean isStoreOperational = true;
 		List<Seller> listS = seller_Service.repoFind(filterS);
-		if (CollectionUtils.isEmpty(listS)) {
+            if (CollectionUtils.isEmpty(listS)) {
 			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
 		}
-		Map<String, String> map = listS.stream().filter(e->StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
+        List<String> operationalStores = storeActivityService.getOperationalStores(listS.stream().map(Seller::getId).toList());
+        if(operationalStores.isEmpty()) {
+            isStoreOperational = false;
+            operationalStores.addAll(listS.stream().map(Seller::getId).toList());
+        }
+        Map<String, String> map = listS.stream().filter( e-> operationalStores.contains(e.getId()) && StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
 
 		SEFilter filterA = new SEFilter(SEFilterType.AND);
 		filterA.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(map.keySet())));
@@ -448,26 +449,26 @@ public class PorterUtility {
 		Address address = mapA.get(nearestSeller);
 
 		// @formatter:off
-        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
-                .pickup_details(GetQuoteRequest.PickupDetails.builder()
-                        .lat(address.getLat().doubleValue())
-                        .lng(address.getLng().doubleValue())
-                        .build())
-                .drop_details(GetQuoteRequest.DropDetails.builder()
-                        .lat(pincode_Master.getLatitude())
-                        .lng(pincode_Master.getLongitude())
-                        .build())
-                .customer(GetQuoteRequest.Customer.builder()
-                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
-                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
-                                .country_code("+91")
-                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
-                                .build())
-                        .build())
-                .build();
+//        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
+//                .pickup_details(GetQuoteRequest.PickupDetails.builder()
+//                        .lat(address.getLat().doubleValue())
+//                        .lng(address.getLng().doubleValue())
+//                        .build())
+//                .drop_details(GetQuoteRequest.DropDetails.builder()
+//                        .lat(pincode_Master.getLatitude())
+//                        .lng(pincode_Master.getLongitude())
+//                        .build())
+//                .customer(GetQuoteRequest.Customer.builder()
+//                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
+//                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
+//                                .country_code("+91")
+//                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
+//                                .build())
+//                        .build())
+//                .build();
         // @formatter:on
 //        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
-        return NearestSellerRes.builder().response(null).seller_id(address.getEntity_id()).build();
+        return NearestSellerRes.builder().response(null).seller_id(address.getEntity_id()).is_operational(isStoreOperational).build();
     }
 
 //    public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {

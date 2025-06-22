@@ -31,7 +31,8 @@ public enum OrderStatus {
 	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"), // Once cancelled - Complete amount refunded
 	PENDING_REFUND(13, "Refund Pending", "Refund Pending"),
 	REFUND_REQUESTED(14, "Refund Requested", "Refund Requested"),
-	REFUND_FAILED(15, "Refund Request Failed", "Refund Request Failed");
+	REFUND_FAILED(15, "Refund Request Failed", "Refund Request Failed"),
+	STORE_NOT_OPERATIONAL(15, "Store not operational.", "Store not operational.");
 	// @formatter:on
 
     private final int id;
