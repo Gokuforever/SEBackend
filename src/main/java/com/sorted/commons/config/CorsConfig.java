@@ -18,7 +18,8 @@ public class CorsConfig {
 		config.setAllowedOrigins(Arrays.asList("https://stz-frontend-service-ts.vercel.app", // Vercel frontend
 				"http://localhost:5173", // Local development
 				"https://vinayak.studeaze.in",
-				"https://seller.studeaze.in"
+				"https://seller.studeaze.in",
+				"https://gokuforever.github.io"
 		));
 
 		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
