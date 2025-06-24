@@ -207,7 +207,8 @@ public enum ResponseCode {
 	MISSING_TRANSACTION_SCREENSHOT("SE_0192", "Transaction screenshot is missing.", "Please provide a screenshot of the transaction."),
 	INTERNAL_SERVER_ERROR("SE_0193", "Internal server error.", "An unexpected error occurred. Please try again later."),
 	INVALID_GST_NO("SE_0194", "Invalid GSTIN.", "Invalid GSTIN."),
-	NO_OPERATIONAL_SELLER("SE_0195", "Store is closed, please try again later.", "Store is closed, please try again later.")
+	NO_OPERATIONAL_SELLER("SE_0195", "Store is closed, please try again later.", "Store is closed, please try again later."),
+	MANDATE_GROUP("SE_0196", "Missing or Invalid group.", "Missing or Invalid group."),
 	;
 	// @formatter:on
 

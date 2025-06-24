@@ -24,7 +24,7 @@ public class Product_Master extends BaseMongoEntity<String> {
 	private String catagory_id;
 	private String name;
 	private String img_src;
-	private String group_id;
+	private Integer group_id;
 	private String group_name;
 	private Map<String, List<String>> sub_categories;
 	private String cdn_url;

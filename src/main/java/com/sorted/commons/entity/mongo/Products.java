@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import java.io.Serial;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,6 +20,7 @@ public class Products extends BaseMongoEntity<String> {
 	/**
 	* 
 	*/
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String product_code;
 	private String name;
@@ -33,6 +35,7 @@ public class Products extends BaseMongoEntity<String> {
 	private String seller_id;
 	private String seller_code;
 	private String varient_mapping_id;
+	private Integer group_id;
 	private List<SelectedSubCatagories> selected_sub_catagories;
 	private List<Media> media;
 
