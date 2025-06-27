@@ -15,4 +15,5 @@ public class Defaults {
 	public static final String PORTER_STCHK_CRON = "Porter Status Check Cron";
 	public static final String OPEN_STORE_CRON = "Open Store Cron";
 	public static final String CLOSE_STORE_CRON = "Close Store Cron";
+	public static final String PORTER_ORDER_UPDATE_WEBHOOK = "Porter Order Update Webhook";
 }

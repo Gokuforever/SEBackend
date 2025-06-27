@@ -7,16 +7,26 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sorted.commons.beans.DeliveryRequestAttempts;
 import com.sorted.commons.beans.NearestSellerRes;
+import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.All_Status.Seller_Status;
+import com.sorted.commons.enums.MailTemplate;
+import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.BadRequestException;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.helper.MailBuilder;
+import com.sorted.commons.helper.OrderTemplateHelper;
+import com.sorted.commons.helper.SEResponse;
+import com.sorted.commons.helper.WebhookTraceHelper;
+import com.sorted.commons.notifications.EmailSenderImpl;
 import com.sorted.commons.porter.req.beans.CreateOrderBean;
 import com.sorted.commons.porter.req.beans.GetQuoteRequest;
+import com.sorted.commons.porter.req.beans.PorterWebhookBean;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean;
 import com.sorted.commons.porter.res.beans.CreateOrderResBean.CreateOrderResBeanBuilder;
 import com.sorted.commons.porter.res.beans.FetchOrderRes;
@@ -32,14 +42,17 @@ import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare.FareBui
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,11 +71,18 @@ public class PorterUtility {
     private final Seller_Service seller_Service;
     private final Pincode_Master_Service pincode_Master_Service;
     private final StoreActivityService storeActivityService;
+    private final WebhookTraceService webhookReqDumpService;
+    private final WebhookTraceHelper webhookTraceHelper;
+    private final Users_Service usersService;
+    private final EmailSenderImpl emailSenderImpl;
+    private final OrderTemplateHelper orderTemplateHelper;
+    private final Order_Item_Service order_Item_Service;
+
 
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
-        com.sorted.commons.porter.req.beans.CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
-        com.sorted.commons.porter.req.beans.CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
+        CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
+        CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
         pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
         pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
         drop_address.setLat(BigDecimal.valueOf(12.9165757));
@@ -494,6 +514,127 @@ public class PorterUtility {
     }
     // @formatter:on
 
-    public static void main(String[] args) {
+    public void updateOrderStatus(Order_Details details, Status status, FareDetails fareDetails) {
+        MailTemplate mailTemplate = null;
+        OrderStatus currentOrderStatus = null;
+        switch (status) {
+            case open:
+                currentOrderStatus = OrderStatus.READY_FOR_PICK_UP;
+                break;
+            case accepted:
+                currentOrderStatus = OrderStatus.RIDER_ASSIGNED;
+                mailTemplate = MailTemplate.ORDER_DISPATCHED;
+                break;
+            case cancelled:
+                currentOrderStatus = OrderStatus.ORDER_CANCELLED;
+                break;
+            case ended:
+                currentOrderStatus = OrderStatus.DELIVERED;
+                mailTemplate = MailTemplate.ORDER_ARRIVED;
+                break;
+            case live:
+                currentOrderStatus = OrderStatus.OUT_FOR_DELIVERY;
+                break;
+            default:
+                break;
+        }
+
+        if (mailTemplate != null) {
+
+            SEFilter filterU = new SEFilter(SEFilterType.AND);
+            filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+            filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, details.getUser_id()));
+
+            Users user = usersService.repoFindOne(filterU);
+            if (user == null) {
+                throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+            }
+            String userName = user.getFirst_name() + " " + user.getLast_name();
+            String orderTemplateTable = orderTemplateHelper.getOrderTemplateTable(details);
+
+            String mailContent = userName + "|" + orderTemplateTable;
+
+            MailBuilder builder = new MailBuilder();
+            builder.setTo(user.getEmail_id());
+            builder.setContent(mailContent);
+            builder.setTemplate(mailTemplate);
+            emailSenderImpl.sendEmailHtmlTemplate(builder);
+        }
+
+        if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
+            List<Order_Item> listOI = getOrderItems(details);
+            final OrderStatus finalOrderStatus = currentOrderStatus;
+
+            listOI.forEach(e -> {
+                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
+            });
+            details.setFare_details(fareDetails);
+            details.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+            order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
+        }
+    }
+
+    @NotNull
+    private List<Order_Item> getOrderItems(Order_Details details) {
+        SEFilter filterOI = new SEFilter(SEFilterType.AND);
+        filterOI.addClause(WhereClause.eq(Order_Item.Fields.order_id, details.getId()));
+        filterOI.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        List<Order_Item> listOI = order_Item_Service.repoFind(filterOI);
+        if (CollectionUtils.isEmpty(listOI)) {
+            throw new CustomIllegalArgumentsException(ResponseCode.NO_RECORD);
+        }
+        return listOI;
+    }
+
+    public SEResponse handleWebhookResponse(PorterWebhookBean response) {
+        try {
+            if (response == null) {
+                throw new BadRequestException("Payload is null.");
+            }
+            if (!StringUtils.hasText(response.getStatus())) {
+                throw new BadRequestException("Status is missing.");
+            }
+            if (!StringUtils.hasText(response.getOrderId())) {
+                throw new BadRequestException("Order Id is missing.");
+            }
+            if (response.getOrderDetails() == null) {
+                throw new BadRequestException("Order details is null.");
+            }
+
+            SEFilter filterOD = new SEFilter(SEFilterType.AND);
+            filterOD.addClause(WhereClause.eq(Order_Details.Fields.dp_order_id, response.getOrderId()));
+            filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+            Order_Details details = order_Details_Service.repoFindOne(filterOD);
+            if (details == null) {
+                throw new BadRequestException("Invalid order id.");
+            }
+            Status status = switch (response.getStatus()) {
+                case "order_accepted" -> Status.accepted;
+                case "order_start_trip" -> Status.live;
+                case "order_end_job" -> Status.ended;
+                case "order_reopen" -> Status.open;
+                case "order_cancel" -> Status.cancelled;
+                default -> throw new BadRequestException("Unexpected value: " + response.getStatus());
+            };
+
+            FareDetails fareDetails = details.getFare_details();
+            if (fareDetails.getActual_fare_details() == null && response.getOrderDetails().getActualTripFare() != null) {
+                fareDetails.setActual_fare_details(FareAmountDetails.builder().minor_amount(response.getOrderDetails().getActualTripFare()).build());
+            }
+            if (fareDetails.getEstimated_fare_details() == null && response.getOrderDetails().getEstimatedTripFare() != null) {
+                fareDetails.setEstimated_fare_details(FareAmountDetails.builder().minor_amount(response.getOrderDetails().getEstimatedTripFare()).build());
+            }
+
+            this.updateOrderStatus(details, status, fareDetails);
+            return SEResponse.getEmptySuccessResponse(ResponseCode.SUCCESSFUL);
+        } catch (Exception e) {
+            if (e instanceof BadRequestException) {
+                throw e;
+            }
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

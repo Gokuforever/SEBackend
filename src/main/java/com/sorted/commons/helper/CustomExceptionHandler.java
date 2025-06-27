@@ -1,5 +1,6 @@
 package com.sorted.commons.helper;
 
+import com.sorted.commons.exceptions.BadRequestException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class CustomExceptionHandler {
@@ -26,6 +28,20 @@ public class CustomExceptionHandler {
 		SEResponse apiResponse = SEResponse.builder().status(status).responseCode(e.getMessageCode())
 				.errorMessage(errMessage).userMessage(userMessage).build();
 		return new ResponseEntity<Object>(apiResponse, new HttpHeaders(), status);
+	}
+
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<String> handleBadRequestException(BadRequestException ex) {
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ex.getMessage());
+	}
+
+	@ExceptionHandler(ResponseStatusException.class)
+	public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(ex.getMessage());
 	}
 
 }

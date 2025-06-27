@@ -92,4 +92,12 @@ public class Order_Details extends BaseMongoEntity<String> {
         return hash != hash2;
     }
 
+    @JsonIgnore
+    public FareDetails getFare_details() {
+        if (fare_details == null) {
+            fare_details = FareDetails.builder().build();
+        }
+        return fare_details;
+    }
+
 }
