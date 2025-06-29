@@ -52,7 +52,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +103,7 @@ public class PorterUtility {
         // Set the headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
 
         Gson gson = GsonUtils.getGson();
         String payload = gson.toJson(order);
@@ -190,7 +189,7 @@ public class PorterUtility {
 
         // Set up headers
         HttpHeaders headers = new HttpHeaders();
-        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
 
         // Create an HttpEntity with the headers (no body needed)
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
@@ -205,6 +204,26 @@ public class PorterUtility {
 
     }
 
+    public GetQuoteRequest buildGetQuoteRequest(Address pickupAddress, Address dropAddress, String mobile, String customerFullName) {
+        return GetQuoteRequest.builder()
+                .pickup_details(GetQuoteRequest.PickupDetails.builder()
+                        .lat(pickupAddress.getLat().doubleValue())
+                        .lng(pickupAddress.getLng().doubleValue())
+                        .build())
+                .drop_details(GetQuoteRequest.DropDetails.builder()
+                        .lat(dropAddress.getLat().doubleValue())
+                        .lng(dropAddress.getLng().doubleValue())
+                        .build())
+                .customer(GetQuoteRequest.Customer.builder()
+                        .name(customerFullName)
+                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
+                                .country_code("+91")
+                                .number(mobile.length() > 10 ? mobile.substring(mobile.length() - 11, mobile.length() - 1) : mobile)
+                                .build())
+                        .build())
+                .build();
+    }
+
     public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -213,7 +232,7 @@ public class PorterUtility {
         // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", "972d5e4d-b92f-4078-bda5-962e4c067f46");
+        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
 
         // @formatter:off
         // Build the request object using Builder
@@ -469,26 +488,26 @@ public class PorterUtility {
 		Address address = mapA.get(nearestSeller);
 
 		// @formatter:off
-//        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
-//                .pickup_details(GetQuoteRequest.PickupDetails.builder()
-//                        .lat(address.getLat().doubleValue())
-//                        .lng(address.getLng().doubleValue())
-//                        .build())
-//                .drop_details(GetQuoteRequest.DropDetails.builder()
-//                        .lat(pincode_Master.getLatitude())
-//                        .lng(pincode_Master.getLongitude())
-//                        .build())
-//                .customer(GetQuoteRequest.Customer.builder()
-//                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
-//                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
-//                                .country_code("+91")
-//                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
-//                                .build())
-//                        .build())
-//                .build();
+        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
+                .pickup_details(GetQuoteRequest.PickupDetails.builder()
+                        .lat(address.getLat().doubleValue())
+                        .lng(address.getLng().doubleValue())
+                        .build())
+                .drop_details(GetQuoteRequest.DropDetails.builder()
+                        .lat(pincode_Master.getLatitude())
+                        .lng(pincode_Master.getLongitude())
+                        .build())
+                .customer(GetQuoteRequest.Customer.builder()
+                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
+                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
+                                .country_code("+91")
+                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
+                                .build())
+                        .build())
+                .build();
         // @formatter:on
-//        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
-        return NearestSellerRes.builder().response(null).seller_id(address.getEntity_id()).is_operational(isStoreOperational).build();
+        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
+        return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).is_operational(isStoreOperational).build();
     }
 
 //    public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {

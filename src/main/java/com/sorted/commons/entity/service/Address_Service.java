@@ -1,13 +1,12 @@
 package com.sorted.commons.entity.service;
 
+import com.sorted.commons.entity.mongo.Address;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.helper.AggregationFilter;
-import lombok.NonNull;
-import org.springframework.stereotype.Service;
-
-import com.sorted.commons.entity.mongo.Address;
 import com.sorted.commons.repository.mongo.Address_Repository;
 import com.sorted.commons.utils.CommonUtils;
+import lombok.NonNull;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -49,5 +48,12 @@ public class Address_Service extends GenericEntityServiceImpl<String, Address, A
         }
         address.setIs_default(true);
         this.update(address.getId(), address, cudBy);
+    }
+
+    public Address findById(String id) {
+        AggregationFilter.SEFilter filterA = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
+        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, id));
+        return this.repoFindOne(filterA);
     }
 }

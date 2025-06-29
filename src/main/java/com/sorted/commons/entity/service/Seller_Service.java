@@ -1,11 +1,12 @@
 package com.sorted.commons.entity.service;
 
 import com.sorted.commons.beans.BusinessHours;
-import com.sorted.commons.enums.WeekDay;
-import org.springframework.stereotype.Service;
-
+import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Seller;
+import com.sorted.commons.enums.WeekDay;
+import com.sorted.commons.helper.AggregationFilter;
 import com.sorted.commons.repository.mongo.Seller_Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -32,4 +33,10 @@ public class Seller_Service extends GenericEntityServiceImpl<String, Seller, Sel
     protected void validateBeforeDelete(String id) throws RuntimeException {
     }
 
+    public Seller findById(String id) {
+        AggregationFilter.SEFilter filter = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
+        filter.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        filter.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, id));
+        return this.repoFindOne(filter);
+    }
 }
