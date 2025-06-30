@@ -70,13 +70,11 @@ public class PorterUtility {
     private final Seller_Service seller_Service;
     private final Pincode_Master_Service pincode_Master_Service;
     private final StoreActivityService storeActivityService;
-    private final WebhookTraceService webhookReqDumpService;
-    private final WebhookTraceHelper webhookTraceHelper;
     private final Users_Service usersService;
     private final EmailSenderImpl emailSenderImpl;
     private final OrderTemplateHelper orderTemplateHelper;
     private final Order_Item_Service order_Item_Service;
-
+    private final Address_Service addressService;
 
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
@@ -655,5 +653,18 @@ public class PorterUtility {
             }
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public GetQuoteResponse getEstimateDeliveryAmount(String pickup_address_id, String delivery_address_id, String mobile, String customerName) throws JsonProcessingException {
+        Address deliveryAddress = addressService.findById(pickup_address_id);
+        if (deliveryAddress == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
+        }
+        Address pickUpAddress = addressService.findById(delivery_address_id);
+        if (pickUpAddress == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
+        }
+        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress, deliveryAddress, mobile, customerName);
+        return this.getQuote(getQuoteRequest, "/cart/fetch");
     }
 }
