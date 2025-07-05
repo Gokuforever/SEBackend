@@ -2,6 +2,8 @@ package com.sorted.commons.entity.service;
 
 import java.util.ArrayList;
 
+import com.sorted.commons.entity.mongo.BaseMongoEntity;
+import com.sorted.commons.helper.AggregationFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,20 @@ public class Cart_Service extends GenericEntityServiceImpl<String, Cart, Cart_Re
     @Override
     protected void validateBeforeUpdate(String id, Cart inE) throws RuntimeException {
 
+    }
+
+    public Cart findById(String entityId) {
+        AggregationFilter.SEFilter filterC = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
+        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, entityId));
+        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        return this.repoFindOne(filterC);
+    }
+
+    public Cart findByUserId(String userId) {
+        AggregationFilter.SEFilter filterC = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
+        filterC.addClause(AggregationFilter.WhereClause.eq(Cart.Fields.user_id, userId));
+        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        return this.repoFindOne(filterC);
     }
 
 }
