@@ -50,10 +50,4 @@ public class Address_Service extends GenericEntityServiceImpl<String, Address, A
         this.update(address.getId(), address, cudBy);
     }
 
-    public Address findById(String id) {
-        AggregationFilter.SEFilter filterA = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, id));
-        return this.repoFindOne(filterA);
-    }
 }

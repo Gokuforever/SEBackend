@@ -35,13 +35,6 @@ public class Cart_Service extends GenericEntityServiceImpl<String, Cart, Cart_Re
 
     }
 
-    public Cart findById(String entityId) {
-        AggregationFilter.SEFilter filterC = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, entityId));
-        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        return this.repoFindOne(filterC);
-    }
-
     public Cart findByUserId(String userId) {
         AggregationFilter.SEFilter filterC = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
         filterC.addClause(AggregationFilter.WhereClause.eq(Cart.Fields.user_id, userId));

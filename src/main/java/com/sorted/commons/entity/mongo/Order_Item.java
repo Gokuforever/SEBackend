@@ -60,6 +60,10 @@ public class Order_Item extends BaseMongoEntity<String> {
 		list.add(order_Status_History);
 		setStatus_history(list);
 		this.status = status;
+		this.status_id = status.getId();
 	}
 
+	private void setStatus(OrderStatus status) {}
+	private void setStatus_id(Integer status_id) {}
+	private void setStatus_id(int status_id) {}
 }

@@ -22,7 +22,6 @@ import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.helper.MailBuilder;
 import com.sorted.commons.helper.OrderTemplateHelper;
 import com.sorted.commons.helper.SEResponse;
-import com.sorted.commons.helper.WebhookTraceHelper;
 import com.sorted.commons.notifications.EmailSenderImpl;
 import com.sorted.commons.porter.req.beans.CreateOrderBean;
 import com.sorted.commons.porter.req.beans.GetQuoteRequest;
@@ -57,6 +56,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -267,7 +267,7 @@ public class PorterUtility {
         ResponseEntity<String> response;
         HttpStatus httpStatus;
         String responseBody;
-        
+
         try {
             response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
             httpStatus = HttpStatus.resolve(response.getStatusCode().value());
@@ -277,7 +277,7 @@ public class PorterUtility {
             responseBody = "{\"vehicles\":[{\"type\":\"Tata 407\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":84621},\"capacity\":{\"value\":2500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}},{\"type\":\"Ace (Helper + 1 Labour)\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":54275},\"capacity\":{\"value\":750.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":7.0,\"unit\":\"ft\"},\"breadth\":{\"value\":4.5,\"unit\":\"ft\"},\"height\":{\"value\":5.5,\"unit\":\"ft\"}}},{\"type\":\"3 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":36697},\"capacity\":{\"value\":500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":6.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.0,\"unit\":\"ft\"},\"height\":{\"value\":5.0,\"unit\":\"ft\"}}},{\"type\":\"2 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":8556},\"capacity\":{\"value\":20.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}}]}";
             log.warn("Received 403 Forbidden from Porter API, using default vehicle data");
         }
-        
+
         third_Party_Api.setRaw_response(responseBody);
         third_Party_Api.setStatus(httpStatus);
         third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
@@ -668,15 +668,15 @@ public class PorterUtility {
     }
 
     public GetQuoteResponse getEstimateDeliveryAmount(String pickup_address_id, String delivery_address_id, String mobile, String customerName) throws JsonProcessingException {
-        Address deliveryAddress = addressService.findById(pickup_address_id);
-        if (deliveryAddress == null) {
+        Optional<Address> deliveryAddress = addressService.findById(pickup_address_id);
+        if (deliveryAddress.isEmpty()) {
             throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
         }
-        Address pickUpAddress = addressService.findById(delivery_address_id);
-        if (pickUpAddress == null) {
+        Optional<Address> pickUpAddress = addressService.findById(delivery_address_id);
+        if (pickUpAddress.isEmpty()) {
             throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
         }
-        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress, deliveryAddress, mobile, customerName);
+        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress.get(), deliveryAddress.get(), mobile, customerName);
         return this.getQuote(getQuoteRequest, "/cart/fetch");
     }
 }

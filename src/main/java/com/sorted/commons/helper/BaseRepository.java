@@ -1,6 +1,7 @@
 package com.sorted.commons.helper;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 
@@ -25,5 +26,7 @@ public interface BaseRepository<T, K> {
 	T upsert(K id, T obj, String cud_by);
 
 	void deleteOne(K id, String cud_by);
+
+	Optional<T> findById(K id);
 
 }

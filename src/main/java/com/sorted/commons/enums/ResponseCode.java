@@ -209,7 +209,15 @@ public enum ResponseCode {
 	INVALID_GST_NO("SE_0194", "Invalid GSTIN.", "Invalid GSTIN."),
 	NO_OPERATIONAL_SELLER("SE_0195", "Store is closed, please try again later.", "Store is closed, please try again later."),
 	MANDATE_GROUP("SE_0196", "Missing or Invalid group.", "Missing or Invalid group."),
-	;
+	MISSING_RETURN_ITEMS("SE_0197", "Missing return items.", "Something went wrong, please contact customer care."),
+	MISSING_TIME_SLOT("SE_0198", "Please select a time slot.", "Something went wrong, please contact customer care."),
+	NOT_SECURED_ITEM("SE_0199", "Few/All of the selected items were not secured.", "Something went wrong, please contact customer care."),
+	INVALID_STATUS_FOR_SECURE_RETURN("SE_0200", "Invalid order state for return.", "Something went wrong, please contact customer care."),
+	INVALID_ITEM_STATUS_FOR_SECURE_RETURN("SE_0201", "Invalid item state for return.", "Something went wrong, please contact customer care."),
+	SELLER_NOT_FOUND_FOR_SECURE_RETURN("SE_0202", "Seller not found.", "Something went wrong, please contact customer care."),
+	NOT_OPERATIONAL_FOR_SECURE_RETURN("SE_0203", "Not Operational for Secure Return, please select a different date.", "Not Operational for Secure Return, please select a different date."),
+	INVALID_RETURN_ITEMS("SE_0204", "Few items not found for return", "Something went wrong, please contact customer care."),
+	MISSING_PICKUP_ADD("SE_0205", "Please add or select a pickup address.", "Please add or select a pickup address.");
 	// @formatter:on
 
     private final String code;

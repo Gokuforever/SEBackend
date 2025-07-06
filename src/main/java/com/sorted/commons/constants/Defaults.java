@@ -16,5 +16,6 @@ public class Defaults {
 	public static final String OPEN_STORE_CRON = "Open Store Cron";
 	public static final String CLOSE_STORE_CRON = "Close Store Cron";
 	public static final String PORTER_ORDER_UPDATE_WEBHOOK = "Porter Order Update Webhook";
+	public static final String INITIATE_SECURE_RETURN_CRON = "Initiate Secure Return Cron";
 	public static final String REACT_APP = "React App";
 }

@@ -32,11 +32,5 @@ public class Seller_Service extends GenericEntityServiceImpl<String, Seller, Sel
     @Override
     protected void validateBeforeDelete(String id) throws RuntimeException {
     }
-
-    public Seller findById(String id) {
-        AggregationFilter.SEFilter filter = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filter.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        filter.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, id));
-        return this.repoFindOne(filter);
-    }
+    
 }

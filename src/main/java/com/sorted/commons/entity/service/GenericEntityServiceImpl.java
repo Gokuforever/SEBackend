@@ -1,6 +1,7 @@
 package com.sorted.commons.entity.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -105,4 +106,8 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 		repository.deleteOne(id, cud_by);
 	}
 
+	@Override
+	public Optional<T> findById(K id) {
+		return this.findById(id);
+	}
 }

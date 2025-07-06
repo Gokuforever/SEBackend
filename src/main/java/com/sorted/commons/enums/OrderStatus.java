@@ -32,7 +32,15 @@ public enum OrderStatus {
 	PENDING_REFUND(13, "Refund Pending", "Refund Pending"),
 	REFUND_REQUESTED(14, "Refund Requested", "Refund Requested"),
 	REFUND_FAILED(15, "Refund Request Failed", "Refund Request Failed"),
-	STORE_NOT_OPERATIONAL(15, "Store not operational.", "Store not operational.");
+	STORE_NOT_OPERATIONAL(16, "Store not operational.", "Store not operational."),
+	SECURE_RETURN_SCHEDULED(17, "Secure Return Scheduled.", "Secure Return Scheduled."),
+	SECURE_RETURN_INITIATED(18, "Secure Return Initiated.", "Secure Return Initiated."),
+    RIDER_ASSIGNED_FOR_SECURE_RETURN(19, "Delivery Partner Assigned", "Delivery Partner Assigned"),
+    ITEMS_PICKED_UP_FOR_SECURE_RETURN(20, "Items Picked Up For Secure Return.", "Items Picked Up For Secure Return."),
+    SECURE_RETURN_COMPLETED(21, "Secure Return Completed.", "Secure Return Completed."),
+    SECURE_RETURN_FAILED(22, "Secure Return Failed.", "Secure Return Failed."),
+    ITEM_SECURED(23, "Item Secured.", "Item Secured."),
+    ;
 	// @formatter:on
 
     private final int id;

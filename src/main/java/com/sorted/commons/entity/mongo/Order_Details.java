@@ -6,6 +6,7 @@ import com.sorted.commons.beans.DeliveryRequestAttempts;
 import com.sorted.commons.beans.Order_Status_History;
 import com.sorted.commons.beans.SettlementDetails;
 import com.sorted.commons.enums.OrderStatus;
+import com.sorted.commons.enums.TimeSlot;
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serial;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +63,15 @@ public class Order_Details extends BaseMongoEntity<String> {
     private SettlementDetails settlement_details;
     private String rejection_remarks;
     private String refund_transaction_id;
+    private TimeSlot secured_time_slot;
+    private LocalDate secured_date;
+    private int max_secured_reschedule_count;
+    private AddressDTO secure_pickup_address;
+    private AddressDTO secure_delivery_address;
+    private String secure_dp_order_id;
+    private String secure_order_id;
+    private String secure_return_failure_reason;
+
 
     @JsonIgnore
     public void setStatus(@NonNull OrderStatus status, String cud_by) {
@@ -74,9 +85,9 @@ public class Order_Details extends BaseMongoEntity<String> {
         this.status_id = status.getId();
     }
 
-    private void setStatus(OrderStatus status) {
-
-    }
+    private void setStatus(OrderStatus status) {}
+    private void setStatus_id(Integer status_id) {}
+    private void setStatus_id(int status_id) {}
 
     @JsonIgnore
     public void setFare_details(FareDetails fare_details) {
