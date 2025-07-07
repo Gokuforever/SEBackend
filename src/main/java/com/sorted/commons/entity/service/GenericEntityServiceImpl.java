@@ -108,6 +108,6 @@ public abstract class GenericEntityServiceImpl<K, T, R extends BaseRepository<T,
 
 	@Override
 	public Optional<T> findById(K id) {
-		return this.findById(id);
+		return repository.findById(id);
 	}
 }
