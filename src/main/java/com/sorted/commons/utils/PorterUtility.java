@@ -42,6 +42,7 @@ import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuild
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -77,6 +78,9 @@ public class PorterUtility {
     private final Order_Item_Service order_Item_Service;
     private final Address_Service addressService;
 
+    @Value("${se.porter.response.mock.enabled:true}")
+    private boolean porterResponseMockEnabled;
+
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
         CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
@@ -86,7 +90,7 @@ public class PorterUtility {
         drop_address.setLat(BigDecimal.valueOf(12.9165757));
         drop_address.setLng(BigDecimal.valueOf(77.6101163));
         SEFilter filterOD = new SEFilter(SEFilterType.AND);
-        filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, order.getRequest_id()));
+        filterOD.addClause(WhereClause.eq(Order_Details.Fields.code, order.getRequest_id()));
         filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         Order_Details order_Details = order_Details_Service.repoFindOne(filterOD);
@@ -115,14 +119,26 @@ public class PorterUtility {
 
         third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
 
-        // Make the POST request
         ResponseEntity<String> response = null;
-        try {
-            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        } catch (HttpServerErrorException.InternalServerError ex) {
-            log.error("Exception occurred with message: {}", ex.getMessage(), ex);
-            String responseBody = ex.getResponseBodyAsString();
-            extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        if (porterResponseMockEnabled) {
+            String mockResponse = "{\"request_id\": \"" + order.getRequest_id() + "\", " +
+                    "\"order_id\": \"CRN" + order.getRequest_id() + "\", " +
+                    "\"estimated_pickup_time\": 1642473111, " +
+                    "\"estimated_fare_details\": { " +
+                    "  \"currency\": \"INR\", " +
+                    "  \"minor_amount\": 35000 }, " +
+                    "\"tracking_url\": \"https://porter.in/track_live_order?booking_id=CRN" + order.getRequest_id() + "&customer_uuid=0337fe22-0745-4d5c-8514-3003912be89a\"}";
+            response = new ResponseEntity<>(mockResponse, HttpStatus.OK);
+        } else {
+            // Make the POST request
+            try {
+                response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            } catch (HttpServerErrorException.InternalServerError ex) {
+                log.error("Exception occurred with message: {}", ex.getMessage(), ex);
+                String responseBody = ex.getResponseBodyAsString();
+                extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
         }
 
         if (response == null) {
@@ -186,16 +202,57 @@ public class PorterUtility {
         // Define the URL
         String url = "https://pfe-apigw-uat.porter.in/v1/orders/" + porter_order_id;
 
+        String orderId = porter_order_id.substring(3);
         // Set up headers
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
 
         // Create an HttpEntity with the headers (no body needed)
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        // Make the GET request
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-
+        ResponseEntity<String> response;
+        if (porterResponseMockEnabled) {
+            String mockResponse = "{\n" +
+                    "    \"order_id\": \"" + porter_order_id + "\",\n" +
+                    "    \"status\": \"ended\",\n" +
+                    "    \"partner_info\":\n" +
+                    "    {\n" +
+                    "        \"name\": \"Anupam Patel\",\n" +
+                    "        \"vehicle_number\": \"AK-02-HH-2020\",\n" +
+                    "        \"vehicle_type\": \"TWO_WHEELER\",\n" +
+                    "        \"mobile\":\n" +
+                    "        {\n" +
+                    "            \"country_code\": \"91\",\n" +
+                    "            \"mobile_number\": \"9535321734\"\n" +
+                    "        },\n" +
+                    "        \"partner_secondary_mobile\":\n" +
+                    "        {\n" +
+                    "            \"country_code\": \"91\",\n" +
+                    "            \"mobile_number\": \"9535321734\"\n" +
+                    "        },\n" +
+                    "        \"location\": null\n" +
+                    "    },\n" +
+                    "    \"order_timings\":\n" +
+                    "    {\n" +
+                    "        \"pickup_time\": 1669879581,\n" +
+                    "        \"order_accepted_time\": 1669877932,\n" +
+                    "        \"order_started_time\": 1669877997,\n" +
+                    "        \"order_ended_time\": 1669878042\n" +
+                    "    },\n" +
+                    "    \"fare_details\":\n" +
+                    "    {\n" +
+                    "        \"estimated_fare_details\": null,\n" +
+                    "        \"actual_fare_details\":\n" +
+                    "        {\n" +
+                    "            \"currency\": \"INR\",\n" +
+                    "            \"minor_amount\": 5500\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}";
+            response = new ResponseEntity<>(mockResponse, HttpStatus.OK);
+        } else {
+            // Make the GET request
+            response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        }
         // Print the response
         log.info("Response:: " + response.getBody());
         String body = response.getBody();
