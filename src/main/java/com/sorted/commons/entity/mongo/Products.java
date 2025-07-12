@@ -36,6 +36,7 @@ public class Products extends BaseMongoEntity<String> {
 	private String seller_code;
 	private String varient_mapping_id;
 	private Integer group_id;
+	private Boolean is_secure;
 	private List<SelectedSubCatagories> selected_sub_catagories;
 	private List<Media> media;
 

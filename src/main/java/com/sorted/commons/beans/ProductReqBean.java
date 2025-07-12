@@ -26,5 +26,6 @@ public class ProductReqBean extends ReqBaseBean {
 	private List<Media> media;
 	private String varient_name;
 	private String varient_mapping_id;
+	private Boolean is_secure;
 
 }
