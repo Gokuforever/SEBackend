@@ -20,7 +20,8 @@ public class CorsConfig {
 				"https://vinayak.studeaze.in",
 				"https://seller.studeaze.in",
 				"https://gokuforever.github.io",
-				"https://studeaze.retool.com"
+				"https://studeaze.retool.com",
+				"https://studeaze.retool.com/editor"
 		));
 
 		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
