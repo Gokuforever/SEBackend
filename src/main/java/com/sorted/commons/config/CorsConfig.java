@@ -15,28 +15,16 @@ public class CorsConfig {
 	public CorsFilter corsFilter() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
-
-		// Exact origins - no wildcards when using credentials
-		config.setAllowedOrigins(Arrays.asList(
-				"https://stz-frontend-service-ts.vercel.app",
-				"http://localhost:5173",
+		config.setAllowedOrigins(Arrays.asList("https://stz-frontend-service-ts.vercel.app", // Vercel frontend
+				"http://localhost:5173", // Local development
 				"https://vinayak.studeaze.in",
 				"https://seller.studeaze.in",
-				"https://gokuforever.github.io",
-				"https://studeaze.retool.com"
+				"https://gokuforever.github.io"
 		));
 
-		// Allow all methods
-		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-
-		// Allow all headers (this should work with credentials)
-		config.addAllowedHeader("*");
-
-		// Allow credentials
-		config.setAllowCredentials(true);
-
-		// Set preflight max age
-		config.setMaxAge(3600L);
+		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
+		config.addAllowedHeader("*"); // Allow all headers
+		config.setAllowCredentials(true); // Allow credentials if needed (for cookies, etc.)
 
 		source.registerCorsConfiguration("/**", config);
 		return new CorsFilter(source);
