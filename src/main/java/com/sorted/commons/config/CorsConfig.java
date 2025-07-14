@@ -19,7 +19,8 @@ public class CorsConfig {
 				"http://localhost:5173", // Local development
 				"https://vinayak.studeaze.in",
 				"https://seller.studeaze.in",
-				"https://gokuforever.github.io"
+				"https://gokuforever.github.io",
+				"https://studeaze.retool.com"
 		));
 
 		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
