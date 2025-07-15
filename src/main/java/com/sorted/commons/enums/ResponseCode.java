@@ -217,7 +217,10 @@ public enum ResponseCode {
 	SELLER_NOT_FOUND_FOR_SECURE_RETURN("SE_0202", "Seller not found.", "Something went wrong, please contact customer care."),
 	NOT_OPERATIONAL_FOR_SECURE_RETURN("SE_0203", "Not Operational for Secure Return, please select a different date.", "Not Operational for Secure Return, please select a different date."),
 	INVALID_RETURN_ITEMS("SE_0204", "Few items not found for return", "Something went wrong, please contact customer care."),
-	MISSING_PICKUP_ADD("SE_0205", "Please add or select a pickup address.", "Please add or select a pickup address.");
+	MISSING_PICKUP_ADD("SE_0205", "Please add or select a pickup address.", "Please add or select a pickup address."),
+	MISSING_CATEGORY_NAME("SE_0206", "Missing Category Name.", "Missing Category Name."),
+	MISSING_GROUPS("SE_0207", "Missing Groups.", "Missing Groups."),
+	;
 	// @formatter:on
 
     private final String code;
