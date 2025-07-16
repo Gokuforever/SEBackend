@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class AddBulkProductReqBean extends ReqBaseBean {
 
-	private String seller_id;
-	private String category_id;
-	private List<ProductReqBean> products;
+    private String seller_id;
+    private List<ProductReqBean> products;
 }
