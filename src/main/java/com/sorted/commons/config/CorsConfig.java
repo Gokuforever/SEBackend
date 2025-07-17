@@ -20,6 +20,7 @@ public class CorsConfig {
 				"https://vinayak.studeaze.in",
 				"https://seller.studeaze.in",
 				"https://studeaze.in",
+				"https://www.studeaze.in/",
 				"https://gokuforever.github.io",
 				"https://studeaze.retool.com"
 		));
