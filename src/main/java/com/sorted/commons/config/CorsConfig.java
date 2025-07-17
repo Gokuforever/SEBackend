@@ -19,6 +19,7 @@ public class CorsConfig {
 				"http://localhost:5173", // Local development
 				"https://vinayak.studeaze.in",
 				"https://seller.studeaze.in",
+				"https://studeaze.in",
 				"https://gokuforever.github.io",
 				"https://studeaze.retool.com"
 		));
