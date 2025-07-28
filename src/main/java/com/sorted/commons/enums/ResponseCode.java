@@ -220,6 +220,15 @@ public enum ResponseCode {
 	MISSING_PICKUP_ADD("SE_0205", "Please add or select a pickup address.", "Please add or select a pickup address."),
 	MISSING_CATEGORY_NAME("SE_0206", "Missing Category Name.", "Missing Category Name."),
 	MISSING_GROUPS("SE_0207", "Missing Groups.", "Missing Groups."),
+	MANDATE_EDUCATION_LEVEL("SE_0208", "Missing Education Level.", "Missing Education Level."),
+	MANDATE_EDUCATION_LEVEL_DETAILS("SE_0209", "Missing Education Details.", "Missing Education Details."),
+	MANDATE_EDUCATION_ID("SE_0210", "Missing Education Details Id.", "Missing Education Details Id."),
+	MISSING_MANDATE_EDUCATION_DETAILS("SE_0211", "Missing mandatory education details.", "Missing mandatory education details."),
+	MANDATE_COMBO_NAME("SE_0212", "Missing combo name.", "Missing combo name."),
+	MANDATE_COMBO_DESCRIPTION("SE_0212", "Missing combo description.", "Missing combo description."),
+	MANDATE_COMBO_PRODUCTS("SE_0212", "Missing combo items.", "Missing combo items."),
+	MANDATE_COMBO_PRICE("SE_0212", "Missing combo price.", "Missing combo price."),
+	INVALID_PRODUCT_IDS("SE_0213", "Invalid products selected.", "Invalid products selected."),
 	;
 	// @formatter:on
 

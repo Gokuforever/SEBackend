@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sorted.commons.enums.InputType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,19 @@ public class Category_Master extends BaseMongoEntity<String> {
         private InputType input_type;
         private TypescriptDataTypes data_type;
         private boolean filterable;
+        private boolean mappable;
+        private Map<String, List<String>> mapping;
+
+        @JsonIgnore
+        public List<String> getMappedAttributes() {
+            if (this.mappable) {
+                if (this.mapping != null) {
+                    return new ArrayList<>(this.mapping.keySet());
+                }
+                return null;
+            }
+            return this.attributes;
+        }
     }
 
     @Getter

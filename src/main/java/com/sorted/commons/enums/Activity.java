@@ -29,6 +29,7 @@ public enum Activity {
 	AUTO_OPEN_STORE(118,"Auto Open Store"),
 	AUTO_CLOSE_STORE(119,"Auto Close Store"),
 	APPRAISE_SECURE_RETURN(120,"Appraise Secure Return"),
+	MANAGE_COMBO(121,"Manage Combo"),
 	;
 	// @formatter:on
 

@@ -47,7 +47,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -81,14 +80,22 @@ public class PorterUtility {
     @Value("${se.porter.response.mock.enabled:true}")
     private boolean porterResponseMockEnabled;
 
+    @Value("${se.porter.store.operational.check.enabled:false}")
+    private boolean porterStoreOperationalCheckEnabled;
+
+    @Value("${se.porter.mock.location.enabled:true}")
+    private boolean porterMockLocationEnabled;
+
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
         CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
         CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
-        pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
-        pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
-        drop_address.setLat(BigDecimal.valueOf(12.9165757));
-        drop_address.setLng(BigDecimal.valueOf(77.6101163));
+        if (porterMockLocationEnabled) {
+            pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
+            pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
+            drop_address.setLat(BigDecimal.valueOf(12.9165757));
+            drop_address.setLng(BigDecimal.valueOf(77.6101163));
+        }
         SEFilter filterOD = new SEFilter(SEFilterType.AND);
         filterOD.addClause(WhereClause.eq(Order_Details.Fields.code, order.getRequest_id()));
         filterOD.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
@@ -324,15 +331,13 @@ public class PorterUtility {
         ResponseEntity<String> response;
         HttpStatus httpStatus;
         String responseBody;
-
-        try {
+        if (porterResponseMockEnabled) {
+            httpStatus = HttpStatus.OK;
+            responseBody = "{\"vehicles\":[{\"type\":\"Tata 407\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":84621},\"capacity\":{\"value\":2500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}},{\"type\":\"Ace (Helper + 1 Labour)\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":54275},\"capacity\":{\"value\":750.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":7.0,\"unit\":\"ft\"},\"breadth\":{\"value\":4.5,\"unit\":\"ft\"},\"height\":{\"value\":5.5,\"unit\":\"ft\"}}},{\"type\":\"3 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":36697},\"capacity\":{\"value\":500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":6.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.0,\"unit\":\"ft\"},\"height\":{\"value\":5.0,\"unit\":\"ft\"}}},{\"type\":\"2 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":8556},\"capacity\":{\"value\":20.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}}]}";
+        } else {
             response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
             httpStatus = HttpStatus.resolve(response.getStatusCode().value());
             responseBody = response.getBody();
-        } catch (HttpClientErrorException.Forbidden e) {
-            httpStatus = HttpStatus.OK;
-            responseBody = "{\"vehicles\":[{\"type\":\"Tata 407\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":84621},\"capacity\":{\"value\":2500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}},{\"type\":\"Ace (Helper + 1 Labour)\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":54275},\"capacity\":{\"value\":750.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":7.0,\"unit\":\"ft\"},\"breadth\":{\"value\":4.5,\"unit\":\"ft\"},\"height\":{\"value\":5.5,\"unit\":\"ft\"}}},{\"type\":\"3 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":36697},\"capacity\":{\"value\":500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":6.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.0,\"unit\":\"ft\"},\"height\":{\"value\":5.0,\"unit\":\"ft\"}}},{\"type\":\"2 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":8556},\"capacity\":{\"value\":20.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}}]}";
-            log.warn("Received 403 Forbidden from Porter API, using default vehicle data");
         }
 
         third_Party_Api.setRaw_response(responseBody);
@@ -530,6 +535,7 @@ public class PorterUtility {
 		filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 		filterS.addClause(WhereClause.eq(Seller.Fields.status, Seller_Status.ACTIVE.name()));
 
+        Map<String, String> map;
         boolean isStoreOperational = true;
 		List<Seller> listS = seller_Service.repoFind(filterS);
             if (CollectionUtils.isEmpty(listS)) {
@@ -540,8 +546,11 @@ public class PorterUtility {
             isStoreOperational = false;
             operationalStores.addAll(listS.stream().map(Seller::getId).toList());
         }
-        Map<String, String> map = listS.stream().filter( e-> operationalStores.contains(e.getId()) && StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
-
+        if (porterStoreOperationalCheckEnabled) {
+            map = listS.stream().filter( e-> operationalStores.contains(e.getId()) && StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
+        } else {
+            map = listS.stream().filter( e-> StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
+        }
 		SEFilter filterA = new SEFilter(SEFilterType.AND);
 		filterA.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(map.keySet())));
 		filterA.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));

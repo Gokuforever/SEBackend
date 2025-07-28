@@ -1,12 +1,12 @@
 package com.sorted.commons.helper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ import lombok.NonNull;
 public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
         extends BaseRepository<T, K>, MongoRepository<T, K> {
 
-    static Logger logger = LoggerFactory.getLogger(AggregationFilter.class);
+    static Logger logger = LoggerFactory.getLogger(BaseMongoRepository.class);
 
     default Class<T> getEntityType() {
         throw new UnsupportedOperationException("This method must be overridden in the child interface.");
@@ -126,6 +126,33 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
         t.setDeleted(true);
         t.setBeforeModification(cud_by);
         this.save(t);
+    }
+
+    default List<T> random(SEFilter f, long count) {
+        Query query = buildQuery(f);
+        logger.info("query:: " + query);
+        // Get the native MongoDB collection
+        MongoCollection<Document> collection = StaticMongoAccessor.MONGO_TEMPLATE.getCollection(
+                StaticMongoAccessor.MONGO_TEMPLATE.getCollectionName(this.getEntityType())
+        );
+
+        // Create aggregation pipeline
+        List<Document> pipeline = new ArrayList<>();
+
+        // Add $match stage if criteria is provided
+        Document matchDoc = query.getQueryObject();
+        pipeline.add(new Document("$match", matchDoc));
+        pipeline.add(new Document("$sample", new Document("size", count)));
+
+        // Execute aggregation
+        AggregateIterable<Document> result = collection.aggregate(pipeline);
+        // Convert results to entity objects
+        List<T> entities = new ArrayList<>();
+        for (Document doc : result) {
+            T entity = StaticMongoAccessor.MONGO_TEMPLATE.getConverter().read(this.getEntityType(), doc);
+            entities.add(entity);
+        }
+        return entities;
     }
 
     public static Query buildQuery(SEFilter filter) {
