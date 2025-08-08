@@ -76,6 +76,7 @@ public class PorterUtility {
     private final OrderTemplateHelper orderTemplateHelper;
     private final Order_Item_Service order_Item_Service;
     private final Address_Service addressService;
+    private final DemandingPincodeService demandingPincodeService;
 
     @Value("${se.porter.response.mock.enabled:true}")
     private boolean porterResponseMockEnabled;
@@ -349,7 +350,7 @@ public class PorterUtility {
         }
         JsonObject jsonResponse = GsonUtils.getGson().fromJson(responseBody, JsonObject.class);
         switch (httpStatus) {
-            case OK, FORBIDDEN:
+            case OK:
                 break;
             case BAD_REQUEST:
                 String type = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
@@ -519,7 +520,7 @@ public class PorterUtility {
 	    return fareDetailsBuilder.build();
 	}
 	
-	public NearestSellerRes getNearestSeller(String pincode, String mobile_no, String user_name, String cud_by)
+	public NearestSellerRes getNearestSeller(String pincode, String mobile_no, String user_name, String user_id)
 			throws JsonProcessingException {
 
         SEFilter filterP = new SEFilter(SEFilterType.AND);
@@ -528,6 +529,7 @@ public class PorterUtility {
 
         Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
         if (pincode_Master == null) {
+            demandingPincodeService.storeDemandingPincode(pincode, user_id);
             throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
         }
 
@@ -582,7 +584,7 @@ public class PorterUtility {
                         .build())
                 .build();
         // @formatter:on
-        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, cud_by);
+        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, user_id);
         return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).is_operational(isStoreOperational).build();
     }
 

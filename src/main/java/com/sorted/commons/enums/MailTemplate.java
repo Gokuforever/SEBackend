@@ -12,7 +12,8 @@ public enum MailTemplate {
 	ORDER_DISPATCHED("order_dispatched.html", "Your Order’s on The Way!"),
 	ORDER_ARRIVED("order_arrived.html", "Your Studeaze Order has Arrived – Let the Learning Begin!"),
 	NEW_ORDER_ARRIVED("new_order_arrived.html", "You’ve Got a New Order from Studeaze!"),
-	SELLER_WELCOME_MAIL("welcome_mail.html", "Welcome Aboard! Let’s Grow Together with Studeaze!");
+	SELLER_WELCOME_MAIL("welcome_mail.html", "Welcome Aboard! Let’s Grow Together with Studeaze!"),
+	LAUNCHING_MAIL("launch.html", "Welcome Aboard! Let’s Grow Together with Studeaze!");
 
 	private final String file_name;
 	private final String subject;

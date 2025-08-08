@@ -54,10 +54,10 @@ public class ValidationUtil {
         if (address_type == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
         }
-        if (address_type!=AddressType.STORE && !StringUtils.hasText(phoneNo)) {
+        if (address_type != AddressType.STORE && !StringUtils.hasText(phoneNo)) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_PHONE);
         }
-        if (address_type!=AddressType.STORE && !SERegExpUtils.isMobileNo(phoneNo)) {
+        if (address_type != AddressType.STORE && !SERegExpUtils.isMobileNo(phoneNo)) {
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_PHONE);
         }
         if (!StringUtils.hasText(address.getAddress_type())) {
@@ -84,6 +84,9 @@ public class ValidationUtil {
         address2.setAddress_type_desc(address_type_desc);
         address2.setLat(lat);
         address2.setLng(lng);
+        if (StringUtils.hasText(phoneNo)) {
+            address2.setPhone_no(phoneNo);
+        }
         return address2;
     }
 

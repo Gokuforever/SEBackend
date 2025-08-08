@@ -12,11 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class CommonUtils {
@@ -29,6 +28,25 @@ public class CommonUtils {
         LocalDateTime now = LocalDateTime.now();
         // Calculate nanoseconds since midnight
         return now.toLocalTime().toNanoOfDay();
+    }
+
+    public static String generateRandomString(int size) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(size);
+
+        for (int i = 0; i < size; i++) {
+            // Generate random char between 'A' (65) and 'Z' (90)
+            char randomChar = (char) (random.nextInt(26) + 'A');
+            sb.append(randomChar);
+        }
+
+        return sb.toString();
+    }
+
+    public static String getFormattedDateForId(){
+        LocalDate date = LocalDate.now();  // Current date
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
+        return date.format(formatter);
     }
 
     public static <T> List<T> convertS2L(Set<T> set) {
