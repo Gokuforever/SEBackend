@@ -51,12 +51,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -77,6 +75,8 @@ public class PorterUtility {
     private final Order_Item_Service order_Item_Service;
     private final Address_Service addressService;
     private final DemandingPincodeService demandingPincodeService;
+    private final GenerateInvoiceService generateInvoiceService;
+    private final InternalMailService internalMailService;
 
     @Value("${se.porter.response.mock.enabled:true}")
     private boolean porterResponseMockEnabled;
@@ -636,6 +636,28 @@ public class PorterUtility {
                 break;
         }
 
+        String invoiceUrl = null;
+        if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
+            List<Order_Item> listOI = getOrderItems(details);
+            final OrderStatus finalOrderStatus = currentOrderStatus;
+
+            listOI.forEach(e -> {
+                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
+            });
+            details.setFare_details(fareDetails);
+            details.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+            order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
+
+            if (currentOrderStatus == OrderStatus.DELIVERED) {
+                try {
+                    invoiceUrl = generateInvoiceService.generateInvoice(details);
+                } catch (Exception e) {
+                    internalMailService.sendMailOnError("Error in generating invoice for order id : " + details.getCode(), "Error in generating invoice for order id : " + details.getCode(), e);
+                }
+            }
+        }
+
         if (mailTemplate != null) {
 
             SEFilter filterU = new SEFilter(SEFilterType.AND);
@@ -655,20 +677,10 @@ public class PorterUtility {
             builder.setTo(user.getEmail_id());
             builder.setContent(mailContent);
             builder.setTemplate(mailTemplate);
+            if (invoiceUrl != null) {
+                builder.setAttachmentUrls(invoiceUrl);
+            }
             emailSenderImpl.sendEmailHtmlTemplate(builder);
-        }
-
-        if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
-            List<Order_Item> listOI = getOrderItems(details);
-            final OrderStatus finalOrderStatus = currentOrderStatus;
-
-            listOI.forEach(e -> {
-                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
-                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
-            });
-            details.setFare_details(fareDetails);
-            details.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
-            order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
         }
     }
 

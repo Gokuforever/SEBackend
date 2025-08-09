@@ -18,23 +18,25 @@ import java.time.format.DateTimeFormatter;
 public class InvoicePdfGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(InvoicePdfGenerator.class);
-    private static final Color HEADER_COLOR = new Color(41, 128, 185);
+    private static final Color HEADER_COLOR = new Color(142, 81, 255); // #8e51ff
+    private static final Color LIGHT_PURPLE = new Color(200, 178, 255); // Light version of #8e51ff
     private static final Color LIGHT_GRAY = new Color(245, 245, 245);
+    private static final Color BORDER_COLOR = new Color(189, 195, 199);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("hh:mm a");
 
     public static byte[] generateInvoicePdf(Invoice invoice) throws DocumentException {
-
-        // Then generate the PDF
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4, 50, 50, 50, 50);
+        Document document = new Document(PageSize.A4, 40, 40, 40, 40);
         PdfWriter writer = PdfWriter.getInstance(document, baos);
-
         document.open();
 
         // Set fonts
-        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, Color.WHITE);
+        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, HEADER_COLOR);
+        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
         Font regularFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, HEADER_COLOR);
+        Font smallFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
 
         // Add header
         addHeader(document, titleFont);
@@ -43,7 +45,7 @@ public class InvoicePdfGenerator {
         addInvoiceDetails(document, invoice, boldFont, regularFont);
 
         // Add seller and buyer info
-        addSellerBuyerInfo(document, invoice, boldFont, regularFont);
+        addSellerBuyerInfo(document, invoice, headerFont, regularFont);
 
         // Add items table
         addItemsTable(document, invoice, boldFont, regularFont);
@@ -52,21 +54,32 @@ public class InvoicePdfGenerator {
         addTotals(document, invoice, boldFont, regularFont);
 
         // Add payment info
-        addPaymentInfo(document, invoice, boldFont, regularFont);
+        addPaymentInfo(document, invoice, headerFont, regularFont);
 
-        // Add footer
-        addFooter(document, regularFont);
+        // Add support info
+        addSupportInfo(document, headerFont, regularFont);
+
+        // Add company info and footer
+        addCompanyInfoAndFooter(document, boldFont, smallFont);
 
         document.close();
         return baos.toByteArray();
     }
 
-    // Your existing PDF methods remain the same...
     private static void addHeader(Document document, Font titleFont) throws DocumentException {
-        Paragraph header = new Paragraph("TAX INVOICE", titleFont);
-        header.setAlignment(Element.ALIGN_CENTER);
-        header.setSpacingAfter(20);
-        document.add(header);
+        // Create header table with background
+        PdfPTable headerTable = new PdfPTable(1);
+        headerTable.setWidthPercentage(100);
+        headerTable.setSpacingAfter(25);
+
+        PdfPCell headerCell = new PdfPCell(new Phrase("TAX INVOICE", titleFont));
+        headerCell.setBackgroundColor(HEADER_COLOR);
+        headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        headerCell.setPadding(15);
+        headerCell.setBorder(Rectangle.NO_BORDER);
+
+        headerTable.addCell(headerCell);
+        document.add(headerTable);
     }
 
     private static void addInvoiceDetails(Document document, Invoice invoice, Font boldFont, Font regularFont)
@@ -76,38 +89,56 @@ public class InvoicePdfGenerator {
         table.setWidthPercentage(100);
         table.setSpacingAfter(20);
 
-        addTableRow(table, "Invoice No:", invoice.getInvoiceId(), boldFont, regularFont);
-        addTableRow(table, "Invoice Date:", invoice.getInvoiceDate().format(DATE_FORMATTER), boldFont, regularFont);
+        // First row
+        PdfPTable topRow = new PdfPTable(2);
+        topRow.setWidthPercentage(100);
+        addDetailCell(topRow, "Order No:", invoice.getOrderCode(), boldFont, regularFont);
+        addDetailCell(topRow, "Invoice No:", invoice.getInvoiceId(), boldFont, regularFont);
+
+        PdfPCell topRowCell = new PdfPCell(topRow);
+        topRowCell.setBorder(Rectangle.NO_BORDER);
+        topRowCell.setColspan(2);
+        table.addCell(topRowCell);
+
+        // Second row with date and time
+        addDetailCell(table, "Invoice Date:", invoice.getInvoiceDate().format(DATE_FORMATTER), boldFont, regularFont);
+        addDetailCell(table, "Invoice Time:", invoice.getInvoiceDate().format(TIME_FORMATTER), boldFont, regularFont);
 
         document.add(table);
     }
 
-    private static void addSellerBuyerInfo(Document document, Invoice invoice, Font boldFont, Font regularFont)
+    private static void addSellerBuyerInfo(Document document, Invoice invoice, Font headerFont, Font regularFont)
             throws DocumentException {
 
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
-        table.setSpacingAfter(20);
+        table.setSpacingAfter(25);
 
-        // Seller cell
+        // Seller cell with improved styling
         PdfPCell sellerCell = new PdfPCell();
-        sellerCell.setPadding(10);
+        sellerCell.setPadding(15);
         sellerCell.setBorder(Rectangle.BOX);
+        sellerCell.setBorderColor(BORDER_COLOR);
+        sellerCell.setBackgroundColor(new Color(252, 252, 252));
 
-        Paragraph sellerHeader = new Paragraph("SOLD BY:", boldFont);
+        Paragraph sellerHeader = new Paragraph("SOLD BY", headerFont);
+        sellerHeader.setSpacingAfter(8);
         sellerCell.addElement(sellerHeader);
         sellerCell.addElement(new Paragraph(invoice.getSeller().getName(), regularFont));
         sellerCell.addElement(new Paragraph(invoice.getSeller().getAddress(), regularFont));
-        sellerCell.addElement(new Paragraph("Phone: " + invoice.getSeller().getPhoneNo(), regularFont));
-        sellerCell.addElement(new Paragraph("GST No: " + invoice.getSeller().getGstNo(), regularFont));
-        sellerCell.addElement(new Paragraph("Seller ID: " + invoice.getSeller().getSellerId(), regularFont));
+        if (invoice.getSeller().getGstNo() != null) {
+            sellerCell.addElement(new Paragraph("GST No: " + invoice.getSeller().getGstNo(), regularFont));
+        }
 
-        // Buyer cell
+        // Buyer cell with improved styling
         PdfPCell buyerCell = new PdfPCell();
-        buyerCell.setPadding(10);
+        buyerCell.setPadding(15);
         buyerCell.setBorder(Rectangle.BOX);
+        buyerCell.setBorderColor(BORDER_COLOR);
+        buyerCell.setBackgroundColor(new Color(252, 252, 252));
 
-        Paragraph buyerHeader = new Paragraph("BILLING ADDRESS:", boldFont);
+        Paragraph buyerHeader = new Paragraph("BILLING ADDRESS", headerFont);
+        buyerHeader.setSpacingAfter(8);
         buyerCell.addElement(buyerHeader);
         buyerCell.addElement(new Paragraph(invoice.getBuyer().getName(), regularFont));
         buyerCell.addElement(new Paragraph(invoice.getBuyer().getAddress(), regularFont));
@@ -122,31 +153,31 @@ public class InvoicePdfGenerator {
     private static void addItemsTable(Document document, Invoice invoice, Font boldFont, Font regularFont)
             throws DocumentException {
 
-        PdfPTable table = new PdfPTable(6);
+        PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
-        table.setSpacingAfter(20);
+        table.setSpacingAfter(25);
 
-        // Set column widths
-        float[] columnWidths = {1f, 3f, 1.5f, 1f, 2f, 2f};
+        // Set column widths for better proportion
+        float[] columnWidths = {0.8f, 3f, 1f, 1.5f, 1.5f};
         table.setWidths(columnWidths);
 
-        // Header row
-        addHeaderCell(table, "S.No", boldFont);
-        addHeaderCell(table, "Product Name", boldFont);
-        addHeaderCell(table, "HSN Code", boldFont);
-        addHeaderCell(table, "Qty", boldFont);
-        addHeaderCell(table, "Unit Price", boldFont);
-        addHeaderCell(table, "Total Price", boldFont);
+        // Header row with better styling
+        addStyledHeaderCell(table, "S.No", boldFont);
+        addStyledHeaderCell(table, "Product Name", boldFont);
+        addStyledHeaderCell(table, "Qty", boldFont);
+        addStyledHeaderCell(table, "Unit Price", boldFont);
+        addStyledHeaderCell(table, "Total Price", boldFont);
 
-        // Data rows
+        // Data rows with alternating colors
         int serialNo = 1;
         for (InvoiceItem item : invoice.getItems()) {
-            addDataCell(table, String.valueOf(serialNo++), regularFont);
-            addDataCell(table, item.getProductName(), regularFont);
-            addDataCell(table, item.getHsnCode(), regularFont);
-            addDataCell(table, String.valueOf(item.getQuantity()), regularFont);
-            addDataCell(table, "₹" + item.getUnitPrice().toString(), regularFont);
-            addDataCell(table, "₹" + item.getTotalPrice().toString(), regularFont);
+            Color rowColor = (serialNo % 2 == 0) ? LIGHT_GRAY : Color.WHITE;
+
+            addStyledDataCell(table, String.valueOf(serialNo++), regularFont, rowColor);
+            addStyledDataCell(table, item.getProductName(), regularFont, rowColor);
+            addStyledDataCell(table, String.valueOf(item.getQuantity()), regularFont, rowColor);
+            addStyledDataCell(table, "₹" + item.getUnitPrice().toString(), regularFont, rowColor);
+            addStyledDataCell(table, "₹" + item.getTotalPrice().toString(), regularFont, rowColor);
         }
 
         document.add(table);
@@ -156,84 +187,192 @@ public class InvoicePdfGenerator {
             throws DocumentException {
 
         PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(50);
+        table.setWidthPercentage(60);
         table.setHorizontalAlignment(Element.ALIGN_RIGHT);
         table.setSpacingAfter(20);
 
-        addTableRow(table, "Sub Total:", "₹" + invoice.getTotalAmount().toString(), boldFont, regularFont);
-        addTableRow(table, "GST:", "₹" + invoice.getTotalGstAmount().toString(), boldFont, regularFont);
+        // Subtotal and tax rows
+        addTotalRow(table, "Sub Total:", "₹" + invoice.getTotalAmount().toString(), regularFont, Color.WHITE);
+        addTotalRow(table, "GST:", "₹" + invoice.getTotalGstAmount().toString(), regularFont, Color.WHITE);
 
-        // Total row with background
-        PdfPCell totalLabelCell = new PdfPCell(new Phrase("TOTAL AMOUNT:", boldFont));
-        totalLabelCell.setBackgroundColor(LIGHT_GRAY);
-        totalLabelCell.setPadding(5);
-
-        PdfPCell totalValueCell = new PdfPCell(new Phrase("₹" + invoice.getTotalNetAmount().toString(), boldFont));
-        totalValueCell.setBackgroundColor(LIGHT_GRAY);
-        totalValueCell.setPadding(5);
-
-        table.addCell(totalLabelCell);
-        table.addCell(totalValueCell);
+        // Final total with emphasis
+        addTotalRow(table, "TOTAL AMOUNT:", "₹" + invoice.getTotalNetAmount().toString(), boldFont, LIGHT_PURPLE);
 
         document.add(table);
 
-        // Amount in words
+        // Amount in words with better formatting
         Paragraph amountInWords = new Paragraph("Amount in Words: " + invoice.getTotalAmountInWords(), boldFont);
-        amountInWords.setSpacingBefore(10);
-        amountInWords.setSpacingAfter(20);
+        amountInWords.setSpacingBefore(15);
+        amountInWords.setSpacingAfter(25);
+        amountInWords.setAlignment(Element.ALIGN_RIGHT);
         document.add(amountInWords);
     }
 
-    private static void addPaymentInfo(Document document, Invoice invoice, Font boldFont, Font regularFont)
+    private static void addPaymentInfo(Document document, Invoice invoice, Font headerFont, Font regularFont)
             throws DocumentException {
 
-        Paragraph paymentHeader = new Paragraph("PAYMENT INFORMATION", boldFont);
-        paymentHeader.setSpacingAfter(10);
+        // Payment header
+        Paragraph paymentHeader = new Paragraph("PAYMENT INFORMATION", headerFont);
+        paymentHeader.setSpacingAfter(12);
+        paymentHeader.setAlignment(Element.ALIGN_CENTER);
         document.add(paymentHeader);
 
         PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(60);
-        table.setSpacingAfter(20);
+        table.setWidthPercentage(70);
+        table.setSpacingAfter(25);
 
-        addTableRow(table, "Payment Method:", invoice.getPaymentInfo().getPaymentMethod(), boldFont, regularFont);
-        addTableRow(table, "Transaction ID:", invoice.getPaymentInfo().getTransactionId(), boldFont, regularFont);
-        addTableRow(table, "Payment Date:", invoice.getPaymentInfo().getPaymentDate().format(DATE_FORMATTER), boldFont, regularFont);
+        addStyledTableRow(table, "Payment Method:", invoice.getPaymentInfo().getPaymentMethod(), regularFont);
+        addStyledTableRow(table, "Transaction ID:", invoice.getPaymentInfo().getTransactionId(), regularFont);
+        addStyledTableRow(table, "Payment Date:", invoice.getPaymentInfo().getPaymentDate().format(DATE_FORMATTER), regularFont);
 
         document.add(table);
     }
 
-    private static void addFooter(Document document, Font regularFont) throws DocumentException {
-        Paragraph footer = new Paragraph("This is a computer generated invoice and does not require signature.", regularFont);
-        footer.setAlignment(Element.ALIGN_CENTER);
-        footer.setSpacingBefore(30);
-        document.add(footer);
+    private static void addSupportInfo(Document document, Font headerFont, Font regularFont)
+            throws DocumentException {
+
+        // Support header
+        Paragraph supportHeader = new Paragraph("Need Help?", headerFont);
+        supportHeader.setSpacingAfter(12);
+        document.add(supportHeader);
+
+        PdfPTable table = new PdfPTable(1);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(25);
+
+        PdfPCell supportCell = new PdfPCell();
+        supportCell.setPadding(12);
+        supportCell.setBorder(Rectangle.BOX);
+        supportCell.setBorderColor(BORDER_COLOR);
+        supportCell.setBackgroundColor(new Color(249, 249, 249));
+
+        supportCell.addElement(new Paragraph("Customer Support: support@studeaze.in | +91 98672-92392", regularFont));
+        supportCell.addElement(new Paragraph("Return/Exchange: Contact us for any product issues - we'll handle everything", regularFont));
+        supportCell.addElement(new Paragraph("Return Policy: 7-day return for unused books in original condition", regularFont));
+        supportCell.addElement(new Paragraph("Track Your Order: Visit www.studeaze.in and use Order ID above", regularFont));
+
+        table.addCell(supportCell);
+        document.add(table);
     }
 
-    private static void addTableRow(PdfPTable table, String label, String value, Font boldFont, Font regularFont) {
+    private static void addCompanyInfoAndFooter(Document document, Font boldFont, Font smallFont)
+            throws DocumentException {
+
+        // Thank you message
+        Paragraph thankYou = new Paragraph("Thank you for choosing Studeaze!", boldFont);
+        thankYou.setAlignment(Element.ALIGN_CENTER);
+        thankYou.setSpacingAfter(8);
+        document.add(thankYou);
+
+        Paragraph tagline = new Paragraph("Making academic resources accessible to every student", smallFont);
+        tagline.setAlignment(Element.ALIGN_CENTER);
+        tagline.setSpacingAfter(20);
+        document.add(tagline);
+
+        // Company information table
+        PdfPTable companyTable = new PdfPTable(2);
+        companyTable.setWidthPercentage(100);
+        companyTable.setSpacingAfter(20);
+
+        // Company details
+        PdfPCell companyCell = new PdfPCell();
+        companyCell.setBorder(Rectangle.NO_BORDER);
+        companyCell.addElement(new Paragraph("Studeaze (Acumnx Solutions Private Limited)", boldFont));
+        companyCell.addElement(new Paragraph("Thane - 400605", smallFont));
+
+        // Platform info
+        PdfPCell platformCell = new PdfPCell();
+        platformCell.setBorder(Rectangle.NO_BORDER);
+        platformCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        platformCell.addElement(new Paragraph("Platform Info:", boldFont));
+        platformCell.addElement(new Paragraph("Website: www.studeaze.in", smallFont));
+        platformCell.addElement(new Paragraph("Email: support@studeaze.in", smallFont));
+
+        companyTable.addCell(companyCell);
+        companyTable.addCell(platformCell);
+
+        document.add(companyTable);
+
+        // Final footer
+        Paragraph footer = new Paragraph("This is a computer-generated receipt. No signature required.", smallFont);
+        footer.setAlignment(Element.ALIGN_CENTER);
+        footer.setSpacingBefore(15);
+        document.add(footer);
+
+        // All prices inclusive note
+        Paragraph priceNote = new Paragraph("*All prices are inclusive of applicable taxes", smallFont);
+        priceNote.setAlignment(Element.ALIGN_CENTER);
+        priceNote.setSpacingAfter(10);
+        document.add(priceNote);
+    }
+
+    // Helper methods for better cell styling
+    private static void addDetailCell(PdfPTable table, String label, String value, Font boldFont, Font regularFont) {
+        // Label cell
         PdfPCell labelCell = new PdfPCell(new Phrase(label, boldFont));
         labelCell.setBorder(Rectangle.NO_BORDER);
-        labelCell.setPadding(5);
+        labelCell.setPadding(6);
+        labelCell.setBackgroundColor(LIGHT_GRAY);
 
+        // Value cell
         PdfPCell valueCell = new PdfPCell(new Phrase(value, regularFont));
         valueCell.setBorder(Rectangle.NO_BORDER);
-        valueCell.setPadding(5);
+        valueCell.setPadding(6);
 
         table.addCell(labelCell);
         table.addCell(valueCell);
     }
 
-    private static void addHeaderCell(PdfPTable table, String text, Font font) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+    private static void addStyledHeaderCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(font.getBaseFont(), font.getSize(), Font.BOLD, Color.WHITE)));
         cell.setBackgroundColor(HEADER_COLOR);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.setPadding(8);
+        cell.setPadding(10);
+        cell.setBorder(Rectangle.BOX);
+        cell.setBorderColor(Color.WHITE);
         table.addCell(cell);
     }
 
-    private static void addDataCell(PdfPTable table, String text, Font font) {
+    private static void addStyledDataCell(PdfPTable table, String text, Font font, Color backgroundColor) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setPadding(5);
+        cell.setPadding(8);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setBackgroundColor(backgroundColor);
+        cell.setBorder(Rectangle.BOX);
+        cell.setBorderColor(BORDER_COLOR);
         table.addCell(cell);
+    }
+
+    private static void addTotalRow(PdfPTable table, String label, String value, Font font, Color backgroundColor) {
+        PdfPCell labelCell = new PdfPCell(new Phrase(label, font));
+        labelCell.setBackgroundColor(backgroundColor);
+        labelCell.setPadding(8);
+        labelCell.setBorder(Rectangle.BOX);
+        labelCell.setBorderColor(BORDER_COLOR);
+        labelCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+        PdfPCell valueCell = new PdfPCell(new Phrase(value, font));
+        valueCell.setBackgroundColor(backgroundColor);
+        valueCell.setPadding(8);
+        valueCell.setBorder(Rectangle.BOX);
+        valueCell.setBorderColor(BORDER_COLOR);
+        valueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+        table.addCell(labelCell);
+        table.addCell(valueCell);
+    }
+
+    private static void addStyledTableRow(PdfPTable table, String label, String value, Font font) {
+        PdfPCell labelCell = new PdfPCell(new Phrase(label, new Font(font.getBaseFont(), font.getSize(), Font.BOLD)));
+        labelCell.setBorder(Rectangle.NO_BORDER);
+        labelCell.setPadding(6);
+        labelCell.setBackgroundColor(LIGHT_GRAY);
+
+        PdfPCell valueCell = new PdfPCell(new Phrase(value, font));
+        valueCell.setBorder(Rectangle.NO_BORDER);
+        valueCell.setPadding(6);
+
+        table.addCell(labelCell);
+        table.addCell(valueCell);
     }
 }

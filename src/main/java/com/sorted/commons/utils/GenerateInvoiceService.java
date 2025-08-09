@@ -10,8 +10,11 @@ import com.sorted.commons.enums.DocumentType;
 import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import com.sorted.commons.helper.AggregationFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class GenerateInvoiceService {
@@ -32,20 +36,50 @@ public class GenerateInvoiceService {
     private final InvoiceService invoiceService;
 
 
-    private String generateInvoice(Order_Details orderDetails) throws IOException {
+    public String generateInvoice(Order_Details orderDetails) throws IOException {
+        log.info("Starting invoice generation for order ID: {}", orderDetails.getId());
+
         if (orderDetails.getStatus() != OrderStatus.DELIVERED) {
+            log.warn("Invoice generation failed - invalid order status: {} for order ID: {}",
+                    orderDetails.getStatus(), orderDetails.getId());
             throw new CustomIllegalArgumentsException(ResponseCode.INVALID_ORDER_STATUS);
         }
 
-        UsersBean buyer = usersService.validateAndGetUserInfo(orderDetails.getUser_id());
-        Seller seller = sellerService.findById(orderDetails.getSeller_id()).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.SELLER_NOT_FOUND));
+        // Check if invoice already exists
+        log.debug("Checking if invoice already exists for order ID: {}", orderDetails.getId());
+        SEFilter filterI = new SEFilter(SEFilterType.AND);
+        filterI.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, orderDetails.getId()));
+        filterI.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        Invoice invoice = invoiceService.repoFindOne(filterI);
+        if (invoice != null) {
+            log.info("Invoice already exists for order ID: {}, returning existing URL", orderDetails.getId());
+            return invoice.getGeneratedUrl();
+        }
 
+        // Validate and get buyer information
+        log.debug("Validating and fetching buyer information for user ID: {}", orderDetails.getUser_id());
+        UsersBean buyer = usersService.validateAndGetUserInfo(orderDetails.getUser_id());
+        log.debug("Successfully retrieved buyer information for user ID: {}", orderDetails.getUser_id());
+
+        // Validate and get seller information
+        log.debug("Fetching seller information for seller ID: {}", orderDetails.getSeller_id());
+        Seller seller = sellerService.findById(orderDetails.getSeller_id())
+                .orElseThrow(() -> {
+                    log.error("Seller not found for seller ID: {}", orderDetails.getSeller_id());
+                    return new CustomIllegalArgumentsException(ResponseCode.SELLER_NOT_FOUND);
+                });
+        log.debug("Successfully retrieved seller information for seller ID: {}", orderDetails.getSeller_id());
+
+        // Fetch order items
+        log.debug("Fetching order items for order ID: {}", orderDetails.getId());
         List<InvoiceItem> invoiceItems = new ArrayList<>();
-        AggregationFilter.SEFilter filterOI = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterOI.addClause(AggregationFilter.WhereClause.eq(Order_Item.Fields.order_id, orderDetails.getId()));
-        filterOI.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        SEFilter filterOI = new SEFilter(SEFilterType.AND);
+        filterOI.addClause(WhereClause.eq(Order_Item.Fields.order_id, orderDetails.getId()));
+        filterOI.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
         List<Order_Item> orderItems = orderItemService.repoFind(filterOI);
+
         if (!CollectionUtils.isEmpty(orderItems)) {
+            log.debug("Found {} order items for order ID: {}", orderItems.size(), orderDetails.getId());
             for (Order_Item item : orderItems) {
                 invoiceItems.add(InvoiceItem.builder()
                         .productId(item.getProduct_code())
@@ -56,17 +90,16 @@ public class GenerateInvoiceService {
                         .totalPrice(CommonUtils.paiseToRupee(item.getTotal_cost()))
                         .build());
             }
+        } else {
+            log.warn("No order items found for order ID: {}", orderDetails.getId());
         }
 
-
-        Invoice invoice = Invoice.builder()
-                .invoiceId("INV" + orderDetails.getCode() + CommonUtils.generateFixedLengthRandomNumber(2))
+        invoice = Invoice.builder()
+                .orderCode(orderDetails.getCode())
                 .invoiceDate(LocalDateTime.now())
                 .seller(SellerInfo.builder()
                         .name("Studeaze Partner Store" + " #" + seller.getStore_no())
-                        .address(orderDetails.getPickup_address().getFullAddress())
-                        .phoneNo(seller.getSpoc_details().stream().filter(Spoc_Details::isPrimary).findFirst().get().getMobile_no())
-                        .sellerId(seller.getCode())
+                        .address("Nashik - 422001")
                         .gstNo(seller.getGstin())
                         .build())
                 .buyer(BuyerInfo.builder()
@@ -86,14 +119,25 @@ public class GenerateInvoiceService {
                                 .filter(e -> e.getStatus() == OrderStatus.TRANSACTION_PROCESSED)
                                 .findFirst()
                                 .map(Order_Status_History::getModification_date)
-                                .orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.ERR_0001)))
+                                .orElseThrow(() -> {
+                                    log.error("Payment date not found for order ID: {}", orderDetails.getId());
+                                    return new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+                                }))
                         .build())
                 .build();
 
         invoice = invoiceService.create(invoice, buyer.getId());
 
+        // Generate PDF
         byte[] pdfBytes = InvoicePdfGenerator.generateInvoicePdf(invoice);
+
+        // Upload to S3
         File_Upload_Details fileUploadDetails = awsS3Service.uploadPdf(pdfBytes, invoice.getInvoiceId() + ".pdf", buyer, DocumentType.INVOICE);
+
+        // Save invoice to database
+        invoice.setGeneratedUrl(fileUploadDetails.getFile_url());
+        invoiceService.update(invoice.getId(), invoice, buyer.getId());
+
         return fileUploadDetails.getFile_url();
     }
 }

@@ -13,7 +13,8 @@ public enum MailTemplate {
 	ORDER_ARRIVED("order_arrived.html", "Your Studeaze Order has Arrived – Let the Learning Begin!"),
 	NEW_ORDER_ARRIVED("new_order_arrived.html", "You’ve Got a New Order from Studeaze!"),
 	SELLER_WELCOME_MAIL("welcome_mail.html", "Welcome Aboard! Let’s Grow Together with Studeaze!"),
-	LAUNCHING_MAIL("launch.html", "Welcome Aboard! Let’s Grow Together with Studeaze!");
+	LAUNCHING_MAIL("launch.html", "Welcome Aboard! Let’s Grow Together with Studeaze!"),
+	ERROR("error.html", "Error occurred on website.");
 
 	private final String file_name;
 	private final String subject;

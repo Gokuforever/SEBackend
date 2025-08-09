@@ -24,6 +24,8 @@ public class Invoice extends BaseMongoEntity<String>{
 
     @Field("order_id")
     private String orderId;
+    @Field("order_code")
+    private String orderCode;
     @Field("invoice_id")
     private String invoiceId;
     @Field("invoice_date")
@@ -41,5 +43,7 @@ public class Invoice extends BaseMongoEntity<String>{
     private String totalAmountInWords;
     @Field("payment_info")
     private PaymentInfo paymentInfo;
+    @Field("generated_url")
+    private String generatedUrl;
 
 }
