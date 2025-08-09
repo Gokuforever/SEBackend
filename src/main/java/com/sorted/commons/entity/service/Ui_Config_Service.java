@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Ui_Config;
 import com.sorted.commons.repository.mongo.Ui_Config_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Ui_Config_Service extends GenericEntityServiceImpl<String, Ui_Config, Ui_Config_Repository> {

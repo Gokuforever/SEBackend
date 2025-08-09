@@ -24,6 +24,7 @@ public class Seller extends BaseMongoEntity<String> {
 
     private String code;
     private String business_name;
+    private String store_no;
     //	private AddressDTO business_address;
     private List<Spoc_Details> spoc_details;
     private List<String> serviceable_pincodes;

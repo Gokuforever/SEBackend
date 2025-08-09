@@ -1,9 +1,8 @@
 package com.sorted.commons.repository.mongo;
 
-import org.springframework.stereotype.Repository;
-
 import com.sorted.commons.entity.mongo.Category_Master;
 import com.sorted.commons.helper.BaseMongoRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface Category_MasterRepository extends BaseMongoRepository<String, Category_Master> {

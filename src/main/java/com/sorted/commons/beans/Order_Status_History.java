@@ -1,13 +1,12 @@
 package com.sorted.commons.beans;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 import com.sorted.commons.enums.OrderStatus;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Builder

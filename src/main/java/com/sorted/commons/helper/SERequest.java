@@ -1,18 +1,16 @@
 package com.sorted.commons.helper;
 
-import java.io.Serial;
-import java.io.Serializable;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import org.springframework.http.HttpStatus;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 @Data
 @Builder

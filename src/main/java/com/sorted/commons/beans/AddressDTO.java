@@ -1,11 +1,11 @@
 package com.sorted.commons.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 
 @Data
 public class AddressDTO implements Serializable {

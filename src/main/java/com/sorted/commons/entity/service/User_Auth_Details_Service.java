@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.User_Auth_Details;
 import com.sorted.commons.repository.mongo.User_Auth_Details_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class User_Auth_Details_Service

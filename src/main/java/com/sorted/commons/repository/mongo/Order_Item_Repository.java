@@ -1,9 +1,8 @@
 package com.sorted.commons.repository.mongo;
 
-import org.springframework.stereotype.Repository;
-
 import com.sorted.commons.entity.mongo.Order_Item;
 import com.sorted.commons.helper.BaseMongoRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface Order_Item_Repository extends BaseMongoRepository<String, Order_Item> {

@@ -1,9 +1,10 @@
 package com.sorted.commons.notifications;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
+import com.sorted.commons.enums.MailTemplate;
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+import com.sorted.commons.helper.MailBuilder;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,12 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.sorted.commons.enums.MailTemplate;
-import com.sorted.commons.enums.ResponseCode;
-import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import com.sorted.commons.helper.MailBuilder;
-
-import jakarta.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Slf4j
 @Component

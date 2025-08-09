@@ -1,11 +1,10 @@
 package com.sorted.commons.beans;
 
-import java.util.List;
-
 import com.sorted.commons.helper.ReqBaseBean;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

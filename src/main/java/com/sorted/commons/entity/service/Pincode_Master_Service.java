@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Pincode_Master;
 import com.sorted.commons.repository.mongo.Pincode_Master_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Pincode_Master_Service

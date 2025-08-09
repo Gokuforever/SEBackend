@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Role;
 import com.sorted.commons.repository.mongo.RoleRepository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class RoleService extends GenericEntityServiceImpl<String, Role, RoleRepository> {

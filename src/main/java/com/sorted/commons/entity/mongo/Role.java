@@ -1,16 +1,14 @@
 package com.sorted.commons.entity.mongo;
 
-import java.util.List;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.sorted.commons.beans.Role_Activity_Permissions;
 import com.sorted.commons.enums.All_Status.Role_Status;
 import com.sorted.commons.enums.UserType;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.List;
 
 @Data
 @FieldNameConstants

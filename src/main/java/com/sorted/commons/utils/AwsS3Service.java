@@ -14,13 +14,13 @@ import com.sorted.commons.enums.DocumentType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.enums.UserType;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
@@ -107,6 +107,63 @@ public class AwsS3Service {
         log.info("Metadata stored in DB with ID: {}", savedDetails.getId());
 
         return savedDetails;
+    }
+
+    public File_Upload_Details uploadPdf(byte[] pdfBytes, String originalFileName, UsersBean usersBean, DocumentType documentType) throws IOException {
+        log.info("Starting PDF upload for user ID: {}, documentType: {}", usersBean.getId(), documentType);
+
+        // 1. Validate PDF type
+        if (!CommonUtils.isPdf(pdfBytes, originalFileName)) {
+            log.warn("Invalid PDF file uploaded by user ID: {}", usersBean.getId());
+            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_FILE_TYPE);
+        }
+
+        // 2. Check access rights
+        UserType userType = usersBean.getRole().getUser_type();
+        if (!documentType.getAllowed_to().contains(userType)) {
+            log.error("Access denied: UserType {} is not allowed to upload document type {}", userType, documentType);
+            throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
+        }
+
+        // 3. Prepare file metadata
+        String fileName = generatePdfFileName(originalFileName);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(pdfBytes.length);
+        metadata.setContentType("application/pdf");
+
+        log.info("Generated PDF filename: {}", fileName);
+
+        // 4. Upload to S3 using byte array
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(pdfBytes)) {
+            s3Client.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+            log.info("Successfully uploaded PDF to S3: bucket={}, key={}", bucketName, fileName);
+        }
+
+        // 5. Save file metadata in DB
+        File_Upload_Details details = new File_Upload_Details();
+        populateUploadDetails(details, usersBean, userType, documentType);
+        details.setFile_url(getFileUrl(fileName));
+        details.setFile_extension(getExtension(Objects.requireNonNull(originalFileName)));
+        double sizeKB = pdfBytes.length / 1024.0;
+        details.setSize(String.format("%.2fkb", sizeKB));
+
+        File_Upload_Details savedDetails = fileUploadDetailsService.create(details, usersBean.getId());
+        log.info("PDF metadata stored in DB with ID: {}", savedDetails.getId());
+
+        return savedDetails;
+    }
+
+    // Helper method to generate PDF-specific filename
+    private String generatePdfFileName(String originalFileName) {
+        // Extract base name without extension
+        String baseName = originalFileName;
+        if (originalFileName.contains(".")) {
+            baseName = originalFileName.substring(0, originalFileName.lastIndexOf("."));
+        }
+
+        // Generate unique filename with timestamp
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return baseName + "_" + timestamp + ".pdf";
     }
 
     private String getFileUrl(String fileName) {

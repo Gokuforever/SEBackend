@@ -1,8 +1,8 @@
 package com.sorted.commons.beans;
 
-import java.io.Serializable;
-
 import lombok.Builder;
+
+import java.io.Serializable;
 
 @Builder
 public class DeliveryRequestAttempts implements Serializable {

@@ -1,6 +1,5 @@
 package com.sorted.commons.helper;
 
-import com.sorted.commons.entity.mongo.WebhookTrace;
 import com.sorted.commons.entity.service.WebhookTraceService;
 import com.sorted.commons.enums.WebhookType;
 import org.springframework.stereotype.Service;

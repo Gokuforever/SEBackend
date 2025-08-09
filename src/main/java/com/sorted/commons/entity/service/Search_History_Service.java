@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Search_History;
 import com.sorted.commons.repository.mongo.Search_History_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Search_History_Service

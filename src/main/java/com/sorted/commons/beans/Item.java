@@ -2,7 +2,6 @@ package com.sorted.commons.beans;
 
 import com.sorted.commons.enums.ProductType;
 import com.sorted.commons.enums.PurchaseType;
-
 import lombok.Data;
 
 @Data

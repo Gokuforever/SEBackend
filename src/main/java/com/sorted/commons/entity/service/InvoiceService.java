@@ -2,10 +2,16 @@ package com.sorted.commons.entity.service;
 
 import com.sorted.commons.entity.mongo.Invoice;
 import com.sorted.commons.repository.mongo.InvoiceRepository;
+import com.sorted.commons.utils.SequenceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class InvoiceService extends GenericEntityServiceImpl<String, Invoice, InvoiceRepository> {
+
+    @Autowired
+    private SequenceService sequenceService;
+
     @Override
     protected Class<InvoiceRepository> getRepoClass() {
         return InvoiceRepository.class;
@@ -13,7 +19,7 @@ public class InvoiceService extends GenericEntityServiceImpl<String, Invoice, In
 
     @Override
     protected void validateBeforeCreate(Invoice inE) throws RuntimeException {
-
+        inE.setInvoiceId(sequenceService.generateId("INV"));
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.sorted.commons.porter.req.beans;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

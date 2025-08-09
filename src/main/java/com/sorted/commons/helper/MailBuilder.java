@@ -1,8 +1,8 @@
 package com.sorted.commons.helper;
 
-import java.util.List;
-
 import com.sorted.commons.enums.MailTemplate;
+
+import java.util.List;
 
 public class MailBuilder {
 

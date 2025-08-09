@@ -1,16 +1,14 @@
 package com.sorted.commons.entity.mongo;
 
-import java.io.Serial;
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.sorted.commons.beans.Item;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

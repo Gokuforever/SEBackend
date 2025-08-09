@@ -1,10 +1,9 @@
 package com.sorted.commons.beans;
 
-import java.util.List;
-
 import com.sorted.commons.entity.mongo.Category_Master.SubCategory;
-
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class ProductMISReqBean {

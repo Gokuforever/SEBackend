@@ -1,10 +1,9 @@
 package com.sorted.commons.beans;
 
-import java.util.List;
-
 import com.sorted.commons.enums.Activity;
-
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class Role_Activity_Permissions {

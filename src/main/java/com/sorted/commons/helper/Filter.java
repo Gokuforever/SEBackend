@@ -1,13 +1,12 @@
 package com.sorted.commons.helper;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import com.sorted.commons.enums.Operators;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class Filter {

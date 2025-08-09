@@ -1,28 +1,25 @@
 package com.sorted.commons.jwt;
 
+import com.sorted.commons.entity.mongo.User_Auth_Details;
+import com.sorted.commons.entity.service.User_Auth_Details_Service;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
-import javax.crypto.SecretKey;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
-import com.sorted.commons.entity.mongo.User_Auth_Details;
-import com.sorted.commons.entity.service.User_Auth_Details_Service;
-import com.sorted.commons.helper.AggregationFilter.SEFilter;
-import com.sorted.commons.helper.AggregationFilter.SEFilterType;
-import com.sorted.commons.helper.AggregationFilter.WhereClause;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenUtil {

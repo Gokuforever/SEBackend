@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.File_Upload_Details;
 import com.sorted.commons.repository.mongo.File_Upload_Details_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class File_Upload_Details_Service

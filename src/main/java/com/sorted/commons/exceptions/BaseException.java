@@ -1,11 +1,9 @@
 package com.sorted.commons.exceptions;
 
-import lombok.Getter;
-import org.springframework.http.HttpStatus;
-
 import com.sorted.commons.enums.ResponseCode;
-
+import lombok.Getter;
 import lombok.NonNull;
+import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 

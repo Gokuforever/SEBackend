@@ -1,12 +1,11 @@
 package com.sorted.commons.beans;
 
-import java.io.Serial;
-import java.io.Serializable;
-
 import com.sorted.commons.porter.res.beans.GetQuoteResponse;
-
 import lombok.Builder;
 import lombok.Data;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 @Data
 @Builder

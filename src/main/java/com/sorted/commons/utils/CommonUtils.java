@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -204,6 +205,21 @@ public class CommonUtils {
         long revenue = (totalAmountPaise * scaledPercentage) / 10000;
         long cost = totalAmountPaise - revenue;
         return new FeeResult(paiseToRupee(revenue), paiseToRupee(cost), revenue, cost);
+    }
+
+    public static boolean isPdf(byte[] fileBytes, String fileName) {
+        // Check file extension
+        if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
+            return false;
+        }
+
+        // Check PDF magic bytes (PDF files start with "%PDF-")
+        if (fileBytes.length < 4) {
+            return false;
+        }
+
+        String header = new String(fileBytes, 0, 4, StandardCharsets.US_ASCII);
+        return header.equals("%PDF");
     }
 
     public static void main(String[] args) {

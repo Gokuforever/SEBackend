@@ -1,9 +1,8 @@
 package com.sorted.commons.repository.mongo;
 
-import org.springframework.stereotype.Repository;
-
 import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.helper.BaseMongoRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface Seller_Repository extends BaseMongoRepository<String, Seller> {

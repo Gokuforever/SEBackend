@@ -1,22 +1,20 @@
 package com.sorted.commons.entity.mongo;
 
-import java.io.Serial;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.util.CollectionUtils;
-
 import com.sorted.commons.beans.Order_Status_History;
 import com.sorted.commons.beans.Return_Details;
 import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.PurchaseType;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.util.CollectionUtils;
+
+import java.io.Serial;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

@@ -1,19 +1,20 @@
 package com.sorted.commons.enums;
 
-import java.util.Arrays;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
 public enum DocumentType {
 	PRODUCT_IMAGE(1, Arrays.asList(UserType.SUPER_ADMIN, UserType.SELLER)),
 	PROFILE_PICTURE(2, Arrays.asList(UserType.SUPER_ADMIN, UserType.GUEST, UserType.CUSTOMER, UserType.SELLER)),
-	LOGO(3, Arrays.asList(UserType.SUPER_ADMIN, UserType.SELLER));
+	LOGO(3, Arrays.asList(UserType.SUPER_ADMIN, UserType.SELLER)),
+	INVOICE(4, Arrays.asList(UserType.SUPER_ADMIN, UserType.CUSTOMER));
 
-	private int id;
-	private List<UserType> allowed_to;
+	private final int id;
+	private final List<UserType> allowed_to;
 
 }

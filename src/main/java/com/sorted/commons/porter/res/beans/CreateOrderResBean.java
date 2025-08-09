@@ -1,11 +1,10 @@
 package com.sorted.commons.porter.res.beans;
 
-import java.time.LocalDateTime;
-
 import com.sorted.commons.porter.res.beans.FetchOrderRes.FareDetails.FareAmountDetails;
-
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder

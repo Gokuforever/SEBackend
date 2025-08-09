@@ -1,9 +1,9 @@
 package com.sorted.commons.helper;
 
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+
 import java.util.List;
 import java.util.Optional;
-
-import com.sorted.commons.helper.AggregationFilter.SEFilter;
 
 public interface BaseRepository<T, K> {
 

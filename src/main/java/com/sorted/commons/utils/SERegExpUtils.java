@@ -1,13 +1,12 @@
 package com.sorted.commons.utils;
 
-import java.util.regex.Pattern;
-
+import jakarta.annotation.PostConstruct;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-import lombok.NonNull;
+import java.util.regex.Pattern;
 
 @Component
 public class SERegExpUtils {

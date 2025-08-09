@@ -1,14 +1,13 @@
 package com.sorted.commons.entity.mongo;
 
-import java.io.Serial;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serial;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

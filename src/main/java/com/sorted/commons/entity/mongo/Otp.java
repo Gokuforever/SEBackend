@@ -1,18 +1,16 @@
 package com.sorted.commons.entity.mongo;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.sorted.commons.beans.Attempt_Details;
 import com.sorted.commons.enums.EntityDetails;
 import com.sorted.commons.enums.ProcessType;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

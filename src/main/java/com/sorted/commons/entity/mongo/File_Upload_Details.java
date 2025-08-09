@@ -1,12 +1,10 @@
 package com.sorted.commons.entity.mongo;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.sorted.commons.enums.UserType;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serial;
 

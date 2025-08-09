@@ -1,7 +1,6 @@
 package com.sorted.commons.beans;
 
 import com.sorted.commons.enums.Permission;
-
 import lombok.Data;
 
 @Data

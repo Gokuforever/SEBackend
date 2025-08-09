@@ -1,7 +1,10 @@
 package com.sorted.commons.beans;
 
 import com.sorted.commons.entity.mongo.EducationCategories;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 

@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Product_Master;
 import com.sorted.commons.repository.mongo.Product_Master_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Product_Master_Service extends GenericEntityServiceImpl<String, Product_Master, Product_Master_Repository>{

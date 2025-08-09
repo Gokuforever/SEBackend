@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Plans;
 import com.sorted.commons.repository.mongo.Plan_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Plans_Service extends GenericEntityServiceImpl<String, Plans, Plan_Repository> {

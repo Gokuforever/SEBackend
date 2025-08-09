@@ -1,9 +1,9 @@
 package com.sorted.commons.beans;
 
-import java.util.List;
-
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+
+import java.util.List;
 
 @Data
 @FieldNameConstants

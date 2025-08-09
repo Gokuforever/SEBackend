@@ -1,10 +1,9 @@
 package com.sorted.commons.entity.mongo;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

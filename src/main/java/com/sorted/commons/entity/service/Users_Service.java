@@ -1,17 +1,5 @@
 package com.sorted.commons.entity.service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
-import com.sorted.commons.enums.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
 import com.google.gson.Gson;
 import com.sorted.commons.beans.OTPResponse;
 import com.sorted.commons.beans.UsersBean;
@@ -20,6 +8,7 @@ import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Role;
 import com.sorted.commons.entity.mongo.Seller;
 import com.sorted.commons.entity.mongo.Users;
+import com.sorted.commons.enums.*;
 import com.sorted.commons.enums.All_Status.User_Status;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
@@ -30,9 +19,16 @@ import com.sorted.commons.jwt.JwtTokenUtil;
 import com.sorted.commons.manage.otp.ManageOtp;
 import com.sorted.commons.repository.mongo.Users_Repository;
 import com.sorted.commons.utils.GsonUtils;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.Objects;
 
 @Slf4j
 @Service

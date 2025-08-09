@@ -14,13 +14,17 @@ public class SequenceService {
         this.counterService = counterService;
     }
 
-    private String getNextSequence(String name) {
+    private String getNextSequence(String name, String pattern) {
         long sequence = counterService.getNextSequence(name);
-        DecimalFormat df = new DecimalFormat("000000");
+        DecimalFormat df = new DecimalFormat(pattern);
         return df.format(sequence);
     }
 
     public String generateId(String prefix) {
-        return prefix + "-" + CommonUtils.getFormattedDateForId() + "-" + CommonUtils.generateRandomString(5) + getNextSequence(prefix);
+        return prefix + "-" + CommonUtils.getFormattedDateForId() + "-" + CommonUtils.generateRandomString(5) + getNextSequence(prefix, "000000");
+    }
+
+    public String generateIdWithoutRandomString(String prefix) {
+        return prefix + "-" + CommonUtils.getFormattedDateForId() + "-" + getNextSequence(prefix, "000");
     }
 }

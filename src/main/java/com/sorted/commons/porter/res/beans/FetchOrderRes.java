@@ -1,11 +1,11 @@
 package com.sorted.commons.porter.res.beans;
 
-import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+
+import java.io.Serializable;
 
 @Data
 @Builder

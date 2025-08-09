@@ -1,17 +1,15 @@
 package com.sorted.commons.helper;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.utils.GsonUtils;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import org.springframework.http.HttpStatus;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Data
 @Builder

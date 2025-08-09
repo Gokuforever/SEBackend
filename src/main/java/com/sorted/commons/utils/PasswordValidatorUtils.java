@@ -1,11 +1,11 @@
 package com.sorted.commons.utils;
 
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+
 import java.security.SecureRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.sorted.commons.enums.ResponseCode;
-import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 
 public class PasswordValidatorUtils {
 

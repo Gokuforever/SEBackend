@@ -1,13 +1,12 @@
 package com.sorted.commons.entity.mongo;
 
-import java.io.Serial;
-import java.time.LocalDateTime;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serial;
+import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

@@ -6,7 +6,6 @@ import com.sorted.commons.beans.TableConfig;
 import com.sorted.commons.beans.TableConfigBuilder;
 import com.sorted.commons.enums.ColumnType;
 
-import java.util.List;
 import java.util.Map;
 
 public class TemplateProcessorUtil {

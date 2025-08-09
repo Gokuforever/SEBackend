@@ -1,13 +1,12 @@
 package com.sorted.commons.beans;
 
-import java.util.List;
-import java.util.Map;
-
 import com.sorted.commons.entity.mongo.Category_Master;
 import com.sorted.commons.helper.ReqBaseBean;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

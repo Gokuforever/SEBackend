@@ -1,9 +1,8 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Otp;
 import com.sorted.commons.repository.mongo.Otp_Repository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Otp_Service extends GenericEntityServiceImpl<String, Otp, Otp_Repository> {

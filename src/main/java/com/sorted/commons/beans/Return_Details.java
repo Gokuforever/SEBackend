@@ -1,9 +1,9 @@
 package com.sorted.commons.beans;
 
-import java.time.LocalDateTime;
-
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+
+import java.time.LocalDateTime;
 
 @Data
 @FieldNameConstants

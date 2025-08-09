@@ -1,10 +1,9 @@
 package com.sorted.commons.entity.service;
 
-import org.springframework.stereotype.Service;
-
 import com.sorted.commons.entity.mongo.Varient_Mapping;
 import com.sorted.commons.repository.mongo.Varient_Mapping_Repository;
 import com.sorted.commons.utils.CommonUtils;
+import org.springframework.stereotype.Service;
 
 @Service
 public class Varient_Mapping_Service

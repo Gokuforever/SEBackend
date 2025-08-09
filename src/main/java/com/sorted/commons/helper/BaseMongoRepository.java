@@ -1,11 +1,14 @@
 package com.sorted.commons.helper;
 
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+import com.sorted.commons.config.StaticMongoAccessor;
+import com.sorted.commons.entity.mongo.BaseMongoEntity;
+import com.sorted.commons.enums.Operators;
+import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
+import com.sorted.commons.helper.AggregationFilter.*;
+import lombok.NonNull;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -18,19 +21,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.CollectionUtils;
 
-import com.sorted.commons.config.StaticMongoAccessor;
-import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.enums.Operators;
-import com.sorted.commons.enums.ResponseCode;
-import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import com.sorted.commons.helper.AggregationFilter.OrderBy;
-import com.sorted.commons.helper.AggregationFilter.SEFilter;
-import com.sorted.commons.helper.AggregationFilter.SEFilterNode;
-import com.sorted.commons.helper.AggregationFilter.SEFilterType;
-import com.sorted.commons.helper.AggregationFilter.SortOrder;
-import com.sorted.commons.helper.AggregationFilter.WhereClause;
-
-import lombok.NonNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
         extends BaseRepository<T, K>, MongoRepository<T, K> {
