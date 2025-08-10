@@ -40,6 +40,7 @@ public class AwsS3Service {
     private AmazonS3 s3Client;
 
     private static final String BASE_FOLDER = "product-images/engineering-books/";
+    private static final String INVOICE_FOLDER = "b2c/invoices";
 
     public AwsS3Service(
             File_Upload_Details_Service fileUploadDetailsService,
@@ -163,7 +164,7 @@ public class AwsS3Service {
 
         // Generate unique filename with timestamp
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return baseName + "_" + timestamp + ".pdf";
+        return INVOICE_FOLDER +baseName + "_" + timestamp + ".pdf";
     }
 
     private String getFileUrl(String fileName) {
