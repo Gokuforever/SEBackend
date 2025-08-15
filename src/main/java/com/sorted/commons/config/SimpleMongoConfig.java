@@ -9,6 +9,7 @@ import lombok.NonNull;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.Decimal128;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -27,52 +28,57 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 @Configuration
 public class SimpleMongoConfig {
 
-	@Bean
-	public MongoClient mongo() {
-		final ConnectionString connectionString = new ConnectionString(
-				"mongodb+srv://yogeshk:Sorted%402024@sorted.myru7yg.mongodb.net/");
-		CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-				fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-		final MongoClientSettings mongoClientSettings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry)
-				.applyConnectionString(connectionString).build();
-		return MongoClients.create(mongoClientSettings);
-	}
+    @Value("${spring.data.mongodb.uri:mongodb+srv://yogeshk:Sorted%402024@sorted.myru7yg.mongodb.net/}")
+    private String mongoUri;
 
-	@Bean
-	public MongoTemplate mongoTemplate() {
-		MongoTemplate mongoTemplate = new MongoTemplate(mongo(), "sorted");
-		mongoTemplate.setWriteConcern(WriteConcern.ACKNOWLEDGED);
-		MappingMongoConverter conv = (MappingMongoConverter) mongoTemplate.getConverter();
-		conv.setCustomConversions(mongoCustomConversions());
-		conv.afterPropertiesSet();
+    @Value("${spring.data.mongodb.database:sorted}")
+    private String mongoDatabase;
 
-		System.out.println("MongoTemplate connected to database: " + mongoTemplate.getDb().getName());
+    @Bean
+    public MongoClient mongo() {
+        final ConnectionString connectionString = new ConnectionString(mongoUri);
+        CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+        final MongoClientSettings mongoClientSettings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry)
+                .applyConnectionString(connectionString).build();
+        return MongoClients.create(mongoClientSettings);
+    }
 
-		return mongoTemplate;
-	}
+    @Bean
+    public MongoTemplate mongoTemplate() {
+        MongoTemplate mongoTemplate = new MongoTemplate(mongo(), mongoDatabase);
+        mongoTemplate.setWriteConcern(WriteConcern.ACKNOWLEDGED);
+        MappingMongoConverter conv = (MappingMongoConverter) mongoTemplate.getConverter();
+        conv.setCustomConversions(mongoCustomConversions());
+        conv.afterPropertiesSet();
 
-	@Bean
-	public MongoCustomConversions mongoCustomConversions() {
-		return new MongoCustomConversions(
-				Arrays.asList(new BigDecimalDecimal128Converter(), new Decimal128BigDecimalConverter()));
+        System.out.println("MongoTemplate connected to database: " + mongoTemplate.getDb().getName());
 
-	}
+        return mongoTemplate;
+    }
 
-	@WritingConverter
-	private static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
-		@Override
-		public Decimal128 convert(@NonNull BigDecimal source) {
-			return new Decimal128(source);
-		}
-	}
+    @Bean
+    public MongoCustomConversions mongoCustomConversions() {
+        return new MongoCustomConversions(
+                Arrays.asList(new BigDecimalDecimal128Converter(), new Decimal128BigDecimalConverter()));
 
-	@ReadingConverter
-	private static class Decimal128BigDecimalConverter implements Converter<Decimal128, BigDecimal> {
+    }
 
-		@Override
-		public BigDecimal convert(@NonNull Decimal128 source) {
-			return source.bigDecimalValue();
-		}
-	}
+    @WritingConverter
+    private static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
+        @Override
+        public Decimal128 convert(@NonNull BigDecimal source) {
+            return new Decimal128(source);
+        }
+    }
+
+    @ReadingConverter
+    private static class Decimal128BigDecimalConverter implements Converter<Decimal128, BigDecimal> {
+
+        @Override
+        public BigDecimal convert(@NonNull Decimal128 source) {
+            return source.bigDecimalValue();
+        }
+    }
 
 }
