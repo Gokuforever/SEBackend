@@ -1,5 +1,6 @@
 package com.sorted.commons.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -14,6 +15,7 @@ public class EducationCategoryField {
     private boolean mandatory;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String description;
-    private String filterable;
+    @JsonIgnore
+    private boolean filterable;
 
 }
