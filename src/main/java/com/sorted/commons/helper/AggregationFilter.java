@@ -125,7 +125,7 @@ public class AggregationFilter {
 		private Map<String, Object> elemMap;
 		private Operators operator;
 
-		public WhereClause(@NonNull String field, @NonNull List<?> valueList, @NonNull Operators operator) {
+		private WhereClause(@NonNull String field, @NonNull List<?> valueList, @NonNull Operators operator) {
 			super();
 			this.field = field;
 			this.operator = operator;
@@ -136,7 +136,7 @@ public class AggregationFilter {
 			this.valueList = valueList;
 		}
 
-		public WhereClause(@NonNull String field, @NonNull Map<String, Object> map) {
+		private WhereClause(@NonNull String field, @NonNull Map<String, Object> map) {
 			super();
 			this.field = field;
 			this.operator = Operators.ELEMMATCH_IN;
@@ -145,6 +145,13 @@ public class AggregationFilter {
 			}
 			this.valueClassType = "Map";
 			this.elemMap = map;
+		}
+
+		private WhereClause(@NonNull String field, @NonNull Operators operator) {
+			super();
+			this.field = field;
+			this.operator = operator;
+			this.valueClassType = "Map";
 		}
 
 //		public WhereClause(@NonNull String field, @NonNull Map<String, String> keyMap,
@@ -161,7 +168,7 @@ public class AggregationFilter {
 //			this.valMap = valMap;
 //		}
 
-		public WhereClause(@NonNull String field, Object value, @NonNull Operators operator) {
+		private WhereClause(@NonNull String field, Object value, @NonNull Operators operator) {
 			this.field = field;
 			this.operator = operator;
 
@@ -230,6 +237,10 @@ public class AggregationFilter {
 		public static WhereClause lt(String field, Object value) {
 			return new WhereClause(field, value, Operators.LT);
 		}
+
+		public static WhereClause isNull(String field) { return new WhereClause(field, Operators.IS_NULL); }
+
+		public static WhereClause isNotNull(String field) { return new WhereClause(field, Operators.IS_NOT_NULL); }
 
 //		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
 //			return new WhereClause(field, keyMap, valMap);

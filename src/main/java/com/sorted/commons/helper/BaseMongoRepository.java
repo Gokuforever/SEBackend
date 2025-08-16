@@ -280,6 +280,10 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
                     }
                 }
                 return new Criteria(keyName).elemMatch(elemMatchCriteria);
+            case IS_NULL:
+                return new Criteria(clause.getField()).isNull();
+            case IS_NOT_NULL:
+                return new Criteria(clause.getField()).ne(null);
             default:
                 return null;
         }
