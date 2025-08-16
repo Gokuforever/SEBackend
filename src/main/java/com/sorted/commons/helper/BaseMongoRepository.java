@@ -282,7 +282,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
             case IS_NOT_NULL:
                 return new Criteria(clause.getField()).ne(null);
             case IS_EMPTY:
-                return new Criteria(clause.getField()).exists(false);
+                return new Criteria(clause.getField()).exists(true).is(Collections.emptyList());
             case IS_NOT_EMPTY:
                 return new Criteria(clause.getField()).exists(true).ne(Collections.emptyList());
             default:
