@@ -242,6 +242,10 @@ public class AggregationFilter {
 
 		public static WhereClause isNotNull(String field) { return new WhereClause(field, Operators.IS_NOT_NULL); }
 
+		public static WhereClause isEmpty(String field) { return new WhereClause(field, Operators.IS_EMPTY); }
+
+		public static WhereClause isNotEmpty(String field) { return new WhereClause(field, Operators.IS_NOT_EMPTY); }
+
 //		public static WhereClause elem_match(String field, Map<String, String> keyMap, Map<String, List<?>> valMap) {
 //			return new WhereClause(field, keyMap, valMap);
 //		}

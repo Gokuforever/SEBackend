@@ -21,10 +21,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -284,6 +281,10 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
                 return new Criteria(clause.getField()).isNull();
             case IS_NOT_NULL:
                 return new Criteria(clause.getField()).ne(null);
+            case IS_EMPTY:
+                return new Criteria(clause.getField()).exists(false);
+            case IS_NOT_EMPTY:
+                return new Criteria(clause.getField()).exists(true).ne(Collections.emptyList());
             default:
                 return null;
         }
