@@ -22,7 +22,8 @@ public class CorsConfig {
 				"https://studeaze.in",
 				"https://www.studeaze.in/",
 				"https://gokuforever.github.io",
-				"https://studeaze.retool.com"
+				"https://studeaze.retool.com",
+				"https://stz-frontend-service-ts-git-dev-anand-suryawanshis-projects.vercel.app"
 		));
 
 		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
