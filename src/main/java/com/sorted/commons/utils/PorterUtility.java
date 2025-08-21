@@ -87,15 +87,51 @@ public class PorterUtility {
     @Value("${se.porter.mock.location.enabled:true}")
     private boolean porterMockLocationEnabled;
 
+    @Value("${porter.base.url}")
+    private String porterBaseUrl;
+
+    @Value("${porter.api.create.endpoint}")
+    private String porterCreateOrderEndpoint;
+
+    @Value("${porter.api.get.endpoint}")
+    private String porterGetOrderEndpoint;
+
+    @Value("${porter.api.quote.endpoint}")
+    private String porterGetQuoteEndpoint;
+
+    @Value("${porter.api.key}")
+    private String porterApiKey;
+
+    @Value("${porter.mock.pickup.lat}")
+    private double mockPickupLat;
+
+    @Value("${porter.mock.pickup.lng}")
+    private double mockPickupLng;
+
+    @Value("${porter.mock.drop.lat}")
+    private double mockDropLat;
+
+    @Value("${porter.mock.drop.lng}")
+    private double mockDropLng;
+
+    @Value("${porter.country.code}")
+    private String countryCode;
+
+    @Value("${porter.mock.currency}")
+    private String mockCurrency;
+
+    @Value("${porter.error.message}")
+    private String porterErrorMessage;
+
     public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
 
         CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
         CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
         if (porterMockLocationEnabled) {
-            pickup_address.setLat(BigDecimal.valueOf(12.939391726766775));
-            pickup_address.setLng(BigDecimal.valueOf(77.62629462844717));
-            drop_address.setLat(BigDecimal.valueOf(12.9165757));
-            drop_address.setLng(BigDecimal.valueOf(77.6101163));
+            pickup_address.setLat(BigDecimal.valueOf(mockPickupLat));
+            pickup_address.setLng(BigDecimal.valueOf(mockPickupLng));
+            drop_address.setLat(BigDecimal.valueOf(mockDropLat));
+            drop_address.setLng(BigDecimal.valueOf(mockDropLng));
         }
         SEFilter filterOD = new SEFilter(SEFilterType.AND);
         filterOD.addClause(WhereClause.eq(Order_Details.Fields.code, order.getRequest_id()));
@@ -109,12 +145,12 @@ public class PorterUtility {
         List<DeliveryRequestAttempts> delivery_request_attempts = CollectionUtils.isEmpty(order_Details.getDelivery_request_attempts()) ? new ArrayList<>() : order_Details.getDelivery_request_attempts();
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://pfe-apigw-uat.porter.in/v1/orders/create";
+        String url = porterBaseUrl + porterCreateOrderEndpoint;
 
         // Set the headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
+        headers.set("x-api-key", porterApiKey);
 
         Gson gson = GsonUtils.getGson();
         String payload = gson.toJson(order);
@@ -133,7 +169,7 @@ public class PorterUtility {
                     "\"order_id\": \"CRN" + order.getRequest_id() + "\", " +
                     "\"estimated_pickup_time\": 1642473111, " +
                     "\"estimated_fare_details\": { " +
-                    "  \"currency\": \"INR\", " +
+                    "  \"currency\": \"" + mockCurrency + "\", " +
                     "  \"minor_amount\": 35000 }, " +
                     "\"tracking_url\": \"https://porter.in/track_live_order?booking_id=CRN" + order.getRequest_id() + "&customer_uuid=0337fe22-0745-4d5c-8514-3003912be89a\"}";
             response = new ResponseEntity<>(mockResponse, HttpStatus.OK);
@@ -159,7 +195,7 @@ public class PorterUtility {
         third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, order.getRequest_id());
 
         if (httpStatus == null) {
-            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+            throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
         switch (httpStatus) {
             case CREATED, OK:
@@ -201,19 +237,19 @@ public class PorterUtility {
         delivery_request_attempts.add(DeliveryRequestAttempts.builder().count(delivery_request_attempts.size() + 1).message(message).type(type).response_code(httpStatus.value()).build());
         order_Details.setDelivery_request_attempts(delivery_request_attempts);
         order_Details_Service.update(order_Details.getId(), order_Details, "porter");
-        throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+        throw new CustomIllegalArgumentsException(porterErrorMessage);
     }
 
     public FetchOrderRes getOrder(String porter_order_id) {
         RestTemplate restTemplate = new RestTemplate();
 
         // Define the URL
-        String url = "https://pfe-apigw-uat.porter.in/v1/orders/" + porter_order_id;
+        String url = porterBaseUrl + porterGetOrderEndpoint + porter_order_id;
 
         String orderId = porter_order_id.substring(3);
         // Set up headers
         HttpHeaders headers = new HttpHeaders();
-        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
+        headers.set("x-api-key", porterApiKey);
 
         // Create an HttpEntity with the headers (no body needed)
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
@@ -229,12 +265,12 @@ public class PorterUtility {
                     "        \"vehicle_type\": \"TWO_WHEELER\",\n" +
                     "        \"mobile\":\n" +
                     "        {\n" +
-                    "            \"country_code\": \"91\",\n" +
+                    "            \"country_code\": \"" + countryCode + "\",\n" +
                     "            \"mobile_number\": \"9535321734\"\n" +
                     "        },\n" +
                     "        \"partner_secondary_mobile\":\n" +
                     "        {\n" +
-                    "            \"country_code\": \"91\",\n" +
+                    "            \"country_code\": \"" + countryCode + "\",\n" +
                     "            \"mobile_number\": \"9535321734\"\n" +
                     "        },\n" +
                     "        \"location\": null\n" +
@@ -251,7 +287,7 @@ public class PorterUtility {
                     "        \"estimated_fare_details\": null,\n" +
                     "        \"actual_fare_details\":\n" +
                     "        {\n" +
-                    "            \"currency\": \"INR\",\n" +
+                    "            \"currency\": \"" + mockCurrency + "\",\n" +
                     "            \"minor_amount\": 5500\n" +
                     "        }\n" +
                     "    }\n" +
@@ -281,7 +317,7 @@ public class PorterUtility {
                 .customer(GetQuoteRequest.Customer.builder()
                         .name(customerFullName)
                         .mobile(GetQuoteRequest.Customer.Mobile.builder()
-                                .country_code("+91")
+                                .country_code(countryCode)
                                 .number(mobile.length() > 10 ? mobile.substring(mobile.length() - 11, mobile.length() - 1) : mobile)
                                 .build())
                         .build())
@@ -291,12 +327,12 @@ public class PorterUtility {
     public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
 
-        String url = "https://pfe-apigw-uat.porter.in/v1/get_quote";
+        String url = porterBaseUrl + porterGetQuoteEndpoint;
 
         // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", "659d4aaf-3797-4186-b7c3-2c231f5d0e22");
+        headers.set("x-api-key", porterApiKey);
 
         // @formatter:off
         // Build the request object using Builder
@@ -346,7 +382,7 @@ public class PorterUtility {
         third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
 
         if (httpStatus == null) {
-            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+            throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
         JsonObject jsonResponse = GsonUtils.getGson().fromJson(responseBody, JsonObject.class);
         switch (httpStatus) {
@@ -357,7 +393,7 @@ public class PorterUtility {
                 if (type != null && type.equals("different_city_error")) {
                     throw new CustomIllegalArgumentsException("pickup and drop address belongs to different cities");
                 }
-                throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+                throw new CustomIllegalArgumentsException(porterErrorMessage);
             case UNPROCESSABLE_ENTITY:
                 String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : httpStatus.getReasonPhrase();
                 log.error("Exception occurred:: message: {}", message);
@@ -366,7 +402,7 @@ public class PorterUtility {
                 String type1 = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
                 String message1 = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
                 log.error("Exception occurred:: type: {}, message: {}", type1, message1);
-                throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+                throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -374,7 +410,7 @@ public class PorterUtility {
         JsonNode vehicles = rootNode.get("vehicles");
         VehicleBuilder vehicleBuilder = Vehicle.builder();
         if (vehicles.isNull() || !vehicles.isArray()) {
-            throw new CustomIllegalArgumentsException("Delivery service is non working, please contact Studeaze team.");
+            throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
         for (JsonNode vehicle : vehicles) {
             String prettyString = vehicle.toPrettyString();
@@ -578,7 +614,7 @@ public class PorterUtility {
                 .customer(GetQuoteRequest.Customer.builder()
                         .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
                         .mobile(GetQuoteRequest.Customer.Mobile.builder()
-                                .country_code("+91")
+                                .country_code(countryCode)
                                 .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
                                 .build())
                         .build())
