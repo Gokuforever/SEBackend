@@ -55,16 +55,13 @@ public class EmailSenderImpl {
         }
 
         String content = builder.getContent();
-        if (!StringUtils.hasText(content)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.CONTENT_IS_MISSING);
-        }
         String file_name = template.getFile_name();
         String str_template = loadTemplate(email_base_folder + file_name);
         if (str_template == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
         }
 
-        str_template = this.replacePlaceholders(str_template, content);
+        str_template = StringUtils.hasText(content) ? this.replacePlaceholders(str_template, content) : str_template;
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {
@@ -100,7 +97,8 @@ public class EmailSenderImpl {
 
     /**
      * Downloads file from CloudFront URL and adds it as attachment
-     * @param helper MimeMessageHelper instance
+     *
+     * @param helper  MimeMessageHelper instance
      * @param fileUrl CloudFront URL of the file
      * @throws Exception if download or attachment fails
      */
@@ -131,6 +129,7 @@ public class EmailSenderImpl {
 
     /**
      * Downloads file content from URL
+     *
      * @param url URL to download from
      * @return byte array of file content
      * @throws IOException if download fails
@@ -151,6 +150,7 @@ public class EmailSenderImpl {
 
     /**
      * Extracts filename from URL
+     *
      * @param url CloudFront URL
      * @return filename or default name
      */
