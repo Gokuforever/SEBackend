@@ -99,6 +99,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
         return StaticMongoAccessor.MONGO_TEMPLATE.count(query, getEntityType());
     }
 
+    @NotNull
     @Override
     default Optional<T> findById(@NotNull K k) {
         SEFilter f = new SEFilter(SEFilterType.AND);
@@ -148,7 +149,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
         return entities;
     }
 
-    public static Query buildQuery(SEFilter filter) {
+    private static Query buildQuery(SEFilter filter) {
         Criteria criteria = buildCriteria(filter);
 
         Query query = new Query(criteria);
@@ -190,7 +191,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
             if (nodeCriterias.size() > 1) {
 //				SEFilterType subquery_type = filter.getSubquery_type() == null ? SEFilterType.AND
 //						: filter.getSubquery_type();
-                Criteria[] subQueriesComb = nodeCriterias.toArray(new Criteria[nodeCriterias.size()]);
+                Criteria[] subQueriesComb = nodeCriterias.toArray(new Criteria[0]);
 //				if (subquery_type.equals(SEFilterType.AND)) {
 //					sub_query_criteria.andOperator(subQueriesComb);
 //				} else if (subquery_type.equals(SEFilterType.OR)) {
@@ -200,11 +201,11 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
             } else {
                 baseQueryCriterias.addAll(nodeCriterias);
             }
-            arrComb = baseQueryCriterias.toArray(new Criteria[baseQueryCriterias.size()]);
+            arrComb = baseQueryCriterias.toArray(new Criteria[0]);
         } else if (!baseQueryCriterias.isEmpty()) {
-            arrComb = baseQueryCriterias.toArray(new Criteria[baseQueryCriterias.size()]);
+            arrComb = baseQueryCriterias.toArray(new Criteria[0]);
         } else if (!nodeCriterias.isEmpty()) {
-            arrComb = nodeCriterias.toArray(new Criteria[nodeCriterias.size()]);
+            arrComb = nodeCriterias.toArray(new Criteria[0]);
         } else {
             throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
         }

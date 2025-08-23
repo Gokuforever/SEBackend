@@ -23,7 +23,6 @@ public class SERequest implements Serializable {
 	private String source;
 	private String requestDataType;
 	private Object requestData;
-	private Filter filterData;
 	private Object identifier;
 
 	@JsonIgnore

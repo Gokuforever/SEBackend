@@ -28,7 +28,7 @@ public enum EntityDetails {
 	VARIENT_MAPPING(Varient_Mapping.class);
 	// @formatter:on
 
-	private Class<?> class_name;
+	private final Class<?> class_name;
 
 	public static final Map<Class<?>, EntityDetails> byValue = new HashMap<>();
 

@@ -13,7 +13,7 @@ public class All_Status {
 	public enum Role_Status {
 		ACTIVE(1), INACTIVE(2), BLOCK(3);
 
-		private int id;
+		private final int id;
 	}
 
 	@Getter
@@ -21,7 +21,7 @@ public class All_Status {
 	public enum User_Status {
 		ACTIVE(1), INACTIVE(2), BLOCK(3);
 
-		private int id;
+		private final int id;
 	}
 
 	@Getter
@@ -30,8 +30,8 @@ public class All_Status {
 		VERIFICATION_PENDING(1, "Verification Pending"), ACTIVE(2, "Active"), INACTIVE(3, "Inactive"),
 		BLOCKED(4, "Blocked");
 
-		private int id;
-		private String status;
+		private final int id;
+		private final String status;
 
 		private static final Map<Integer, Seller_Status> valMap = new HashMap<>();
 
@@ -55,7 +55,7 @@ public class All_Status {
 	public enum ProductCurrentStatus {
 		IN_STOCK(1, "In stock"), OUT_OF_STOCK(2, "Out of stock"), CURRENTLY_UNAVAILABLE(3, "Currently unawailable");
 
-		private int status_id;
-		private String status;
+		private final int status_id;
+		private final String status;
 	}
 }

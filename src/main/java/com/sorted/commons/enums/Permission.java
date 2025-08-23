@@ -10,5 +10,5 @@ public enum Permission {
 	VIEW(1),
 	EDIT(4);
 	
-	private int id;
+	private final int id;
 }

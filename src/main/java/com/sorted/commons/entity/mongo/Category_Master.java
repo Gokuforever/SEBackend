@@ -34,6 +34,7 @@ public class Category_Master extends BaseMongoEntity<String> {
     private List<Groups> groups;
 
 
+    @JsonIgnore
     public Map<Integer, List<SubCategory>> getSub_categories_by_group() {
         if (CollectionUtils.isEmpty(this.groups)) {
             return new HashMap<>();

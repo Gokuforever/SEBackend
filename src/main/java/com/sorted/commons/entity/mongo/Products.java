@@ -1,7 +1,7 @@
 package com.sorted.commons.entity.mongo;
 
 import com.sorted.commons.beans.Media;
-import com.sorted.commons.beans.SelectedSubCatagories;
+import com.sorted.commons.beans.SelectedSubCategories;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
@@ -35,7 +35,7 @@ public class Products extends BaseMongoEntity<String> {
 	private String varient_mapping_id;
 	private Integer group_id;
 	private Boolean is_secure;
-	private List<SelectedSubCatagories> selected_sub_catagories;
+	private List<SelectedSubCategories> selected_sub_catagories;
 	private List<Media> media;
 
 }

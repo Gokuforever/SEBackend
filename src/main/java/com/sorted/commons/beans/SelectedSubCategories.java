@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class SelectedSubCatagories {
+public class SelectedSubCategories {
 	private String sub_category;
 	private List<String> selected_attributes;
 }

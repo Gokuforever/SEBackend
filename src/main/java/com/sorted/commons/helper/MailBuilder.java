@@ -4,8 +4,6 @@ import com.sorted.commons.enums.MailTemplate;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 @Getter

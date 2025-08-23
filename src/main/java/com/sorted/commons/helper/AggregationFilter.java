@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sorted.commons.enums.Operators;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -15,10 +12,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AggregationFilter {
 
@@ -31,23 +25,17 @@ public class AggregationFilter {
 		private SEFilterType type;
 		private List<SEFilterNode> nodes;
 //		private SEFilterType subquery_type;
-		private OrderBy orderBy;
-		private Pagination pagination;
+		@Setter
+        private OrderBy orderBy;
+		@Setter
+        private Pagination pagination;
 		private List<String> selection;
 
 		// Don't use below
 		private List<JoinClause> joins;
 		private List<SubqueryClause> subqueries;
 
-		public void setPagination(Pagination pagination) {
-			this.pagination = pagination;
-		}
-
-		public void setOrderBy(OrderBy orderBy) {
-			this.orderBy = orderBy;
-		}
-
-		public SEFilter(SEFilterType type) {
+        public SEFilter(SEFilterType type) {
 			this.type = type;
 		}
 
@@ -83,9 +71,7 @@ public class AggregationFilter {
 			if (CollectionUtils.isEmpty(selection)) {
 				this.selection = new ArrayList<>();
 			}
-			for (String field : fields) {
-				this.selection.add(field);
-			}
+            Collections.addAll(this.selection, fields);
 		}
 	}
 
@@ -116,14 +102,14 @@ public class AggregationFilter {
 
 	@Getter
 	public static class WhereClause {
-		private String field;
+		private final String field;
 		private String value;
-		private String valueClassType;
+		private final String valueClassType;
 		private List<?> valueList;
 		private Map<String, String> keyMap;
 		private Map<String, List<?>> valMap;
 		private Map<String, Object> elemMap;
-		private Operators operator;
+		private final Operators operator;
 
 		private WhereClause(@NonNull String field, @NonNull List<?> valueList, @NonNull Operators operator) {
 			super();
@@ -290,7 +276,7 @@ public class AggregationFilter {
 						return Boolean.parseBoolean(this.value);
 
 					case "BigDecimal":
-						return BigDecimal.valueOf(Double.valueOf(this.value));
+						return BigDecimal.valueOf(Double.parseDouble(this.value));
 
 					case "LocalDateTime":
 						return LocalDateTime.parse(this.value);

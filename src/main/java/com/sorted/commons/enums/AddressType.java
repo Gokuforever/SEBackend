@@ -13,8 +13,8 @@ public enum AddressType {
 
 	HOME(1, "Home"), HOSTEL(2, "Hostel"), STORE(3, "Store"), OTHER(10, "Other");
 
-	private int id;
-	private String type;
+	private final int id;
+	private final String type;
 	
 	private static final Map<String, AddressType> ByName = new HashMap<>();
 	static {
