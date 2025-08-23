@@ -61,6 +61,7 @@ public class Category_Master extends BaseMongoEntity<String> {
         private TypescriptDataTypes data_type;
         private boolean filterable;
         private boolean mappable;
+        private boolean related_filterable;
         private Map<String, List<String>> mapping;
 
         @JsonIgnore

@@ -140,20 +140,6 @@ public class AggregationFilter {
 			this.valueClassType = "Map";
 		}
 
-//		public WhereClause(@NonNull String field, @NonNull Map<String, String> keyMap,
-//				@NonNull Map<String, List<?>> valMap) {
-//			super();
-//			this.field = field;
-//			this.operator = Operators.ELEMMATCH_IN;
-//			if (CollectionUtils.isEmpty(keyMap) || CollectionUtils.isEmpty(valMap)) {
-//				// TODO: raise appropriate exception
-//				throw new CustomIllegalArgumentsException(ResponseCode.NOT_A_LIST);
-//			}
-//			this.valueClassType = "Map";
-//			this.keyMap = keyMap;
-//			this.valMap = valMap;
-//		}
-
 		private WhereClause(@NonNull String field, Object value, @NonNull Operators operator) {
 			this.field = field;
 			this.operator = operator;
