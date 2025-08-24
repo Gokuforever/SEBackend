@@ -71,6 +71,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String secure_dp_order_id;
     private String secure_order_id;
     private String secure_return_failure_reason;
+    private boolean secure_return_initiated;
 
 
     @JsonIgnore

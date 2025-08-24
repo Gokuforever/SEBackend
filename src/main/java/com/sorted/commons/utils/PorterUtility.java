@@ -650,25 +650,28 @@ public class PorterUtility {
     // @formatter:on
 
     public void updateOrderStatus(Order_Details details, Status status, FareDetails fareDetails) {
+        boolean secureReturn = details.isSecure_return_initiated();
         MailTemplate mailTemplate = null;
         OrderStatus currentOrderStatus = null;
         switch (status) {
             case open:
-                currentOrderStatus = OrderStatus.READY_FOR_PICK_UP;
+                currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_INITIATED : OrderStatus.READY_FOR_PICK_UP;
                 break;
             case accepted:
-                currentOrderStatus = OrderStatus.RIDER_ASSIGNED;
-                mailTemplate = MailTemplate.ORDER_DISPATCHED;
+                currentOrderStatus = secureReturn ? OrderStatus.RIDER_ASSIGNED_FOR_SECURE_RETURN : OrderStatus.RIDER_ASSIGNED;
+                mailTemplate = secureReturn ? null : MailTemplate.ORDER_DISPATCHED;
                 break;
             case cancelled:
-                currentOrderStatus = OrderStatus.ORDER_CANCELLED;
+                internalMailService.sendMailOnError("Order Cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Order Cancelled");
+                currentOrderStatus = secureReturn ? OrderStatus.ORDER_CANCELLED_FOR_SECURE_RETURN : OrderStatus.ORDER_CANCELLED;
                 break;
             case ended:
-                currentOrderStatus = OrderStatus.DELIVERED;
-                mailTemplate = MailTemplate.ORDER_ARRIVED;
+                currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_COMPLETED : OrderStatus.DELIVERED;
+                // TODO: send mail to seller to appraise the book
+                mailTemplate = secureReturn ? null : MailTemplate.ORDER_ARRIVED;
                 break;
             case live:
-                currentOrderStatus = OrderStatus.OUT_FOR_DELIVERY;
+                currentOrderStatus = secureReturn ? OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN :  OrderStatus.OUT_FOR_DELIVERY;
                 break;
             default:
                 break;

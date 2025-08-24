@@ -17,7 +17,7 @@ public enum OrderStatus {
 
 	
 	ORDER_PLACED(0, "Order Placed", "Order Placed"),
-	TRANSACTION_PROCESSED(1, "Order Placed", "Payment Processed"),
+	TRANSACTION_PROCESSED(1, "Payment Processed", "Payment Processed"),
 	ORDER_ACCEPTED(2, "Order Confirmed", "Seller Accepted"),
 	READY_FOR_PICK_UP(3, "Ready For Pick Up", "Ready For Pick Up"), // SELLER - Ready for pick up
 	RIDER_ASSIGNED(4, "Delivery Partner Assigned", "Delivery Partner Assigned"), // Delivery partner accepts the order
@@ -31,15 +31,16 @@ public enum OrderStatus {
 	ORDER_CANCELLED(12, "Order Cancelled", "Order Cancelled"), // Once cancelled - Complete amount refunded
 	PENDING_REFUND(13, "Refund Pending", "Refund Pending"),
 	REFUND_REQUESTED(14, "Refund Requested", "Refund Requested"),
-	REFUND_FAILED(15, "Refund Request Failed", "Refund Request Failed"),
-	STORE_NOT_OPERATIONAL(16, "Order Placed.", "Store not operational."),
-	SECURE_RETURN_SCHEDULED(17, "Secure Return Scheduled.", "Secure Return Scheduled."),
-	SECURE_RETURN_INITIATED(18, "Secure Return Initiated.", "Secure Return Initiated."),
-    RIDER_ASSIGNED_FOR_SECURE_RETURN(19, "Delivery Partner Assigned", "Delivery Partner Assigned"),
-    ITEMS_PICKED_UP_FOR_SECURE_RETURN(20, "Items Picked Up For Secure Return.", "Items Picked Up For Secure Return."),
-    SECURE_RETURN_COMPLETED(21, "Secure Return Completed.", "Secure Return Completed."),
-    SECURE_RETURN_FAILED(22, "Secure Return Failed.", "Secure Return Failed."),
-    ITEM_SECURED(23, "Item Secured.", "Item Secured."),
+	REFUND_FAILED(15, "Refund Failed", "Refund Failed"),
+	STORE_NOT_OPERATIONAL(16, "Order Placed", "Store not operational"),
+	SECURE_RETURN_SCHEDULED(17, "SecuRe Return Scheduled", "SecuRe Return Scheduled"),
+	SECURE_RETURN_INITIATED(18, "SecuRe Return Initiated", "SecuRe Return Initiated"),
+    ORDER_CANCELLED_FOR_SECURE_RETURN(19, "SecuRe Return Scheduled", "SecuRe Return Scheduled"),
+    RIDER_ASSIGNED_FOR_SECURE_RETURN(20, "Delivery Partner Assigned", "Delivery Partner Assigned"),
+    ITEMS_PICKED_UP_FOR_SECURE_RETURN(21, "Items Picked Up For SecuRe Return", "Items Picked Up For SecuRe Return"),
+    SECURE_RETURN_COMPLETED(22, "SecuRe Return Completed", "SecuRe Return Completed"),
+    SECURE_RETURN_FAILED(23, "SecuRe Return Failed", "SecuRe Return Failed"),
+    ITEM_SECURED(24, "Item SecuRe", "Item SecuRe"),
     ;
 	// @formatter:on
 
