@@ -17,7 +17,7 @@ public enum OrderStatus {
 
 	
 	ORDER_PLACED(0, "Order Placed", "Order Placed"),
-	TRANSACTION_PROCESSED(1, "Payment Processed", "Payment Processed"),
+	TRANSACTION_PROCESSED(1, "Payment Success", "Payment Success"),
 	ORDER_ACCEPTED(2, "Order Confirmed", "Seller Accepted"),
 	READY_FOR_PICK_UP(3, "Ready For Pick Up", "Ready For Pick Up"), // SELLER - Ready for pick up
 	RIDER_ASSIGNED(4, "Delivery Partner Assigned", "Delivery Partner Assigned"), // Delivery partner accepts the order
