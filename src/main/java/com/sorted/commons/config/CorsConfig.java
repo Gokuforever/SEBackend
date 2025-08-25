@@ -1,5 +1,6 @@
 package com.sorted.commons.config;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
+@Log4j2
 @Configuration
 public class CorsConfig {
 
@@ -19,7 +22,9 @@ public class CorsConfig {
 	public CorsFilter corsFilter() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+		List<String> domains = Arrays.asList(allowedOrigins.split(","));
+		log.info("Allowed origins: {}", domains);
+		config.setAllowedOrigins(domains);
 
 		config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
 		config.addAllowedHeader("*"); // Allow all headers
