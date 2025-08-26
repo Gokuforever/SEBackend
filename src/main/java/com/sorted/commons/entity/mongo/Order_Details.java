@@ -37,6 +37,8 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String user_id;
     private String payment_mode;
     private String pg_order_id;
+    private Long delivery_charges;
+    private Long total_items_cost;
     private Long total_amount;
     private OrderStatus status;
     private Integer status_id;
@@ -86,9 +88,14 @@ public class Order_Details extends BaseMongoEntity<String> {
         this.status_id = status.getId();
     }
 
-    private void setStatus(OrderStatus status) {}
-    private void setStatus_id(Integer status_id) {}
-    private void setStatus_id(int status_id) {}
+    private void setStatus(OrderStatus status) {
+    }
+
+    private void setStatus_id(Integer status_id) {
+    }
+
+    private void setStatus_id(int status_id) {
+    }
 
     @JsonIgnore
     public void setFare_details(FareDetails fare_details) {

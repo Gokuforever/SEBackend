@@ -35,8 +35,8 @@ public class Invoice extends BaseMongoEntity<String>{
     private List<InvoiceItem> items;
     @Field("total_amount")
     private BigDecimal totalAmount;
-    @Field("total_gst_amount")
-    private BigDecimal totalGstAmount;
+    @Field("delivery_charge")
+    private BigDecimal deliveryCharge;
     @Field("total_net_amount")
     private BigDecimal totalNetAmount;
     @Field("total_amount_in_words")

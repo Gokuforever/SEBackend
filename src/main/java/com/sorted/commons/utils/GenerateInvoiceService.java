@@ -109,7 +109,7 @@ public class GenerateInvoiceService {
                         .build())
                 .items(invoiceItems)
                 .totalAmount(CommonUtils.paiseToRupee(orderDetails.getTotal_amount()))
-                .totalGstAmount(BigDecimal.ZERO)
+                .deliveryCharge(CommonUtils.paiseToRupee(orderDetails.getEstimated_delivery_charges() == null ? 0L : orderDetails.getEstimated_delivery_charges()))
                 .totalNetAmount(CommonUtils.paiseToRupee(orderDetails.getTotal_amount()))
                 .totalAmountInWords(IndianCurrencyConverter.convertToWords(CommonUtils.paiseToRupee(orderDetails.getTotal_amount()).doubleValue()))
                 .paymentInfo(PaymentInfo.builder()

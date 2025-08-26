@@ -193,7 +193,7 @@ public class InvoicePdfGenerator {
 
         // Subtotal and tax rows
         addTotalRow(table, "Sub Total:", "₹" + invoice.getTotalAmount().toString(), regularFont, Color.WHITE);
-        addTotalRow(table, "GST:", "₹" + invoice.getTotalGstAmount().toString(), regularFont, Color.WHITE);
+        addTotalRow(table, "Delivery Charges:", "₹" + invoice.getDeliveryCharge().toString(), regularFont, Color.WHITE);
 
         // Final total with emphasis
         addTotalRow(table, "TOTAL AMOUNT:", "₹" + invoice.getTotalNetAmount().toString(), boldFont, LIGHT_PURPLE);
