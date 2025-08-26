@@ -81,21 +81,21 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
     @Override
     default T repoFindOne(SEFilter f) {
         Query query = buildQuery(f);
-        logger.info("query:: " + query);
+        logger.info("query:: {}, entity:: {}", query, getEntityType());
         return StaticMongoAccessor.MONGO_TEMPLATE.findOne(query, getEntityType());
     }
 
     @Override
     default List<T> repoFind(SEFilter f) {
         Query query = buildQuery(f);
-        logger.info("query:: " + query);
+                logger.info("query:: {}, entity:: {}", query, getEntityType());
         return StaticMongoAccessor.MONGO_TEMPLATE.find(query, getEntityType());
     }
 
     @Override
     default long countByFilter(SEFilter f) {
         Query query = buildQuery(f);
-        logger.info("query:: " + query);
+                logger.info("query:: {}, entity:: {}", query, getEntityType());
         return StaticMongoAccessor.MONGO_TEMPLATE.count(query, getEntityType());
     }
 
@@ -124,7 +124,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 
     default List<T> random(SEFilter f, long count) {
         Query query = buildQuery(f);
-        logger.info("query:: " + query);
+                logger.info("query:: {}, entity:: {}", query, getEntityType());
         // Get the native MongoDB collection
         MongoCollection<Document> collection = StaticMongoAccessor.MONGO_TEMPLATE.getCollection(
                 StaticMongoAccessor.MONGO_TEMPLATE.getCollectionName(this.getEntityType())
