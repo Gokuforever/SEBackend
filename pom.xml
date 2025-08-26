@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sorted</groupId>
     <artifactId>se-commons</artifactId>
-    <version>25.08.35-SNAPSHOT</version>
+    <version>25.08.36-SNAPSHOT</version>
     <name>se-commons</name>
     <description>Common utilities and components library</description>
     <properties>
