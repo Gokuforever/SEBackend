@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sorted</groupId>
     <artifactId>se-commons</artifactId>
-    <version>25.08.37-SNAPSHOT</version>
+    <version>25.08.38-SNAPSHOT</version>
     <name>se-commons</name>
     <description>Common utilities and components library</description>
     <properties>
@@ -109,6 +109,11 @@
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>1.12.683</version> <!-- Latest stable as of June 2025 -->
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.amazonaws</groupId>-->
+<!--            <artifactId>aws-java-sdk-sns</artifactId>-->
+<!--            <version>1.12.683</version> &lt;!&ndash; AWS SNS SDK for SMS messaging &ndash;&gt;-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>

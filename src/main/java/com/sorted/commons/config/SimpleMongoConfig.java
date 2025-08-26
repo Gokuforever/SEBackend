@@ -20,7 +20,12 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Date;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -78,6 +83,27 @@ public class SimpleMongoConfig {
         @Override
         public BigDecimal convert(@NonNull Decimal128 source) {
             return source.bigDecimalValue();
+        }
+    }
+
+    // ---------- LocalDateTime (IST) <-> Date ----------
+    @WritingConverter
+    private static class LocalDateTimeWriteConverter implements Converter<LocalDateTime, Date> {
+        @Override
+        public Date convert(@NonNull LocalDateTime source) {
+            // Convert IST LocalDateTime → Instant (UTC) → Date
+            ZonedDateTime zdt = source.atZone(ZoneId.of("Asia/Kolkata"));
+            return Date.from(zdt.toInstant());
+        }
+    }
+
+    @ReadingConverter
+    private static class LocalDateTimeReadConverter implements Converter<Date, LocalDateTime> {
+        @Override
+        public LocalDateTime convert(@NonNull Date source) {
+            // Convert UTC Date → Instant → IST LocalDateTime
+            Instant instant = source.toInstant();
+            return instant.atZone(ZoneId.of("Asia/Kolkata")).toLocalDateTime();
         }
     }
 
