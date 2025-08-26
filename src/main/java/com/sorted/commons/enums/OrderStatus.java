@@ -32,7 +32,7 @@ public enum OrderStatus {
 	PENDING_REFUND(13, "Refund Pending", "Refund Pending"),
 	REFUND_REQUESTED(14, "Refund Requested", "Refund Requested"),
 	REFUND_FAILED(15, "Refund Failed", "Refund Failed"),
-	STORE_NOT_OPERATIONAL(16, "Order Placed", "Store not operational"),
+	STORE_NOT_OPERATIONAL(16, "Payment Success", "Store not operational"),
 	SECURE_RETURN_SCHEDULED(17, "SecuRe Return Scheduled", "SecuRe Return Scheduled"),
 	SECURE_RETURN_INITIATED(18, "SecuRe Return Initiated", "SecuRe Return Initiated"),
     ORDER_CANCELLED_FOR_SECURE_RETURN(19, "SecuRe Return Scheduled", "SecuRe Return Scheduled"),
