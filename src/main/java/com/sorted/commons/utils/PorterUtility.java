@@ -157,14 +157,14 @@ public class PorterUtility {
 //                    "\"tracking_url\": \"https://porter.in/track_live_order?booking_id=CRN" + order.getRequest_id() + "&customer_uuid=0337fe22-0745-4d5c-8514-3003912be89a\"}";
 //            response = new ResponseEntity<>(mockResponse, HttpStatus.OK);
 //        } else {
-            // Make the POST request
-            try {
-                response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            } catch (HttpServerErrorException.InternalServerError ex) {
-                log.error("Exception occurred with message: {}", ex.getMessage(), ex);
-                String responseBody = ex.getResponseBodyAsString();
-                extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        // Make the POST request
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        } catch (HttpServerErrorException.InternalServerError ex) {
+            log.error("Exception occurred with message: {}", ex.getMessage(), ex);
+            String responseBody = ex.getResponseBodyAsString();
+            extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
 //        }
 
@@ -277,8 +277,8 @@ public class PorterUtility {
 //                    "}";
 //            response = new ResponseEntity<>(mockResponse, HttpStatus.OK);
 //        } else {
-            // Make the GET request
-            response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        // Make the GET request
+        response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
 //        }
         // Print the response
         log.info("Response:: " + response.getBody());
@@ -355,9 +355,9 @@ public class PorterUtility {
 //            httpStatus = HttpStatus.OK;
 //            responseBody = "{\"vehicles\":[{\"type\":\"Tata 407\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":84621},\"capacity\":{\"value\":2500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}},{\"type\":\"Ace (Helper + 1 Labour)\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":54275},\"capacity\":{\"value\":750.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":7.0,\"unit\":\"ft\"},\"breadth\":{\"value\":4.5,\"unit\":\"ft\"},\"height\":{\"value\":5.5,\"unit\":\"ft\"}}},{\"type\":\"3 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":36697},\"capacity\":{\"value\":500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":6.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.0,\"unit\":\"ft\"},\"height\":{\"value\":5.0,\"unit\":\"ft\"}}},{\"type\":\"2 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":8556},\"capacity\":{\"value\":20.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}}]}";
 //        } else {
-            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            httpStatus = HttpStatus.resolve(response.getStatusCode().value());
-            responseBody = response.getBody();
+        response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+        responseBody = response.getBody();
 //        }
 
         third_Party_Api.setRaw_response(responseBody);
@@ -772,7 +772,7 @@ public class PorterUtility {
         }
     }
 
-    public GetQuoteResponse getEstimateDeliveryAmount(String pickup_address_id, String delivery_address_id, String mobile, String customerName) throws JsonProcessingException {
+    public GetQuoteResponse getEstimateDeliveryAmount(String pickup_address_id, String delivery_address_id, String customerName) throws JsonProcessingException {
         Optional<Address> deliveryAddress = addressService.findById(pickup_address_id);
         if (deliveryAddress.isEmpty()) {
             throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
@@ -781,7 +781,9 @@ public class PorterUtility {
         if (pickUpAddress.isEmpty()) {
             throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
         }
-        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress.get(), deliveryAddress.get(), mobile, customerName);
+        Address address = deliveryAddress.get();
+        String mobile = StringUtils.hasText(address.getPhone_no()) ? address.getPhone_no() : "9867292392";
+        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress.get(), address, mobile, customerName);
         return this.getQuote(getQuoteRequest, "/cart/fetch");
     }
 }
