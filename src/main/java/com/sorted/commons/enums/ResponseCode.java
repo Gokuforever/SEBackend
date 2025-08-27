@@ -230,6 +230,7 @@ public enum ResponseCode {
 	MANDATE_COMBO_PRICE("SE_0212", "Missing combo price.", "Missing combo price."),
 	INVALID_PRODUCT_IDS("SE_0213", "Invalid products selected.", "Invalid products selected."),
 	MISSING_DESCRIPTION("SE_0214", "Description is missing.", "Description is missing."),
+	RESTRICTED_LOCATION("SE_0215", "Restricted drop location.", "Restricted drop location."),
 	;
 	// @formatter:on
 
