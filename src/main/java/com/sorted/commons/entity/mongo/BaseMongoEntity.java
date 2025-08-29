@@ -29,7 +29,7 @@ public abstract class BaseMongoEntity<K> implements Serializable {
 	 */
 	@Serial
 	private static final long serialVersionUID = 1L;
-	@Setter(AccessLevel.PRIVATE)
+//	@Setter(AccessLevel.PRIVATE)
 	private K id;
 	@Setter(AccessLevel.PRIVATE)
 	@Indexed
