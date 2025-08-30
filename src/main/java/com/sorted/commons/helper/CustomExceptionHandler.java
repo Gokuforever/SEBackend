@@ -2,6 +2,7 @@ package com.sorted.commons.helper;
 
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.BadRequestException;
+import com.sorted.commons.exceptions.BaseException;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpHeaders;
@@ -15,8 +16,8 @@ import org.springframework.web.server.ResponseStatusException;
 @ControllerAdvice
 public class CustomExceptionHandler {
 
-    @ExceptionHandler(CustomIllegalArgumentsException.class)
-    public ResponseEntity<Object> handleCustomIllegalArgumentsException(CustomIllegalArgumentsException e) {
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<Object> handleCustomIllegalArgumentsException(BaseException e) {
         log.error("CustomIllegalArgumentsException caught - Message: {}, ResponseCode: {}, HttpStatus: {}",
                 e.getMessage(), e.getResponseCode(), e.getHttpStatus());
 

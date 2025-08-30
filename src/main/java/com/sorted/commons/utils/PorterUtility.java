@@ -378,12 +378,13 @@ public class PorterUtility {
                 }
                 throw new CustomIllegalArgumentsException(porterErrorMessage);
             case UNPROCESSABLE_ENTITY:
-                String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : httpStatus.getReasonPhrase();
-                log.error("Exception occurred:: message: {}", message);
-                if (message.equals("restricted drop location")) {
                     throw new DeliveryNotAvailableException();
-                }
-                throw new CustomIllegalArgumentsException(message);
+//                String restricted_location = jsonResponse.has("type") ? jsonResponse.get("type").getAsString(): "restricted_location";
+//                String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : httpStatus.getReasonPhrase();
+//                log.error("Exception occurred:: message: {}", message);
+//                if (message.equals("restricted drop location")) {
+//                }
+//                throw new CustomIllegalArgumentsException(message);
             default:
                 String type1 = jsonResponse.has("type") ? jsonResponse.get("type").getAsString() : null;
                 String message1 = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : null;
