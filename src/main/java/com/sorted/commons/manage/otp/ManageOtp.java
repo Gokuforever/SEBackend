@@ -16,13 +16,17 @@ import com.sorted.commons.helper.AggregationFilter.*;
 import com.sorted.commons.utils.CommonUtils;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -116,16 +120,17 @@ public class ManageOtp {
         smsPool.setMobile_no(mobileNumber);
         smsPool.setContent(content);
         smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
-        if ("prod".equalsIgnoreCase(profile)) {
+        if ("local".equalsIgnoreCase(profile)) {
             try {
-                String body = "{\"route\":\"dlt\",\"sender_id\":\"STDZ\",\"message\":\"" + content + "\",\"variables_values\":\"111111\",\"numbers\":\"" +
-                        mobileNumber + "\",\"flash\":\"0\"}";
-//                String body = "{\r\n    \"route\": \"dlt\",\r\n    \"variables_values\": \"" + content
-//                        + "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
-                WebClient webClient = WebClient.create("https://www.fast2sms.com/dev/bulkV2");
-                String response = webClient.post().uri("").header(HttpHeaders.AUTHORIZATION, sms_auth_token)
-                        .contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().bodyToMono(String.class)
-                        .block();
+                // Approach 1: Using RestTemplate (Most reliable for form data)
+                RestTemplate restTemplate = new RestTemplate();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+                headers.set("Authorization", sms_auth_token);
+
+                HttpEntity<MultiValueMap<String, String>> request = getMultiValueMapHttpEntity(mobileNumber, content, headers);
+                String response = restTemplate.postForObject("https://www.fast2sms.com/dev/bulkV2", request, String.class);
                 log.info("response:: " + response);
                 smsPool.setRaw_response(response);
                 if (response != null) {
@@ -143,6 +148,20 @@ public class ManageOtp {
             smsPool.set_sent(true);
         }
         smsPool_Service.update(smsPool.getId(), smsPool, Defaults.SMS_SERVICE);
+    }
+
+    @NotNull
+    private static HttpEntity<MultiValueMap<String, String>> getMultiValueMapHttpEntity(@NotNull String mobileNumber, @NotNull String content, HttpHeaders headers) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("sender_id", "STDZ");
+        formData.add("message", "197532");
+        formData.add("template_id", "1207175648734415953");
+        formData.add("entity_id", "1201175208011209565");
+        formData.add("route", "dlt");
+        formData.add("numbers", mobileNumber);
+        formData.add("variables_values", content);
+
+        return new HttpEntity<>(formData, headers);
     }
 
     public String resendOtp(@NonNull ProcessType process, @NonNull String uuid, @NonNull String entity_id) {
