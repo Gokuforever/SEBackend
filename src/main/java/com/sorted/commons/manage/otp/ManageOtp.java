@@ -120,7 +120,7 @@ public class ManageOtp {
         smsPool.setMobile_no(mobileNumber);
         smsPool.setContent(content);
         smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
-        if ("local".equalsIgnoreCase(profile)) {
+        if ("prod".equalsIgnoreCase(profile)) {
             try {
                 // Approach 1: Using RestTemplate (Most reliable for form data)
                 RestTemplate restTemplate = new RestTemplate();
