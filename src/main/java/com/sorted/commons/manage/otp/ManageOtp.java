@@ -118,8 +118,10 @@ public class ManageOtp {
         smsPool = smsPool_Service.create(smsPool, Defaults.SMS_SERVICE);
         if ("prod".equalsIgnoreCase(profile)) {
             try {
-                String body = "{\r\n    \"route\": \"otp\",\r\n    \"variables_values\": \"" + content
-                        + "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
+                String body = "{\"route\":\"dlt\",\"sender_id\":\"STDZ\",\"message\":\"" + content + "\",\"variables_values\":\"111111\",\"numbers\":\"" +
+                        mobileNumber + "\",\"flash\":\"0\"}";
+//                String body = "{\r\n    \"route\": \"dlt\",\r\n    \"variables_values\": \"" + content
+//                        + "\",\r\n    \"numbers\": \"" + mobileNumber + "\"\r\n}";
                 WebClient webClient = WebClient.create("https://www.fast2sms.com/dev/bulkV2");
                 String response = webClient.post().uri("").header(HttpHeaders.AUTHORIZATION, sms_auth_token)
                         .contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().bodyToMono(String.class)
