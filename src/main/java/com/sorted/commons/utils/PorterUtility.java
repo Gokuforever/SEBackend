@@ -98,8 +98,8 @@ public class PorterUtility {
     @Value("${porter.error.message}")
     private String porterErrorMessage;
 
-    public GetQuoteResponse getDeliveryQuote(GetQuoteRequest request, String cudBy) {
-        return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_GET_QUOTE, request, () -> this.getQuote(request, cudBy));
+    public GetQuoteResponse getDeliveryQuote(GetQuoteRequest request) {
+        return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_GET_QUOTE, request, () -> this.getQuote(request));
     }
 
     public CreateOrderResBean createOrderForPickup(CreateOrderBean order) {
@@ -305,7 +305,7 @@ public class PorterUtility {
                 .build();
     }
 
-    private GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) {
+    private GetQuoteResponse getQuote(GetQuoteRequest quoteRequest) {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = porterBaseUrl + porterGetQuoteEndpoint;
