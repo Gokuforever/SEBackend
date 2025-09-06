@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public class Otp extends BaseMongoEntity<String> {
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private String otp_value;
@@ -31,9 +33,7 @@ public class Otp extends BaseMongoEntity<String> {
 	private Integer resend_attempt;
 	private String mobile_no;
 	private String email_id;
-	private String entity_id;
 	private String uuid = UUID.randomUUID().toString();
-	private EntityDetails entity_type;
 	private LocalDateTime expiry_at;
 	private LocalDateTime verified_at;
 	private List<Attempt_Details> attempt_details;

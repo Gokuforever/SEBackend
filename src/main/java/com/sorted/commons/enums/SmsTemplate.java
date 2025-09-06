@@ -5,7 +5,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ProcessType {
+public enum SmsTemplate {
 
-	SIGN_UP, SIGN_IN, FORGOT_PASS, SELLER_ONBOARDING, UPDATE_PASS, AUTH;
+    OTP( "197532"),
+    NEW_ORDER( "197532"),
+    ;
+
+    private final String templateId;
 }
