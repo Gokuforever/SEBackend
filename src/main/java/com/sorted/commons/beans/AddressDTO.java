@@ -29,6 +29,8 @@ public class AddressDTO implements Serializable {
     private BigDecimal lat;
     private BigDecimal lng;
     private String phone_no;
+    private String first_name;
+    private String last_name;
 
     @JsonIgnore
     public String getFullAddress() {

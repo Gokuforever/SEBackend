@@ -231,6 +231,8 @@ public enum ResponseCode {
 	INVALID_PRODUCT_IDS("SE_0213", "Invalid products selected.", "Invalid products selected."),
 	MISSING_DESCRIPTION("SE_0214", "Description is missing.", "Description is missing."),
 	RESTRICTED_LOCATION("SE_0215", "Restricted drop location.", "Restricted drop location."),
+	MANDATE_FIRST_NAME("SE_0216","First name is missing.", "First name is missing."),
+	MANDATE_LAST_NAME("SE_0217","Last name is missing.", "Last name is missing."),
 	;
 	// @formatter:on
 

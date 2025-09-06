@@ -24,32 +24,25 @@ public class ValidationUtil {
         BigDecimal lat = address.getLat();
         BigDecimal lng = address.getLng();
         String address_type_desc = address.getAddress_type_desc();
+        String firstName = address.getFirst_name();
+        String lastName = address.getLast_name();
 
-        if (!StringUtils.hasText(street_1)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_STREET);
-        }
+        Preconditions.check(StringUtils.hasText(firstName), ResponseCode.MANDATE_FIRST_NAME);
+        Preconditions.check(StringUtils.hasText(lastName), ResponseCode.MANDATE_FIRST_NAME);
+        Preconditions.check(StringUtils.hasText(street_1), ResponseCode.MANDATE_STREET);
+        Preconditions.check(StringUtils.hasText(landmark), ResponseCode.MANDATE_LANDMARK);
+        Preconditions.check(StringUtils.hasText(city), ResponseCode.MANDATE_CITY);
+        Preconditions.check(StringUtils.hasText(state), ResponseCode.MANDATE_STATE);
+        Preconditions.check(StringUtils.hasText(pincode), ResponseCode.MANDATE_PINCODE);
+        Preconditions.check(SERegExpUtils.isPincode(pincode), ResponseCode.INVALID_PINCODE);
+
         street_1 = trimAndValidateLength(street_1, ResponseCode.INVALID_STREET);
         if (StringUtils.hasText(street_2)) {
             street_2 = trimAndValidateLength(street_2, ResponseCode.INVALID_STREET_2);
         }
-        if (!StringUtils.hasText(landmark)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_LANDMARK);
-        }
         landmark = trimAndValidateLength(landmark, ResponseCode.INVALID_LANDMARK);
-        if (!StringUtils.hasText(city)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_CITY);
-        }
         city = trimAndValidateLength(city, ResponseCode.INVALID_CITY);
-        if (!StringUtils.hasText(state)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_STATE);
-        }
         state = trimAndValidateLength(state, ResponseCode.INVALID_STATE);
-        if (!StringUtils.hasText(pincode)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_PINCODE);
-        }
-        if (!SERegExpUtils.isPincode(pincode)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_PINCODE);
-        }
         AddressType address_type = AddressType.getByName(address.getAddress_type());
         if (address_type == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ADDRESS_TYPE);
@@ -74,6 +67,8 @@ public class ValidationUtil {
             address_type_desc = null;
         }
 
+        address2.setFirstName(firstName.trim());
+        address2.setLastName(lastName.trim());
         address2.setStreet_1(street_1);
         address2.setStreet_2(street_2);
         address2.setLandmark(landmark);
@@ -104,26 +99,11 @@ public class ValidationUtil {
         String ifsc_code = bank_details.getIfsc_code();
         String branch_name = bank_details.getBranch_name();
         String bank_name = bank_details.getBank_name();
-        if (!StringUtils.hasText(account_number)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_ACC_NO);
-        }
-        // TODO: validate account number
-        if (!StringUtils.hasText(ifsc_code)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_IFSC);
-        }
-        // TODO: validate IFSC code
-        if (!StringUtils.hasText(branch_name)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_BRANCH_NAME);
-        }
-        if (SERegExpUtils.isAlphabeticStringWithSpaces(branch_name)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_BRANCH_NAME);
-        }
-        if (!StringUtils.hasText(bank_name)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.MANDATE_BANK_NAME);
-        }
-        if (SERegExpUtils.isAlphabeticStringWithSpaces(bank_name)) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_BANK_NAME);
-        }
+
+        Preconditions.check(StringUtils.hasText(account_number), ResponseCode.MANDATE_ACC_NO);
+        Preconditions.check(StringUtils.hasText(ifsc_code), ResponseCode.MANDATE_IFSC);
+        Preconditions.check(StringUtils.hasText(branch_name), ResponseCode.MANDATE_BRANCH_NAME);
+        Preconditions.check(StringUtils.hasText(bank_name), ResponseCode.MANDATE_BANK_NAME);
     }
 
 }

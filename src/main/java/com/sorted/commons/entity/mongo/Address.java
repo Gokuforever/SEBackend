@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.math.BigDecimal;
@@ -35,6 +37,15 @@ public class Address extends BaseMongoEntity<String> {
     private BigDecimal lng;
     private String phone_no;
     private Boolean is_default;
+    @Field("first_name")
+    private String firstName;
+    @Field("last_name")
+    private String lastName;
+
+    public String getFullName() {
+        if (!StringUtils.hasText(firstName)) return null;
+        return firstName + " " + lastName;
+    }
 
     public Address(Address address, UserType userType, String entityId) {
         this.street_1 = address.getStreet_1();
