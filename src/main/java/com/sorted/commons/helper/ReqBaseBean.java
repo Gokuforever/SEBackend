@@ -12,7 +12,6 @@ import lombok.Setter;
 public class ReqBaseBean {
 
 	protected String req_user_id;
-	protected String req_role_id;
 	protected int page;
 	protected int size;
 }

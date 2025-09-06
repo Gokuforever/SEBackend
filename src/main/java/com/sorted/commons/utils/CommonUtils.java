@@ -44,7 +44,7 @@ public class CommonUtils {
         return sb.toString();
     }
 
-    public static String getFormattedDateForId(){
+    public static String getFormattedDateForId() {
         LocalDate date = LocalDate.now();  // Current date
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
         return date.format(formatter);
@@ -91,12 +91,10 @@ public class CommonUtils {
     public static <T extends ReqBaseBean> void extractHeaders(HttpServletRequest httpServletRequest, T bean) {
         try {
             String req_user_id = httpServletRequest.getHeader("req_user_id");
-            String req_role_id = httpServletRequest.getHeader("req_role_id");
-            if (!StringUtils.hasText(req_user_id) || !StringUtils.hasText(req_role_id)) {
+            if (!StringUtils.hasText(req_user_id)) {
                 throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
             }
             bean.setReq_user_id(req_user_id);
-            bean.setReq_role_id(req_role_id);
         } catch (Exception e2) {
             throw new CustomIllegalArgumentsException(ResponseCode.ACCESS_DENIED);
         }
