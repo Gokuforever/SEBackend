@@ -6,14 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sorted.commons.beans.DeliveryRequestAttempts;
-import com.sorted.commons.beans.NearestSellerRes;
 import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.*;
-import com.sorted.commons.entity.service.*;
-import com.sorted.commons.enums.All_Status.Seller_Status;
+import com.sorted.commons.entity.service.Order_Details_Service;
+import com.sorted.commons.entity.service.Order_Item_Service;
+import com.sorted.commons.entity.service.Users_Service;
 import com.sorted.commons.enums.MailTemplate;
 import com.sorted.commons.enums.OrderStatus;
 import com.sorted.commons.enums.ResponseCode;
+import com.sorted.commons.enums.ThirdPartyAPIType;
 import com.sorted.commons.exceptions.BadRequestException;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.exceptions.DeliveryNotAvailableException;
@@ -23,6 +24,7 @@ import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.helper.MailBuilder;
 import com.sorted.commons.helper.OrderTemplateHelper;
 import com.sorted.commons.helper.SEResponse;
+import com.sorted.commons.helper.ThirdPartAPITraceHelper;
 import com.sorted.commons.notifications.EmailSenderImpl;
 import com.sorted.commons.porter.req.beans.CreateOrderBean;
 import com.sorted.commons.porter.req.beans.GetQuoteRequest;
@@ -42,7 +44,6 @@ import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.Fare.FareBui
 import com.sorted.commons.porter.res.beans.GetQuoteResponse.Vehicle.VehicleBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -52,13 +53,9 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -67,19 +64,14 @@ public class PorterUtility {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final Order_Details_Service order_Details_Service;
-    private final Third_Party_Api_Service third_Party_Api_Service;
-    private final Address_Service address_Service;
-    private final Seller_Service seller_Service;
-    private final Pincode_Master_Service pincode_Master_Service;
-    private final StoreActivityService storeActivityService;
     private final Users_Service usersService;
     private final EmailSenderImpl emailSenderImpl;
     private final OrderTemplateHelper orderTemplateHelper;
     private final Order_Item_Service order_Item_Service;
-    private final Address_Service addressService;
-    private final DemandingPincodeService demandingPincodeService;
     private final GenerateInvoiceService generateInvoiceService;
     private final InternalMailService internalMailService;
+    private final ThirdPartAPITraceHelper traceHelper;
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
     @Value("${se.porter.store.operational.check.enabled:false}")
@@ -106,7 +98,19 @@ public class PorterUtility {
     @Value("${porter.error.message}")
     private String porterErrorMessage;
 
-    public CreateOrderResBean createOrder(CreateOrderBean order) throws JsonProcessingException {
+    public GetQuoteResponse getDeliveryQuote(GetQuoteRequest request, String cudBy) {
+        return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_GET_QUOTE, request, () -> this.getQuote(request, cudBy));
+    }
+
+    public CreateOrderResBean createOrderForPickup(CreateOrderBean order) {
+        return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_CREATE_ORDER, order, () -> this.createOrder(order));
+    }
+
+    public FetchOrderRes getOrderStatus(String porterOrderId) {
+        return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_GET_ORDER_STATUS, porterOrderId, () -> this.getOrder(porterOrderId));
+    }
+
+    private CreateOrderResBean createOrder(CreateOrderBean order) {
 
         CreateOrderBean.Address pickup_address = order.getPickup_details().getAddress();
         CreateOrderBean.Address drop_address = order.getDrop_details().getAddress();
@@ -127,7 +131,6 @@ public class PorterUtility {
 
         List<DeliveryRequestAttempts> delivery_request_attempts = CollectionUtils.isEmpty(order_Details.getDelivery_request_attempts()) ? new ArrayList<>() : order_Details.getDelivery_request_attempts();
 
-        RestTemplate restTemplate = new RestTemplate();
         String url = porterBaseUrl + porterCreateOrderEndpoint;
 
         // Set the headers
@@ -140,11 +143,6 @@ public class PorterUtility {
 
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
 
-        Third_Party_Api third_Party_Api = new Third_Party_Api();
-        third_Party_Api.setRaw_request(payload);
-        third_Party_Api.setRequest_type("Porter:: create order");
-
-        third_Party_Api = third_Party_Api_Service.create(third_Party_Api, order.getRequest_id());
 
         ResponseEntity<String> response = null;
 //        if (porterResponseMockEnabled) {
@@ -165,7 +163,6 @@ public class PorterUtility {
             String responseBody = ex.getResponseBodyAsString();
             extractError(order_Details, delivery_request_attempts, responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
 //        }
 
         if (response == null) {
@@ -173,9 +170,6 @@ public class PorterUtility {
         }
         assert response != null;
         HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
-        third_Party_Api.setRaw_response(response.getBody());
-        third_Party_Api.setStatus(httpStatus);
-        third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, order.getRequest_id());
 
         if (httpStatus == null) {
             throw new CustomIllegalArgumentsException(porterErrorMessage);
@@ -187,7 +181,12 @@ public class PorterUtility {
                 extractError(order_Details, delivery_request_attempts, response.getBody(), httpStatus);
         }
 
-        JsonNode root = mapper.readTree(response.getBody());
+        JsonNode root;
+        try {
+            root = mapper.readTree(response.getBody());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         CreateOrderResBeanBuilder createOrderResBeanBuilder = CreateOrderResBean.builder();
 
@@ -223,13 +222,12 @@ public class PorterUtility {
         throw new CustomIllegalArgumentsException(porterErrorMessage);
     }
 
-    public FetchOrderRes getOrder(String porter_order_id) {
-        RestTemplate restTemplate = new RestTemplate();
+    private FetchOrderRes getOrder(String porterOrderId) {
 
         // Define the URL
-        String url = porterBaseUrl + porterGetOrderEndpoint + porter_order_id;
+        String url = porterBaseUrl + porterGetOrderEndpoint + porterOrderId;
 
-        String orderId = porter_order_id.substring(3);
+        String orderId = porterOrderId.substring(3);
         // Set up headers
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-api-key", porterApiKey);
@@ -307,7 +305,7 @@ public class PorterUtility {
                 .build();
     }
 
-    public GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) throws JsonProcessingException {
+    private GetQuoteResponse getQuote(GetQuoteRequest quoteRequest, String cudby) {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = porterBaseUrl + porterGetQuoteEndpoint;
@@ -338,11 +336,6 @@ public class PorterUtility {
 //                .build();
 //        // @formatter:on
 
-        Third_Party_Api third_Party_Api = new Third_Party_Api();
-        third_Party_Api.setRaw_request(GsonUtils.getGson().toJson(quoteRequest));
-        third_Party_Api.setRequest_type("Porter:: get quote");
-
-        third_Party_Api = third_Party_Api_Service.create(third_Party_Api, cudby);
 
         // Create the HttpEntity with headers and the request body
         HttpEntity<GetQuoteRequest> request = new HttpEntity<>(quoteRequest, headers);
@@ -360,10 +353,6 @@ public class PorterUtility {
         responseBody = response.getBody();
 //        }
 
-        third_Party_Api.setRaw_response(responseBody);
-        third_Party_Api.setStatus(httpStatus);
-        third_Party_Api_Service.update(third_Party_Api.getId(), third_Party_Api, cudby);
-
         if (httpStatus == null) {
             throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
@@ -378,7 +367,7 @@ public class PorterUtility {
                 }
                 throw new CustomIllegalArgumentsException(porterErrorMessage);
             case UNPROCESSABLE_ENTITY:
-                    throw new DeliveryNotAvailableException();
+                throw new DeliveryNotAvailableException();
 //                String restricted_location = jsonResponse.has("type") ? jsonResponse.get("type").getAsString(): "restricted_location";
 //                String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString() : httpStatus.getReasonPhrase();
 //                log.error("Exception occurred:: message: {}", message);
@@ -393,7 +382,13 @@ public class PorterUtility {
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(responseBody);
+        JsonNode rootNode;
+        try {
+            rootNode = objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException e) {
+            log.error("Error while processing response from porter:: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
         JsonNode vehicles = rootNode.get("vehicles");
         VehicleBuilder vehicleBuilder = Vehicle.builder();
         if (vehicles.isNull() || !vehicles.isArray()) {
@@ -542,87 +537,6 @@ public class PorterUtility {
 
 	    return fareDetailsBuilder.build();
 	}
-	
-	public NearestSellerRes getNearestSeller(String pincode, String mobile_no, String user_name, String user_id)
-			throws JsonProcessingException {
-
-        SEFilter filterP = new SEFilter(SEFilterType.AND);
-        filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
-        filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-
-        Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
-        if (pincode_Master == null) {
-            demandingPincodeService.storeDemandingPincode(pincode, user_id);
-            throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
-        }
-
-		SEFilter filterS = new SEFilter(SEFilterType.AND);
-		filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-		filterS.addClause(WhereClause.eq(Seller.Fields.status, Seller_Status.ACTIVE.name()));
-
-        Map<String, String> map;
-        boolean isStoreOperational = true;
-		List<Seller> listS = seller_Service.repoFind(filterS);
-            if (CollectionUtils.isEmpty(listS)) {
-			throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
-		}
-        List<String> operationalStores = storeActivityService.getOperationalStores(listS.stream().map(Seller::getId).toList());
-        if(operationalStores.isEmpty()) {
-            isStoreOperational = false;
-            operationalStores.addAll(listS.stream().map(Seller::getId).toList());
-        }
-        if (porterStoreOperationalCheckEnabled) {
-            map = listS.stream().filter( e-> operationalStores.contains(e.getId()) && StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
-        } else {
-            map = listS.stream().filter( e-> StringUtils.hasText(e.getAddress_id())).collect(Collectors.toMap(Seller::getAddress_id, BaseMongoEntity::getId));
-        }
-		SEFilter filterA = new SEFilter(SEFilterType.AND);
-		filterA.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(map.keySet())));
-		filterA.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-
-		List<Address> listAdd = address_Service.repoFind(filterA);
-
-		Map<String, Address> mapA = listAdd.stream().collect(Collectors.toMap(BaseMongoEntity::getId, e -> e));
-
-		String nearestSeller = CommonUtils.findNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), listAdd);
-
-		Address address = mapA.get(nearestSeller);
-
-		// @formatter:off
-        GetQuoteRequest quoteRequest = GetQuoteRequest.builder()
-                .pickup_details(GetQuoteRequest.PickupDetails.builder()
-                        .lat(address.getLat().doubleValue())
-                        .lng(address.getLng().doubleValue())
-                        .build())
-                .drop_details(GetQuoteRequest.DropDetails.builder()
-                        .lat(pincode_Master.getLatitude())
-                        .lng(pincode_Master.getLongitude())
-                        .build())
-                .customer(GetQuoteRequest.Customer.builder()
-                        .name(StringUtils.hasText(user_name) ? user_name : "Studeaze")
-                        .mobile(GetQuoteRequest.Customer.Mobile.builder()
-                                .country_code(countryCode)
-                                .number(StringUtils.hasText(mobile_no) ? mobile_no : "9867292392")
-                                .build())
-                        .build())
-                .build();
-        // @formatter:on
-        GetQuoteResponse getQuoteResponse = getQuote(quoteRequest, user_id);
-        return NearestSellerRes.builder().response(getQuoteResponse).seller_id(address.getEntity_id()).is_operational(isStoreOperational).build();
-    }
-
-//    public NearestSellerRes getNearestSeller(String pincode) throws JsonProcessingException {
-//        SEFilter filterP = new SEFilter(SEFilterType.AND);
-//        filterP.addClause(WhereClause.eq(Pincode_Master.Fields.pincode, pincode));
-//        filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-//
-//        Pincode_Master pincode_Master = pincode_Master_Service.repoFindOne(filterP);
-//        if (pincode_Master == null) {
-//            throw new CustomIllegalArgumentsException(ResponseCode.NOT_DELIVERIBLE);
-//        }
-//        return getNearestSeller(pincode_Master.getLatitude(), pincode_Master.getLongitude(), null, null,
-//                "delivery check API");
-//    }
 
     private Status convertStatus(String statusStr) {
         for (Status status : Status.values()) {
@@ -710,7 +624,6 @@ public class PorterUtility {
         }
     }
 
-    @NotNull
     private List<Order_Item> getOrderItems(Order_Details details) {
         SEFilter filterOI = new SEFilter(SEFilterType.AND);
         filterOI.addClause(WhereClause.eq(Order_Item.Fields.order_id, details.getId()));
@@ -771,20 +684,5 @@ public class PorterUtility {
             }
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public GetQuoteResponse getEstimateDeliveryAmount(String pickup_address_id, String delivery_address_id, String customerName) throws JsonProcessingException {
-        Optional<Address> deliveryAddress = addressService.findById(pickup_address_id);
-        if (deliveryAddress.isEmpty()) {
-            throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
-        }
-        Optional<Address> pickUpAddress = addressService.findById(delivery_address_id);
-        if (pickUpAddress.isEmpty()) {
-            throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
-        }
-        Address address = deliveryAddress.get();
-        String mobile = StringUtils.hasText(address.getPhone_no()) ? address.getPhone_no() : "9867292392";
-        GetQuoteRequest getQuoteRequest = this.buildGetQuoteRequest(pickUpAddress.get(), address, mobile, customerName);
-        return this.getQuote(getQuoteRequest, "/cart/fetch");
     }
 }

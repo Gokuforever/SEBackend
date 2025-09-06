@@ -6,6 +6,8 @@ import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.http.HttpStatus;
 
+import java.io.Serial;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
