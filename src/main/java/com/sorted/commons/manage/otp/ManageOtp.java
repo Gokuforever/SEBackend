@@ -36,14 +36,14 @@ public class ManageOtp {
     private final Otp_Service otp_Service;
     private final SmsPool_Service smsPool_Service;
 
-    @Value("${spring.profiles.active}")
-    private String profile;
-
     @Value("${se.portal.otp_length}")
     private int otp_length;
 
     @Value("${fast2sms.auth.token}")
     private String sms_auth_token;
+
+    @Value("${se.enable.sms:false}")
+    private boolean enableSms;
 
     private final SmsTraceHelper smsTraceHelper;
     private final SMSService smsService;
@@ -64,7 +64,7 @@ public class ManageOtp {
 
         Otp otp = new Otp();
         String random_otp;
-        if ("prod".equalsIgnoreCase(profile)) {
+        if (enableSms) {
             random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
         } else {
             random_otp = "1111";
@@ -109,7 +109,7 @@ public class ManageOtp {
     }
 
     private void sendSMS(@NonNull String mobileNumber, @NonNull String content, String cudBy) {
-        if ("prod".equalsIgnoreCase(profile)) {
+        if (enableSms) {
             smsTraceHelper.runWithTrace(List.of(mobileNumber),
                     content,
                     SmsTemplate.OTP,
