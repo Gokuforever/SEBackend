@@ -7,8 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SmsTemplate {
 
-    OTP( "197532"),
-    NEW_ORDER( "197532"),
+    OTP( "197876"),
+    NEW_ORDER( "197875"),
     ;
 
     private final String templateId;
