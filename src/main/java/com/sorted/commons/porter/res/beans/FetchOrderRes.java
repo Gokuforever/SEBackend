@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
@@ -14,12 +15,14 @@ public class FetchOrderRes implements Serializable {
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private String order_id;
 	private Status status;
 	private PartnerInfo partner_info;
 	private OrderTimings order_timings;
 	private FareDetails fare_details;
+	private String trackingLink;
 
 	@Getter
 	@AllArgsConstructor
@@ -33,6 +36,7 @@ public class FetchOrderRes implements Serializable {
 		/**
 		 * 
 		 */
+		@Serial
 		private static final long serialVersionUID = 1L;
 		private String name;
 		private String vehicle_number;

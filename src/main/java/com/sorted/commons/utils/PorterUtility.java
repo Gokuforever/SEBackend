@@ -450,6 +450,7 @@ public class PorterUtility {
 	                .partner_info(partnerInfo)
 	                .order_timings(orderTimings)
 	                .fare_details(fareDetails)
+                    .trackingLink(root.path("tracking_url").asText(null))
 	                .build();
 
 	    } catch (Exception e) {
@@ -548,11 +549,11 @@ public class PorterUtility {
     }
     // @formatter:on
 
-    public void updateOrderStatus(Order_Details details, Status status, FareDetails fareDetails) {
+    public void updateOrderStatus(Order_Details details, FetchOrderRes fetchOrderRes) {
         boolean secureReturn = details.isSecure_return_initiated();
         MailTemplate mailTemplate = null;
         OrderStatus currentOrderStatus = null;
-        switch (status) {
+        switch (fetchOrderRes.getStatus()) {
             case open:
                 currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_INITIATED : OrderStatus.READY_FOR_PICK_UP;
                 break;
@@ -578,6 +579,10 @@ public class PorterUtility {
 
         String invoiceUrl = null;
         if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
+            if (currentOrderStatus.equals(OrderStatus.OUT_FOR_DELIVERY) && fetchOrderRes.getTrackingLink() != null) {
+                // TODO: send tracking link to customer
+            }
+
             List<Order_Item> listOI = getOrderItems(details);
             final OrderStatus finalOrderStatus = currentOrderStatus;
 
@@ -585,7 +590,7 @@ public class PorterUtility {
                 e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
                 order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
             });
-            details.setFare_details(fareDetails);
+            details.setFare_details(fetchOrderRes.getFare_details());
             details.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
             order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
 
@@ -676,7 +681,8 @@ public class PorterUtility {
                 fareDetails.setEstimated_fare_details(FareAmountDetails.builder().minor_amount(response.getOrderDetails().getEstimatedTripFare()).build());
             }
 
-            this.updateOrderStatus(details, status, fareDetails);
+
+            this.updateOrderStatus(details, FetchOrderRes.builder().status(status).fare_details(fareDetails).build());
             return SEResponse.getEmptySuccessResponse(ResponseCode.SUCCESSFUL);
         } catch (Exception e) {
             if (e instanceof BadRequestException) {
