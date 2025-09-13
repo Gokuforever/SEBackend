@@ -2,7 +2,6 @@ package com.sorted.commons.notifications.helper;
 
 import com.sorted.commons.entity.service.SmsTraceService;
 import com.sorted.commons.enums.SmsTemplate;
-import com.sorted.commons.enums.WebhookType;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 

@@ -11,10 +11,7 @@ import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.Order_Details_Service;
 import com.sorted.commons.entity.service.Order_Item_Service;
 import com.sorted.commons.entity.service.Users_Service;
-import com.sorted.commons.enums.MailTemplate;
-import com.sorted.commons.enums.OrderStatus;
-import com.sorted.commons.enums.ResponseCode;
-import com.sorted.commons.enums.ThirdPartyAPIType;
+import com.sorted.commons.enums.*;
 import com.sorted.commons.exceptions.BadRequestException;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.exceptions.DeliveryNotAvailableException;
@@ -26,6 +23,8 @@ import com.sorted.commons.helper.OrderTemplateHelper;
 import com.sorted.commons.helper.SEResponse;
 import com.sorted.commons.helper.ThirdPartAPITraceHelper;
 import com.sorted.commons.notifications.EmailSenderImpl;
+import com.sorted.commons.notifications.SMSService;
+import com.sorted.commons.notifications.helper.SmsTraceHelper;
 import com.sorted.commons.porter.req.beans.CreateOrderBean;
 import com.sorted.commons.porter.req.beans.GetQuoteRequest;
 import com.sorted.commons.porter.req.beans.PorterWebhookBean;
@@ -71,6 +70,8 @@ public class PorterUtility {
     private final GenerateInvoiceService generateInvoiceService;
     private final InternalMailService internalMailService;
     private final ThirdPartAPITraceHelper traceHelper;
+    private final SmsTraceHelper smsTraceHelper;
+    private final SMSService smsService;
     private final RestTemplate restTemplate = new RestTemplate();
 
 
@@ -97,6 +98,9 @@ public class PorterUtility {
 
     @Value("${porter.error.message}")
     private String porterErrorMessage;
+
+    @Value("${se.enable.sms:false}")
+    private boolean enableSms;
 
     public GetQuoteResponse getDeliveryQuote(GetQuoteRequest request) {
         return traceHelper.runWithTrace(ThirdPartyAPIType.PORTER_GET_QUOTE, request, () -> this.getQuote(request));
@@ -579,8 +583,16 @@ public class PorterUtility {
 
         String invoiceUrl = null;
         if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
-            if (currentOrderStatus.equals(OrderStatus.OUT_FOR_DELIVERY) && fetchOrderRes.getTrackingLink() != null) {
-                // TODO: send tracking link to customer
+            if (currentOrderStatus.equals(OrderStatus.OUT_FOR_DELIVERY) && enableSms) {
+                String code = details.getCode();
+                String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
+                String content = firstName + " |" + code + " |" + code;
+                smsTraceHelper.runWithTrace(List.of(details.getDelivery_address().getPhone_no()),
+                        content,
+                        SmsTemplate.ORDER_DISPATCHED,
+                        Defaults.AUTO,
+                        () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), content, SmsTemplate.ORDER_DISPATCHED)
+                );
             }
 
             List<Order_Item> listOI = getOrderItems(details);
@@ -601,32 +613,34 @@ public class PorterUtility {
                     internalMailService.sendMailOnError("Error in generating invoice for order id : " + details.getCode(), "Error in generating invoice for order id : " + details.getCode(), e);
                 }
             }
+
+            if (mailTemplate != null) {
+
+                SEFilter filterU = new SEFilter(SEFilterType.AND);
+                filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+                filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, details.getUser_id()));
+
+                Users user = usersService.repoFindOne(filterU);
+                if (user == null) {
+                    throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+                }
+                String userName = user.getFirst_name() + " " + user.getLast_name();
+                String orderTemplateTable = orderTemplateHelper.getOrderTemplateTable(details);
+
+                String mailContent = userName + "|" + orderTemplateTable;
+
+                MailBuilder builder = new MailBuilder();
+                builder.setTo(user.getEmail_id());
+                builder.setContent(mailContent);
+                builder.setTemplate(mailTemplate);
+                if (invoiceUrl != null) {
+                    builder.setAttachmentUrls(invoiceUrl);
+                }
+                emailSenderImpl.sendEmailHtmlTemplate(builder);
+            }
         }
 
-        if (mailTemplate != null) {
 
-            SEFilter filterU = new SEFilter(SEFilterType.AND);
-            filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-            filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, details.getUser_id()));
-
-            Users user = usersService.repoFindOne(filterU);
-            if (user == null) {
-                throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
-            }
-            String userName = user.getFirst_name() + " " + user.getLast_name();
-            String orderTemplateTable = orderTemplateHelper.getOrderTemplateTable(details);
-
-            String mailContent = userName + "|" + orderTemplateTable;
-
-            MailBuilder builder = new MailBuilder();
-            builder.setTo(user.getEmail_id());
-            builder.setContent(mailContent);
-            builder.setTemplate(mailTemplate);
-            if (invoiceUrl != null) {
-                builder.setAttachmentUrls(invoiceUrl);
-            }
-            emailSenderImpl.sendEmailHtmlTemplate(builder);
-        }
     }
 
     private List<Order_Item> getOrderItems(Order_Details details) {
@@ -680,7 +694,6 @@ public class PorterUtility {
             if (fareDetails.getEstimated_fare_details() == null && response.getOrderDetails().getEstimatedTripFare() != null) {
                 fareDetails.setEstimated_fare_details(FareAmountDetails.builder().minor_amount(response.getOrderDetails().getEstimatedTripFare()).build());
             }
-
 
             this.updateOrderStatus(details, FetchOrderRes.builder().status(status).fare_details(fareDetails).build());
             return SEResponse.getEmptySuccessResponse(ResponseCode.SUCCESSFUL);
