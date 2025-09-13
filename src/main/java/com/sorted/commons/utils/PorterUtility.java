@@ -595,6 +595,18 @@ public class PorterUtility {
                 );
             }
 
+            if (currentOrderStatus.equals(OrderStatus.DELIVERED) && enableSms) {
+                String code = details.getCode();
+                String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
+                String content = firstName + " |" + code;
+                smsTraceHelper.runWithTrace(List.of(details.getDelivery_address().getPhone_no()),
+                        content,
+                        SmsTemplate.DELIVERED,
+                        Defaults.AUTO,
+                        () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), content, SmsTemplate.DELIVERED)
+                );
+            }
+
             List<Order_Item> listOI = getOrderItems(details);
             final OrderStatus finalOrderStatus = currentOrderStatus;
 
