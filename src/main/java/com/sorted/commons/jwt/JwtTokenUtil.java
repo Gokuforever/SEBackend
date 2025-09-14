@@ -33,9 +33,9 @@ public class JwtTokenUtil {
 	private final String SECRET_KEY_STRING = "your_very_long_secret_key_here_12345";
 	private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
 
-	// Define token expiration times
-	private static final long ACCESS_TOKEN_EXPIRATION = 900000; // 1000 * 60 * 15; // 15 minutes
-	private static final long REFRESH_TOKEN_EXPIRATION = 604800000; // 1000 * 60 * 60 * 24 * 7; // 7 days
+	// Define token expiration times in minutes
+	private static final long ACCESS_TOKEN_EXPIRATION_MINUTES = 15; // 15 minutes
+	private static final long REFRESH_TOKEN_EXPIRATION_MINUTES = 43200; // 30 days (30 * 24 * 60)
 
 	public String[] generateToken(String userId) {
 		String accessToken = generateAccessToken(userId);
@@ -56,8 +56,8 @@ public class JwtTokenUtil {
 		details.setReq_user_id(userId);
 		details.setToken(accessToken);
 		details.setRefresh_token(refreshToken);
-		details.setExpiry_datetime(now.plusMinutes(15));
-		
+		details.setExpiry_datetime(now.plusMinutes(ACCESS_TOKEN_EXPIRATION_MINUTES));
+
 		user_Auth_Details_Service.create(details, userId);
 		return new String[] { accessToken, refreshToken };
 	}
@@ -65,19 +65,20 @@ public class JwtTokenUtil {
 	// Generate a token for access (short-lived)
 	private String generateAccessToken(String userId) {
 		Map<String, Object> claims = new HashMap<>();
-		return createToken(claims, userId, ACCESS_TOKEN_EXPIRATION);
+		return createToken(claims, userId, ACCESS_TOKEN_EXPIRATION_MINUTES);
 	}
 
 	// Generate a refresh token (long-lived)
 	private String generateRefreshToken(String userId) {
 		Map<String, Object> claims = new HashMap<>();
-		return createToken(claims, userId, REFRESH_TOKEN_EXPIRATION);
+		return createToken(claims, userId, REFRESH_TOKEN_EXPIRATION_MINUTES);
 	}
 
 	// Create token with expiry
-	private String createToken(Map<String, Object> claims, String subject, long expiration) {
+	private String createToken(Map<String, Object> claims, String subject, long expirationMinutes) {
+		long expirationMillis = expirationMinutes * 60 * 1000;
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + expiration))
+				.setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
 				.signWith(SECRET_KEY, SignatureAlgorithm.HS256).compact();
 	}
 
