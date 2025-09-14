@@ -230,7 +230,7 @@ public enum ResponseCode {
 	MANDATE_COMBO_PRICE("SE_0212", "Missing combo price.", "Missing combo price."),
 	INVALID_PRODUCT_IDS("SE_0213", "Invalid products selected.", "Invalid products selected."),
 	MISSING_DESCRIPTION("SE_0214", "Description is missing.", "Description is missing."),
-	RESTRICTED_LOCATION("SE_0215", "Non-deliverable location. If you’re inside campus or hostel, please select the entry gate.", "Non-deliverable location. If you’re inside campus or hostel, please select the entry gate."),
+	RESTRICTED_LOCATION("SE_0215", "Non-deliverable location. If you’re inside campus or hostel, please select the nearest entry gate.", "Non-deliverable location. If you’re inside campus or hostel, please select the nearest entry gate."),
 	MANDATE_FIRST_NAME("SE_0216","First name is missing.", "First name is missing."),
 	MANDATE_LAST_NAME("SE_0217","Last name is missing.", "Last name is missing."),
 	;
