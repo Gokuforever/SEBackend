@@ -10,6 +10,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -33,9 +34,11 @@ public class JwtTokenUtil {
 	private final String SECRET_KEY_STRING = "your_very_long_secret_key_here_12345";
 	private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
 
-	// Define token expiration times in minutes
-	private static final long ACCESS_TOKEN_EXPIRATION_MINUTES = 15; // 15 minutes
-	private static final long REFRESH_TOKEN_EXPIRATION_MINUTES = 43200; // 30 days (30 * 24 * 60)
+	@Value("${se.portal.jwt.access_token.expiration.in.minutes:15}")
+	private long accessTokenExpirationMinutes;
+
+	@Value("${se.portal.jwt.refresh_token.expiration.in.minutes:43200}")
+	private long refreshTokenExpirationMinutes;
 
 	public String[] generateToken(String userId) {
 		String accessToken = generateAccessToken(userId);
@@ -56,7 +59,7 @@ public class JwtTokenUtil {
 		details.setReq_user_id(userId);
 		details.setToken(accessToken);
 		details.setRefresh_token(refreshToken);
-		details.setExpiry_datetime(now.plusMinutes(ACCESS_TOKEN_EXPIRATION_MINUTES));
+		details.setExpiry_datetime(now.plusMinutes(accessTokenExpirationMinutes));
 
 		user_Auth_Details_Service.create(details, userId);
 		return new String[] { accessToken, refreshToken };
@@ -65,13 +68,13 @@ public class JwtTokenUtil {
 	// Generate a token for access (short-lived)
 	private String generateAccessToken(String userId) {
 		Map<String, Object> claims = new HashMap<>();
-		return createToken(claims, userId, ACCESS_TOKEN_EXPIRATION_MINUTES);
+		return createToken(claims, userId, accessTokenExpirationMinutes);
 	}
 
 	// Generate a refresh token (long-lived)
 	private String generateRefreshToken(String userId) {
 		Map<String, Object> claims = new HashMap<>();
-		return createToken(claims, userId, REFRESH_TOKEN_EXPIRATION_MINUTES);
+		return createToken(claims, userId, refreshTokenExpirationMinutes);
 	}
 
 	// Create token with expiry
