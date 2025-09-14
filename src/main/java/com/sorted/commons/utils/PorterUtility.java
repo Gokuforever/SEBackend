@@ -48,6 +48,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -345,22 +346,30 @@ public class PorterUtility {
         HttpEntity<GetQuoteRequest> request = new HttpEntity<>(quoteRequest, headers);
 
         // Make the POST request
-        ResponseEntity<String> response;
+        ResponseEntity<String> response = null;
         HttpStatus httpStatus;
-        String responseBody;
+        String responseBody = null;
 //        if (porterResponseMockEnabled) {
 //            httpStatus = HttpStatus.OK;
 //            responseBody = "{\"vehicles\":[{\"type\":\"Tata 407\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":84621},\"capacity\":{\"value\":2500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}},{\"type\":\"Ace (Helper + 1 Labour)\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":54275},\"capacity\":{\"value\":750.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":7.0,\"unit\":\"ft\"},\"breadth\":{\"value\":4.5,\"unit\":\"ft\"},\"height\":{\"value\":5.5,\"unit\":\"ft\"}}},{\"type\":\"3 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":36697},\"capacity\":{\"value\":500.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":6.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.0,\"unit\":\"ft\"},\"height\":{\"value\":5.0,\"unit\":\"ft\"}}},{\"type\":\"2 Wheeler\",\"eta\":null,\"fare\":{\"currency\":\"INR\",\"minor_amount\":8556},\"capacity\":{\"value\":20.0,\"unit\":\"kg\"},\"size\":{\"length\":{\"value\":9.0,\"unit\":\"ft\"},\"breadth\":{\"value\":5.5,\"unit\":\"ft\"},\"height\":{\"value\":6.0,\"unit\":\"ft\"}}}]}";
 //        } else {
-        response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        httpStatus = HttpStatus.resolve(response.getStatusCode().value());
-        responseBody = response.getBody();
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            responseBody = response.getBody();
+            httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+        } catch (HttpClientErrorException e) {
+            HttpStatusCode statusCode = e.getStatusCode();
+            httpStatus = HttpStatus.resolve(statusCode.value());
+        }
 //        }
 
         if (httpStatus == null) {
             throw new CustomIllegalArgumentsException(porterErrorMessage);
         }
-        JsonObject jsonResponse = GsonUtils.getGson().fromJson(responseBody, JsonObject.class);
+        JsonObject jsonResponse = new JsonObject();
+        if (responseBody != null) {
+            jsonResponse = GsonUtils.getGson().fromJson(responseBody, JsonObject.class);
+        }
         switch (httpStatus) {
             case OK:
                 break;
@@ -388,6 +397,7 @@ public class PorterUtility {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode;
         try {
+            assert responseBody != null;
             rootNode = objectMapper.readTree(responseBody);
         } catch (JsonProcessingException e) {
             log.error("Error while processing response from porter:: {}", e.getMessage());
