@@ -20,9 +20,16 @@ public class SMSService {
     @Value("${fast2sms.auth.token}")
     private String sms_auth_token;
 
+
+    private final List<String> internalPhones = List.of("9867292392", "9156015331");
+    private final List<SmsTemplate> notifyToInternalTeam = List.of(SmsTemplate.NEW_ORDER);
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String sendSMS(List<String> mobileNumbers, String content, SmsTemplate template) {
+
+        if (notifyToInternalTeam.contains(template)) {
+            mobileNumbers.addAll(internalPhones);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
