@@ -3,11 +3,16 @@ package com.sorted.commons.manage.otp;
 import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Otp;
+import com.sorted.commons.entity.mongo.Role;
+import com.sorted.commons.entity.mongo.Users;
 import com.sorted.commons.entity.service.Otp_Service;
+import com.sorted.commons.entity.service.RoleService;
 import com.sorted.commons.entity.service.SmsPool_Service;
+import com.sorted.commons.entity.service.Users_Service;
 import com.sorted.commons.enums.ProcessType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.enums.SmsTemplate;
+import com.sorted.commons.enums.UserType;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.*;
 import com.sorted.commons.notifications.SMSService;
@@ -27,6 +32,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -34,7 +40,8 @@ import java.util.List;
 public class ManageOtp {
 
     private final Otp_Service otp_Service;
-    private final SmsPool_Service smsPool_Service;
+    private final Users_Service users_Service;
+    private final RoleService roleService;
 
     @Value("${se.portal.otp_length}")
     private int otp_length;
@@ -62,10 +69,22 @@ public class ManageOtp {
             }
         }
 
+        boolean isSeller = false;
+
         Otp otp = new Otp();
         String random_otp;
         if (enableSms) {
-            random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
+            SEFilter filter = new SEFilter(SEFilterType.AND);
+            filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+            filter.addClause(WhereClause.eq(Users.Fields.mobile_no, mobile_number));
+
+            Users users = users_Service.repoFindOne(filter);
+            Optional<Role> optional = roleService.findById(users.getRole_id());
+            if (optional.isPresent()) {
+                Role role = optional.get();
+                isSeller = role.getUser_type().equals(UserType.SELLER);
+            }
+            random_otp = CommonUtils.generateFixedLengthRandomNumber(isSeller ? 6 : otp_length);
         } else {
             random_otp = "1111";
         }
