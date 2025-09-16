@@ -3,16 +3,11 @@ package com.sorted.commons.manage.otp;
 import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Otp;
-import com.sorted.commons.entity.mongo.Role;
-import com.sorted.commons.entity.mongo.Users;
 import com.sorted.commons.entity.service.Otp_Service;
-import com.sorted.commons.entity.service.RoleService;
 import com.sorted.commons.entity.service.SmsPool_Service;
-import com.sorted.commons.entity.service.Users_Service;
 import com.sorted.commons.enums.ProcessType;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.enums.SmsTemplate;
-import com.sorted.commons.enums.UserType;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.*;
 import com.sorted.commons.notifications.SMSService;
@@ -40,8 +35,6 @@ import java.util.Optional;
 public class ManageOtp {
 
     private final Otp_Service otp_Service;
-    private final Users_Service users_Service;
-    private final RoleService roleService;
 
     @Value("${se.portal.otp_length}")
     private int otp_length;
@@ -55,7 +48,7 @@ public class ManageOtp {
     private final SmsTraceHelper smsTraceHelper;
     private final SMSService smsService;
 
-    public String send(@NonNull String mobile_number, @NonNull ProcessType process_type, String cud_by) {
+    public String generateAndSaveOtp(String mobile_number, ProcessType process_type, String cud_by, Integer otpLength) {
         SEFilter filterO = new SEFilter(SEFilterType.AND);
         filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, mobile_number));
         filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
@@ -69,22 +62,10 @@ public class ManageOtp {
             }
         }
 
-        boolean isSeller = false;
-
         Otp otp = new Otp();
         String random_otp;
         if (enableSms) {
-            SEFilter filter = new SEFilter(SEFilterType.AND);
-            filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-            filter.addClause(WhereClause.eq(Users.Fields.mobile_no, mobile_number));
-
-            Users users = users_Service.repoFindOne(filter);
-            Optional<Role> optional = roleService.findById(users.getRole_id());
-            if (optional.isPresent()) {
-                Role role = optional.get();
-                isSeller = role.getUser_type().equals(UserType.SELLER);
-            }
-            random_otp = CommonUtils.generateFixedLengthRandomNumber(isSeller ? 6 : otp_length);
+            random_otp = CommonUtils.generateFixedLengthRandomNumber(otpLength != null ? otpLength : otp_length);
         } else {
             random_otp = "1111";
         }
@@ -150,22 +131,5 @@ public class ManageOtp {
         formData.add("variables_values", content);
 
         return new HttpEntity<>(formData, headers);
-    }
-
-    public String resendOtp(@NonNull ProcessType process, @NonNull String uuid) {
-        SEFilter filterO = new SEFilter(SEFilterType.AND);
-        filterO.addClause(WhereClause.eq(Otp.Fields.process_type, process.name()));
-        filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
-        filterO.addClause(WhereClause.eq(Otp.Fields.is_verified, false));
-        filterO.addClause(WhereClause.eq(Otp.Fields.uuid, uuid));
-        filterO.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-
-        Otp oldOtp = otp_Service.repoFindOne(filterO);
-        if (oldOtp == null) {
-            throw new CustomIllegalArgumentsException(ResponseCode.INVALID_RESEND_REQUEST);
-        }
-        oldOtp.setStatus(false);
-        otp_Service.update(oldOtp.getId(), oldOtp, Defaults.RESEND);
-        return this.send(oldOtp.getMobile_no(), process, Defaults.RESEND);
     }
 }

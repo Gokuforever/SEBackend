@@ -16,7 +16,7 @@ import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.helper.ReqBaseBean;
 import com.sorted.commons.jwt.JwtTokenUtil;
-import com.sorted.commons.manage.otp.ManageOtp;
+import com.sorted.commons.manage.otp.ManageOTPManagerService;
 import com.sorted.commons.repository.mongo.Users_Repository;
 import com.sorted.commons.utils.GsonUtils;
 import lombok.NonNull;
@@ -37,7 +37,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
-    private ManageOtp manageOtp;
+    private ManageOTPManagerService manageOTPManagerService;
 
     @Autowired
     private RoleService roleService;
@@ -93,7 +93,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
         if (role == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.ROLE_MISSING);
         }
-        String uuid = manageOtp.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN);
+        String uuid = manageOTPManagerService.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN);
         OTPResponse response = new OTPResponse();
         response.setReference_id(uuid);
         response.setProcess_type(ProcessType.SIGN_IN.name());
