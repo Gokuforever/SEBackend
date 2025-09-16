@@ -29,6 +29,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -93,7 +94,8 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
         if (role == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.ROLE_MISSING);
         }
-        String uuid = manageOTPManagerService.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN);
+        boolean isSeller = role.getUser_type() != null && role.getUser_type().equals(UserType.SELLER);
+        String uuid = manageOTPManagerService.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN, isSeller);
         OTPResponse response = new OTPResponse();
         response.setReference_id(uuid);
         response.setProcess_type(ProcessType.SIGN_IN.name());
@@ -225,4 +227,42 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
             usersBean.setSeller(seller);
         }
     }
+
+    public boolean isSeller(String req_user_id) {
+        Optional<Users> optional = this.findById(req_user_id);
+        if (optional.isEmpty()) {
+            return false;
+        }
+        Users users = optional.get();
+        return isSellerByRoleId(users.getRole_id());
+    }
+
+    private boolean isSellerByRoleId(String roleId) {
+        if (!StringUtils.hasText(roleId)) {
+            return false;
+        }
+        Optional<Role> optional1 = roleService.findById(roleId);
+        if (optional1.isEmpty()) {
+            return false;
+        }
+        Role role = optional1.get();
+        return role.getUser_type().equals(UserType.SELLER);
+    }
+
+    public boolean isSeller(Users users) {
+        return isSellerByRoleId(users.getRole_id());
+
+    }
+
+    public boolean isSellerByMobile(String mobileNo) {
+        SEFilter filterU = new SEFilter(SEFilterType.AND);
+        filterU.addClause(WhereClause.eq(Users.Fields.mobile_no, mobileNo));
+        filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        Users users = this.repoFindOne(filterU);
+        if (users == null) {
+            return false;
+        }
+        return isSellerByRoleId(users.getRole_id());
+    }
+
 }
