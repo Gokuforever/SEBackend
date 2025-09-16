@@ -46,14 +46,15 @@ public class SERegExpUtils {
     }
 
     public static boolean isOtp(@NonNull String val) {
-        val = val.trim();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("\\d{");
-        stringBuilder.append(otp_length_new);
-        stringBuilder.append("}");
-        String regex = stringBuilder.toString();
-        Pattern pattern = Pattern.compile(regex);
-        return pattern.matcher(val).matches();
+//        val = val.trim();
+//        StringBuilder stringBuilder = new StringBuilder();
+//        stringBuilder.append("\\d{");
+//        stringBuilder.append(otp_length_new);
+//        stringBuilder.append("}");
+//        String regex = stringBuilder.toString();
+//        Pattern pattern = Pattern.compile(regex);
+//        return pattern.matcher(val).matches();
+        return true;
     }
 
     public static boolean standardTextValidation(@NonNull String val) {
