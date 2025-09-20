@@ -4,8 +4,6 @@ import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.InvalidArgumentException;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-
 @Service
 public class Preconditions {
 
@@ -21,7 +19,4 @@ public class Preconditions {
         }
     }
 
-    public static void main(String[] args) {
-        check(BigDecimal.ZERO.compareTo(new BigDecimal(1)) == -1, ResponseCode.MISSING_ORDER_ID);
-    }
 }
