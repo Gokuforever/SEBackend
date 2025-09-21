@@ -105,17 +105,8 @@ public class CouponUtility {
             }
             case PERCENTAGE -> {
                 // Percentage discount
-                if (coupon.getDiscountPercentage() != null) {
-                    // Convert BigDecimal percentage to long for calculation (e.g., 10.5% becomes 1050 for precision)
-                    // Then divide by 10000 to get the correct discount amount
-                    long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
-                    discountAmount = (totalAmountInPaise * percentageInHundredths) / 10000;
-                } else if (coupon.getDiscountValue() != null) {
-                    // Fallback to discountValue if percentage not set (assuming discountValue is the percentage as integer)
-                    discountAmount = (totalAmountInPaise * coupon.getDiscountValue()) / 100;
-                } else {
-                    throw new CustomIllegalArgumentsException("Missing discount percentage value");
-                }
+                long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
+                discountAmount = (totalAmountInPaise * percentageInHundredths) / 10000;
 
                 // Apply max discount limit if applicable
                 if (coupon.getMaxDiscount() != null && discountAmount > coupon.getMaxDiscount()) {
