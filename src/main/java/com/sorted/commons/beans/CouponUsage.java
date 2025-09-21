@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @FieldNameConstants
@@ -18,7 +17,7 @@ public class CouponUsage {
     @Field("order_id")
     private String orderId;
     @Field("discount_amount")
-    private BigDecimal discountAmount; // Actual discount applied
+    private Long discountAmount; // Actual discount applied
     @Field("used_at")
     private LocalDateTime usedAt;
     @Field("status")

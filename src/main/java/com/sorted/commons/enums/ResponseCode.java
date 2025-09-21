@@ -251,6 +251,13 @@ public enum ResponseCode {
 	MISSING_COUPON_SCOPE("SE_0234", "Coupon scope is missing.", "Coupon scope is missing."),
 	MISSING_COUPON_ASSIGNED_TO_USERS("SE_0235", "Coupon assigned to users is missing.", "Coupon assigned to users is missing."),
 	COUPON_CODE_EXISTS("SE_0236", "Coupon code already exists.", "Coupon code already exists."),
+	NO_ITEMS_IN_CART("SE_0237", "No items in cart.", "No items in cart."),
+	COUPON_CODE_NOT_ACTIVE("SE_0238", "Inactive coupon code.", "Inactive coupon code."),
+	COUPON_CODE_NOT_STARTED("SE_0239", "Coupon code is not started.", "Coupon code is not started."),
+	COUPON_CODE_EXPIRED("SE_0240", "Coupon code is expired.", "Coupon code is expired."),
+	COUPON_CODE_ALREADY_USED("SE_0241", "Coupon code is already used.", "Coupon code is already used."),
+	COUPON_CODE_NOT_FOUND("SE_0242", "Coupon code not found.", "Coupon code not found."),
+	DELIVERY_ALREADY_FREE("SE_0243", "Delivery is already free on this order.", "Delivery is already free on this order."),
 	;
 	// @formatter:on
 

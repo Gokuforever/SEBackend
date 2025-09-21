@@ -1,5 +1,6 @@
 package com.sorted.commons.entity.mongo;
 
+import com.sorted.commons.beans.CouponUsage;
 import com.sorted.commons.enums.CouponScope;
 import com.sorted.commons.enums.DiscountType;
 import lombok.Builder;
@@ -39,8 +40,8 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private LocalDateTime startDate;
     @Field("end_date")
     private LocalDateTime endDate;
-    @Field("min_purchase_amount")
-    private Long minPurchaseAmount;
+    @Field("min_cart_value")
+    private Long minCartValue;
     /*
     @Field("applicable_product_ids")
     private List<String> applicableProductIds;
@@ -61,5 +62,7 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private List<String> assignedToUsers;
     @Field("max_discount")
     private Long maxDiscount;
+    @Field("coupon_usages")
+    private List<CouponUsage> couponUsages;
 
 }

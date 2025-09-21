@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
 import java.math.BigDecimal;
@@ -25,5 +26,6 @@ public class Cart extends BaseMongoEntity<String> {
 	private List<Item> cart_items;
 	private BigDecimal total_price;
 	private Long delivery_charges;
-
+	@Field("coupon_code")
+	private String couponCode;
 }
