@@ -233,6 +233,23 @@ public enum ResponseCode {
 	RESTRICTED_LOCATION("SE_0215", "Non-deliverable location. If you’re inside campus or hostel, please select the nearest entry gate.", "Non-deliverable location. If you’re inside campus or hostel, please select the nearest entry gate."),
 	MANDATE_FIRST_NAME("SE_0216","First name is missing.", "First name is missing."),
 	MANDATE_LAST_NAME("SE_0217","Last name is missing.", "Last name is missing."),
+	INVALID_DISCOUNT_TYPE("SE_0218", "Invalid discount type.", "Invalid discount type."),
+	MISSING_COUPON_CODE("SE_0219", "Coupon code is missing.", "Coupon code is missing."),
+	INVALID_COUPON_CODE("SE_0220", "Invalid coupon code.", "Invalid coupon code."),
+	MISSING_COUPON_NAME("SE_0221", "Coupon name is missing.", "Coupon name is missing."),
+	MISSING_COUPON_START_DATE("SE_0222", "Coupon start date is missing.", "Coupon start date is missing."),
+	MISSING_COUPON_END_DATE("SE_0223", "Coupon end date is missing.", "Coupon end date is missing."),
+	MISSING_COUPON_DESC("SE_0224", "Coupon description is missing.", "Coupon description is missing."),
+	MISSING_COUPON_DISCOUNT_TYPE("SE_0225", "Coupon discount type is missing.", "Coupon discount type is missing."),
+	INVALID_COUPON_DATE_RANGE("SE_0226", "Invalid coupon date range.", "Invalid coupon date range."),
+	MISSING_COUPON_DESCRIPTION("SE_0227", "Coupon description is missing.", "Coupon description is missing."),
+	MISSING_COUPON_DISCOUNT_VALUE("SE_0229", "Coupon discount value is missing.", "Coupon discount value is missing."),
+	INVALID_COUPON_DISCOUNT_VALUE("SE_0230", "Invalid coupon discount value.", "Invalid coupon discount value."),
+	MISSING_COUPON_DISCOUNT_PERCENTAGE("SE_0231", "Coupon discount percentage is missing.", "Coupon discount percentage is missing."),
+	INVALID_COUPON_DISCOUNT_PERCENTAGE("SE_0232", "Invalid coupon discount percentage.", "Invalid coupon discount percentage."),
+	INVALID_COUPON_MAX_DISCOUNT("SE_0233", "Invalid coupon max discount.", "Invalid coupon max discount."),
+	MISSING_COUPON_SCOPE("SE_0234", "Coupon scope is missing.", "Coupon scope is missing."),
+	MISSING_COUPON_ASSIGNED_TO_USERS("SE_0235", "Coupon assigned to users is missing.", "Coupon assigned to users is missing."),
 	;
 	// @formatter:on
 
