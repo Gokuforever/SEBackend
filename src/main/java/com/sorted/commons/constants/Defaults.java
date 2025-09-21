@@ -21,4 +21,5 @@ public class Defaults {
 	public static final String REACT_APP = "React App";
 	public static final String AUTH = "Auth";
 	public static final String PHONEPE_REFUND_CRON = "PhonePe Refund Cron";
+	public static final String RETOOL = "Retool";
 }
