@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private DiscountType discountType;
     @Field("discount_value")
     private Long discountValue;
+    @Field("discount_percentage")
+    private BigDecimal discountPercentage;
     @Field("max_uses")
     private Integer maxUses;
     @Field("used_count")
@@ -56,5 +59,7 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private boolean active;
     @Field("assigned_to_users")
     private List<String> assignedToUsers;
+    @Field("max_discount")
+    private Long maxDiscount;
 
 }
