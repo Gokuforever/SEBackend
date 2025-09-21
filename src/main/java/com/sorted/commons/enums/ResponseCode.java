@@ -250,6 +250,7 @@ public enum ResponseCode {
 	INVALID_COUPON_MAX_DISCOUNT("SE_0233", "Invalid coupon max discount.", "Invalid coupon max discount."),
 	MISSING_COUPON_SCOPE("SE_0234", "Coupon scope is missing.", "Coupon scope is missing."),
 	MISSING_COUPON_ASSIGNED_TO_USERS("SE_0235", "Coupon assigned to users is missing.", "Coupon assigned to users is missing."),
+	COUPON_CODE_EXISTS("SE_0236", "Coupon code already exists.", "Coupon code already exists."),
 	;
 	// @formatter:on
 
