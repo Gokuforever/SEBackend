@@ -27,7 +27,7 @@ public class ManageOTPManagerService {
     private int otp_length;
 
     public String send(@NonNull String mobile_number, @NonNull ProcessType process_type, String cud_by, boolean isSeller) {
-        return manageOtp.generateAndSaveOtp(mobile_number, process_type, cud_by, isSeller ? 6 : otp_length);
+        return manageOtp.generateAndSaveOtp(mobile_number, process_type, cud_by, isSeller ? 3 : otp_length);
     }
 
     public String resendOtp(@NonNull ProcessType process, @NonNull String uuid, boolean isSeller) {
