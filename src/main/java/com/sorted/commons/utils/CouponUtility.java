@@ -3,6 +3,7 @@ package com.sorted.commons.utils;
 import com.sorted.commons.beans.CartBean;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.CouponEntity;
+import com.sorted.commons.entity.service.CouponService;
 import com.sorted.commons.enums.CouponScope;
 import com.sorted.commons.enums.DiscountType;
 import com.sorted.commons.enums.ResponseCode;
@@ -10,7 +11,6 @@ import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
-import com.sorted.commons.repository.mongo.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.List;
 public class CouponUtility {
 
     @Autowired
-    private CouponRepository couponRepository;
+    private CouponService couponService;
 
     /**
      * Validates if a coupon can be applied to a cart for a specific user
@@ -169,7 +169,7 @@ public class CouponUtility {
             filter.addClause(WhereClause.eq(CouponEntity.Fields.code, couponCode));
             filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
-            CouponEntity coupon = couponRepository.repoFindOne(filter);
+            CouponEntity coupon = couponService.repoFindOne(filter);
 
             // Check if coupon exists
             if (coupon == null) {
@@ -273,7 +273,7 @@ public class CouponUtility {
             filter.addClause(WhereClause.eq(CouponEntity.Fields.code, couponCode));
             filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
-            CouponEntity coupon = couponRepository.repoFindOne(filter);
+            CouponEntity coupon = couponService.repoFindOne(filter);
             if (coupon == null || cart == null || CollectionUtils.isEmpty(cart.getCart_items())) {
                 return 0L;
             }
