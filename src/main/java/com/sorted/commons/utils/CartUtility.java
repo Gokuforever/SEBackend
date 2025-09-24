@@ -55,6 +55,7 @@ public class CartUtility {
         CartBean cartBean = new CartBean();
         List<CartItems> cartItems = new ArrayList<>();
         List<Long> total_price_in_paise = new ArrayList<>();
+        List<Long> total_mrp_in_paise = new ArrayList<>();
         List<Long> total_cart_items = new ArrayList<>();
         List<Item> cart_items = cart.getCart_items();
         String seller_id = null;
@@ -83,6 +84,7 @@ public class CartUtility {
                             items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
                         } else if (products.getQuantity().compareTo(e.getQuantity()) >= 0) {
                             total_price_in_paise.add(products.getSelling_price() * items.getQuantity());
+                            total_mrp_in_paise.add(products.getMrp() * items.getQuantity());
                             items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
                             total_cart_items.add(items.getQuantity());
                         } else {
@@ -99,6 +101,7 @@ public class CartUtility {
             }
         }
         long summed = total_price_in_paise.stream().mapToLong(Long::longValue).sum();
+        long summedMRP = total_mrp_in_paise.stream().mapToLong(Long::longValue).sum();
         long total_items = total_cart_items.stream().mapToLong(Long::longValue).sum();
         boolean addressPresent = StringUtils.hasText(address_id);
         if (addressPresent && summed > 0) {
@@ -114,6 +117,7 @@ public class CartUtility {
         }
         boolean freeDelivery = minCartValueInPaise <= summed;
         cartBean.setItem_total(CommonUtils.paiseToRupee(summed));
+        cartBean.setItem_total_mrp(CommonUtils.paiseToRupee(summedMRP));
         cartBean.setTotal_count(total_items);
         cartBean.setCart_items(cartItems);
         cartBean.setDelivery_charge(total_items > 0 ? CommonUtils.paiseToRupee(fixedDeliveryCharge) : BigDecimal.ZERO);

@@ -12,6 +12,7 @@ public class CartBean {
     private BigDecimal total_amount = BigDecimal.ZERO;
     private BigDecimal delivery_charge = BigDecimal.ZERO;
     private BigDecimal item_total = BigDecimal.ZERO;
+    private BigDecimal item_total_mrp = BigDecimal.ZERO;
     private boolean is_free_delivery = false;
     private long total_count;
     private List<CartItems> cart_items;
