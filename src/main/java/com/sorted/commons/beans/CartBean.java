@@ -9,16 +9,17 @@ import java.util.List;
 @Data
 public class CartBean {
 
-    private BigDecimal total_amount = BigDecimal.ZERO;
-    private BigDecimal delivery_charge = BigDecimal.ZERO;
-    private BigDecimal item_total = BigDecimal.ZERO;
-    private BigDecimal item_total_mrp = BigDecimal.ZERO;
-    private boolean is_free_delivery = false;
+    private BigDecimal total_amount;
+    private BigDecimal delivery_charge;
+    private BigDecimal item_total;
+    private BigDecimal item_total_mrp;
+    private boolean is_free_delivery;
     private long total_count;
     private List<CartItems> cart_items;
-    private boolean isStoreOperational = true;
+    private boolean isStoreOperational;
     @JsonProperty("coupon_code")
     private String couponCode;
     @JsonProperty("discount_amount")
     private BigDecimal discountAmount;
+    private BigDecimal savings;
 }

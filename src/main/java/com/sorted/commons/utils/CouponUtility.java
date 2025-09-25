@@ -1,6 +1,8 @@
 package com.sorted.commons.utils;
 
 import com.sorted.commons.beans.CartBean;
+import com.sorted.commons.beans.CartBeanV2;
+import com.sorted.commons.beans.CouponCodeInfo;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.CouponEntity;
 import com.sorted.commons.entity.service.CouponService;
@@ -12,7 +14,7 @@ import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -25,25 +27,145 @@ import java.util.List;
 @Service
 public class CouponUtility {
 
-    @Autowired
-    private CouponService couponService;
+    @Value("${se.fixed-delivery-charge.in-paise:4100}")
+    private long fixedDeliveryCharge;
+
+    @Value("${se.minimum-cart-value.in-paise:39900}")
+    private long minCartValueInPaise;
+
+    @Value("${se.small-cart-fee.in-paise:1000}")
+    private long smallCartFee;
+
+    @Value("${se.handling-fee.in-paise:900}")
+    private long handlingFee;
+
+
+    private final CouponService couponService;
+
+    public CouponCodeInfo validateCouponByCodeForCart(String code, Long totalSellingPriceInPaise, String userId) {
+        CouponCodeInfo info = CouponCodeInfo.builder()
+                .isValid(false)
+                .isFreeDelivery(false)
+                .discountAmount(0L)
+                .build();
+
+        if (!StringUtils.hasText(code)) {
+            return info;
+        }
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(CouponEntity.Fields.code, code));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        CouponEntity coupon = couponService.repoFindOne(filter);
+        if (coupon == null) {
+            return info;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (!coupon.isActive()) {
+            return info;
+        }
+        if (coupon.getStartDate() != null && now.isBefore(coupon.getStartDate())) {
+            return info;
+        }
+        if (coupon.getEndDate() != null && now.isAfter(coupon.getEndDate())) {
+            return info;
+        }
+        if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0) {
+            if (totalSellingPriceInPaise < coupon.getMinCartValue()) {
+                return info;
+            }
+        }
+        if (coupon.getMaxUses() != null && coupon.getUsedCount() != null) {
+            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
+                return info;
+            }
+        }
+        if (coupon.isOncePerUser()) {
+            if (!CollectionUtils.isEmpty(coupon.getCouponUsages())) {
+                boolean alreadyUsed = coupon.getCouponUsages().stream()
+                        .anyMatch(usage -> usage.getUserId().equals(userId));
+                if (alreadyUsed)
+                    return info;
+            }
+        }
+        if (coupon.getMaxUsesPerUser() != null && coupon.getMaxUsesPerUser() > 0) {
+            long userUsageCount = coupon.getCouponUsages() != null ?
+                    coupon.getCouponUsages().stream()
+                            .filter(usage -> usage.getUserId().equals(userId))
+                            .count() : 0;
+            if (userUsageCount >= coupon.getMaxUsesPerUser()) {
+                return info;
+            }
+        }
+
+        if (coupon.getDiscountType() == null) {
+            return info;
+        }
+        long discountAmount;
+        boolean isFreeShipping = false;
+        DiscountType discountType = coupon.getDiscountType();
+
+
+        switch (discountType) {
+            case FIXED -> {
+                // Fixed discount amount
+                if (coupon.getDiscountValue() == null) {
+                    return info;
+                }
+                discountAmount = coupon.getDiscountValue();
+                // Ensure discount doesn't exceed total amount
+                discountAmount = Math.min(discountAmount, totalSellingPriceInPaise);
+            }
+            case PERCENTAGE -> {
+                // Percentage discount
+                if (coupon.getDiscountPercentage() == null) {
+                    return info;
+                }
+                long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
+                discountAmount = (totalSellingPriceInPaise * percentageInHundredths) / 10000;
+
+                // Apply max discount limit if applicable
+                if (coupon.getMaxDiscount() != null && discountAmount > coupon.getMaxDiscount()) {
+                    discountAmount = coupon.getMaxDiscount();
+                }
+            }
+            default -> {
+                if (totalSellingPriceInPaise > minCartValueInPaise) {
+                    return info;
+                }
+                isFreeShipping = true;
+                discountAmount = fixedDeliveryCharge + smallCartFee + handlingFee;
+            }
+        }
+
+        return CouponCodeInfo.builder()
+                .isValid(true)
+                .isFreeDelivery(isFreeShipping)
+                .discountAmount(discountAmount)
+                .build();
+    }
 
     /**
      * Validates if a coupon can be applied to a cart for a specific user
      *
-     * @param cart   The cart to apply the coupon to
-     * @param coupon The coupon entity to validate
-     * @param userId The user ID attempting to use the coupon
-     * @return The discount amount in paise if valid
+     * @param toPay          The amount to pay
+     * @param code           The coupon code to validate
+     * @param userId         The user ID attempting to use the coupon
+     * @param isFreeDelivery is free delivery
      * @throws RuntimeException if validation fails
      */
-    public Long validateCouponAndGetDiscount(CartBean cart, CouponEntity coupon, String userId) {
+    public void validateCouponAndThrowException(String code, Long toPay, String userId, boolean isFreeDelivery) {
 
-        // Check cart has items
-        Preconditions.check(!CollectionUtils.isEmpty(cart.getCart_items()), ResponseCode.NO_ITEMS_IN_CART);
-
-        long totalAmountInPaise = CommonUtils.rupeeToPaise(cart.getTotal_amount());
         LocalDateTime now = LocalDateTime.now();
+
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(CouponEntity.Fields.code, code));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        CouponEntity coupon = couponService.repoFindOne(filter);
+
+        Preconditions.check(coupon != null, ResponseCode.INVALID_COUPON_CODE);
 
         // Check if coupon is active
         Preconditions.check(coupon.isActive(), ResponseCode.COUPON_CODE_NOT_ACTIVE);
@@ -65,7 +187,7 @@ public class CouponUtility {
         // Check minimum purchase amount if applicable
         if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0) {
             Preconditions.check(
-                    totalAmountInPaise >= coupon.getMinCartValue(),
+                    toPay >= coupon.getMinCartValue(),
                     new CustomIllegalArgumentsException("Minimum cart value of ₹" + CommonUtils.paiseToRupee(coupon.getMinCartValue()) + " required")
             );
         }
@@ -99,8 +221,6 @@ public class CouponUtility {
             );
         }
 
-        // Calculate discount amount based on discount type
-        Long discountAmount = 0L;
         DiscountType discountType = coupon.getDiscountType();
 
         Preconditions.check(discountType != null, ResponseCode.MISSING_COUPON_DISCOUNT_TYPE);
@@ -109,30 +229,19 @@ public class CouponUtility {
             case FIXED -> {
                 // Fixed discount amount
                 Preconditions.check(coupon.getDiscountValue() != null, ResponseCode.MISSING_COUPON_DISCOUNT_VALUE);
-                discountAmount = coupon.getDiscountValue();
                 // Ensure discount doesn't exceed total amount
-                discountAmount = Math.min(discountAmount, totalAmountInPaise);
             }
             case PERCENTAGE -> {
                 // Percentage discount
                 long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
-                discountAmount = (totalAmountInPaise * percentageInHundredths) / 10000;
-
-                // Apply max discount limit if applicable
-                if (coupon.getMaxDiscount() != null && discountAmount > coupon.getMaxDiscount()) {
-                    discountAmount = coupon.getMaxDiscount();
-                }
             }
             case FREE_SHIPPING -> {
-                if (cart.is_free_delivery()) {
+                if (isFreeDelivery) {
                     throw new CustomIllegalArgumentsException(ResponseCode.DELIVERY_ALREADY_FREE);
                 }
-                cart.set_free_delivery(true);
-                discountAmount = CommonUtils.rupeeToPaise(cart.getDelivery_charge());
             }
             default -> throw new CustomIllegalArgumentsException("Invalid discount type: " + discountType);
         }
-        return discountAmount;
     }
 
     /**

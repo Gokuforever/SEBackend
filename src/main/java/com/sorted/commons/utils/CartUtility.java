@@ -1,10 +1,7 @@
 package com.sorted.commons.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sorted.commons.beans.CartBean;
-import com.sorted.commons.beans.CartItems;
-import com.sorted.commons.beans.Item;
-import com.sorted.commons.beans.Media;
+import com.sorted.commons.beans.*;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Cart;
 import com.sorted.commons.entity.mongo.Products;
@@ -41,11 +38,189 @@ public class CartUtility {
     private final Address_Service addressService;
     private final CouponUtility couponUtility;
 
-    @Value("${se.minimum-cart-value.in-paise:10000}")
+    @Value("${se.fixed-delivery-charge.in-paise:4000}")
+    private long fixedDeliveryFee;
+
+    @Value("${se.minimum-cart-value.in-paise:39900}")
     private long minCartValueInPaise;
 
-    @Value("${se.fixed-delivery-charge.in-paise:5900}")
-    private long fixedDeliveryCharge;
+    @Value("${se.small-cart-fee.in-paise:1000}")
+    private long fixedSmallCartFee;
+
+    @Value("${se.handling-fee.in-paise:900}")
+    private long fixedHandlingFee;
+
+    public CartBeanV2 getCartBeanV2(Cart cart) throws JsonProcessingException {
+        return this.getCartBeanV2(cart, null, null);
+    }
+
+    public CartBeanV2 getCartBeanV2(Cart cart, String addressId, String customerName) throws JsonProcessingException {
+
+
+        List<Item> itemList = cart.getCart_items();
+        BigDecimal zero = BigDecimal.ZERO;
+        if (CollectionUtils.isEmpty(itemList)) {
+            return CartBeanV2.builder()
+                    .cartItems(new ArrayList<>())
+                    .billingSummary(BillingSummary.builder()
+                            .couponCode(null)
+                            .toPay(zero)
+                            .savings(zero)
+                            .deliveryFee(zero)
+                            .smallCartFee(zero)
+                            .handlingFee(zero)
+                            .totalMrp(zero)
+                            .totalSellingPrice(zero)
+                            .couponDiscount(zero)
+                            .deliveryFee(zero)
+                            .handlingFee(zero)
+                            .smallCartFee(zero)
+                            .actualDeliveryFee(zero)
+                            .actualSmallCartFee(zero)
+                            .actualHandlingFee(zero)
+                            .build())
+                    .isFreeDelivery(false)
+                    .isStoreOperational(false)
+                    .totalItemCount(0L)
+                    .build();
+        }
+        BigDecimal minCartValue = CommonUtils.paiseToRupee(minCartValueInPaise);
+        List<CartItems> cartItems = new ArrayList<>();
+        String couponCode = null;
+        BigDecimal toPay = zero;
+        BigDecimal savings = zero;
+        BigDecimal deliveryFee = CommonUtils.paiseToRupee(fixedDeliveryFee);
+        BigDecimal smallCartFee = CommonUtils.paiseToRupee(fixedSmallCartFee);
+        BigDecimal handlingFee = CommonUtils.paiseToRupee(fixedHandlingFee);
+        BigDecimal totalMrp = zero;
+        BigDecimal totalSellingPrice = zero;
+        BigDecimal couponDiscount = zero;
+        BigDecimal actualDeliveryFee = CommonUtils.paiseToRupee(fixedDeliveryFee);
+        BigDecimal actualSmallCartFee = CommonUtils.paiseToRupee(fixedSmallCartFee);
+        BigDecimal actualHandlingFee = CommonUtils.paiseToRupee(fixedHandlingFee);
+        long totalItemCount = 0;
+        boolean isFreeDelivery = false;
+        boolean isStoreOperational = false;
+        String sellerId = null;
+
+        List<String> productIds = itemList.stream().map(Item::getProduct_id).distinct().toList();
+
+        AggregationFilter.SEFilter filterP = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
+        filterP.addClause(AggregationFilter.WhereClause.in(BaseMongoEntity.Fields.id, productIds));
+
+        List<Products> listP = productService.repoFind(filterP);
+        if (!CollectionUtils.isEmpty(listP)) {
+            sellerId = listP.get(0).getSeller_id();
+        }
+        for (Item i : itemList) {
+            Map<String, Products> productMap = listP.stream().collect(Collectors.toMap(BaseMongoEntity::getId, p -> p));
+            Products products = productMap.get(i.getProduct_id());
+
+            CartItems items = new CartItems();
+
+            items.setProduct_name(products.getName());
+            items.setProduct_code(i.getProduct_code());
+            items.setProduct_id(i.getProduct_id());
+            items.setQuantity(i.getQuantity());
+            items.setSelling_price(CommonUtils.paiseToRupee(products.getSelling_price()));
+            items.setSecure_item(i.is_secure());
+
+            if (products.isDeleted()) {
+                items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
+            } else if (products.getQuantity().compareTo(i.getQuantity()) >= 0) {
+                long sellingPriceInPaise = products.getSelling_price() * items.getQuantity();
+                totalSellingPrice = totalSellingPrice.add(CommonUtils.paiseToRupee(sellingPriceInPaise));
+                long mrpInPaise = products.getMrp() * items.getQuantity();
+                totalMrp = totalMrp.add(CommonUtils.paiseToRupee(mrpInPaise));
+                items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
+                totalItemCount += items.getQuantity();
+            } else {
+                items.setCurrent_status(All_Status.ProductCurrentStatus.OUT_OF_STOCK.getStatus_id());
+            }
+            List<Media> media = products.getMedia();
+            if (!CollectionUtils.isEmpty(media)) {
+                Optional<Media> findFirst = media.stream().filter(m -> m.getOrder() == 0).findFirst();
+                findFirst.ifPresent(value -> items.setCdn_url(value.getCdn_url()));
+            }
+            cartItems.add(items);
+        }
+
+
+        boolean addressPresent = StringUtils.hasText(addressId);
+        if (addressPresent && totalSellingPrice.compareTo(zero) > 0) {
+            Seller seller = sellerService.findById(sellerId).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.SELLER_NOT_FOUND));
+            GetQuoteResponse quote = estimateDeliveryService.getEstimateDeliveryAmount(addressId, seller.getAddress_id(), customerName);
+            if (quote != null) {
+                cart.setDelivery_charges(fixedDeliveryFee);
+                cart.setSmall_cart_fee(fixedSmallCartFee);
+                cart.setHandling_charges(fixedHandlingFee);
+
+                cart_Service.update(cart.getId(), cart, cart.getModified_by());
+            } else {
+                addressService.findById(addressId).ifPresent(address ->
+                        demandingPincodeService.storeDemandingPincode(address.getPincode(), cart.getUser_id()));
+            }
+        }
+
+        if (StringUtils.hasText(cart.getCouponCode()) && totalSellingPrice.compareTo(zero) > 0) {
+            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(totalSellingPrice), cart.getUser_id());
+            if (couponCodeInfo.isValid()) {
+                isFreeDelivery = couponCodeInfo.isFreeDelivery();
+                couponCode = cart.getCouponCode();
+                couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
+            }
+            savings = savings.add(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
+        }
+
+        if (!isFreeDelivery) {
+            if (totalSellingPrice.compareTo(minCartValue) > 0) {
+                isFreeDelivery = true;
+            }
+        }
+
+        if (isFreeDelivery) {
+            actualDeliveryFee = zero;
+            actualSmallCartFee = zero;
+            actualHandlingFee = zero;
+            savings = savings.add(deliveryFee);
+            savings = savings.add(smallCartFee);
+            savings = savings.add(handlingFee);
+        }
+
+        BigDecimal difference = totalMrp.subtract(totalSellingPrice);
+
+        savings = savings.add(difference);
+
+        BigDecimal remainingAmount = totalSellingPrice.subtract(couponDiscount);
+
+        toPay = actualDeliveryFee.add(actualSmallCartFee).add(actualHandlingFee).add(remainingAmount);
+
+        isStoreOperational = storeActivityService.isStoreOperational(sellerId);
+
+        return CartBeanV2.builder()
+                .cartItems(cartItems)
+                .billingSummary(BillingSummary.builder()
+                        .couponCode(couponCode)
+                        .toPay(toPay)
+                        .savings(savings)
+                        .deliveryFee(deliveryFee)
+                        .smallCartFee(smallCartFee)
+                        .handlingFee(handlingFee)
+                        .totalMrp(totalMrp)
+                        .totalSellingPrice(totalSellingPrice)
+                        .couponDiscount(couponDiscount)
+                        .deliveryFee(CommonUtils.paiseToRupee(fixedDeliveryFee))
+                        .handlingFee(CommonUtils.paiseToRupee(fixedHandlingFee))
+                        .smallCartFee(CommonUtils.paiseToRupee(fixedSmallCartFee))
+                        .actualDeliveryFee(actualDeliveryFee)
+                        .actualSmallCartFee(actualSmallCartFee)
+                        .actualHandlingFee(actualHandlingFee)
+                        .build())
+                .isFreeDelivery(isFreeDelivery)
+                .isStoreOperational(isStoreOperational)
+                .totalItemCount(totalItemCount)
+                .build();
+    }
 
     public CartBean getCartBean(Cart cart) throws JsonProcessingException {
         return this.getCartBean(cart, null, null);
@@ -108,7 +283,7 @@ public class CartUtility {
             Seller seller = sellerService.findById(seller_id).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.SELLER_NOT_FOUND));
             GetQuoteResponse quote = estimateDeliveryService.getEstimateDeliveryAmount(address_id, seller.getAddress_id(), customerName);
             if (quote != null) {
-                cart.setDelivery_charges(fixedDeliveryCharge);
+                cart.setDelivery_charges(fixedDeliveryFee + fixedHandlingFee + fixedSmallCartFee);
                 cart_Service.update(cart.getId(), cart, cart.getModified_by());
             } else {
                 addressService.findById(address_id).ifPresent(address ->
@@ -120,8 +295,8 @@ public class CartUtility {
         cartBean.setItem_total_mrp(CommonUtils.paiseToRupee(summedMRP));
         cartBean.setTotal_count(total_items);
         cartBean.setCart_items(cartItems);
-        cartBean.setDelivery_charge(total_items > 0 ? CommonUtils.paiseToRupee(fixedDeliveryCharge) : BigDecimal.ZERO);
-        cartBean.setTotal_amount(summed > 0 ? freeDelivery ? CommonUtils.paiseToRupee(summed) : CommonUtils.paiseToRupee(summed + fixedDeliveryCharge) : BigDecimal.ZERO);
+        cartBean.setDelivery_charge(total_items > 0 ? CommonUtils.paiseToRupee(fixedDeliveryFee + fixedHandlingFee + fixedSmallCartFee) : BigDecimal.ZERO);
+        cartBean.setTotal_amount(summed > 0 ? freeDelivery ? CommonUtils.paiseToRupee(summed) : CommonUtils.paiseToRupee(summed + fixedDeliveryFee + fixedHandlingFee + fixedSmallCartFee) : BigDecimal.ZERO);
         cartBean.set_free_delivery(freeDelivery);
         cartBean.setStoreOperational(storeActivityService.isStoreOperational(seller_id));
 

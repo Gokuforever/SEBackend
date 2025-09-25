@@ -26,6 +26,8 @@ public class Cart extends BaseMongoEntity<String> {
 	private List<Item> cart_items;
 	private BigDecimal total_price;
 	private Long delivery_charges;
+	private Long handling_charges;
+	private Long small_cart_fee;
 	@Field("coupon_code")
 	private String couponCode;
 }
