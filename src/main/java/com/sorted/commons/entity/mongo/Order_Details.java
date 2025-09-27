@@ -38,6 +38,9 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String payment_mode;
     private String pg_order_id;
     private Long delivery_charges;
+    private Long handling_charges;
+    private Long small_cart_fee;
+    private Long total_discount;
     private Long total_items_cost;
     private Long total_amount;
     private OrderStatus status;
@@ -75,7 +78,7 @@ public class Order_Details extends BaseMongoEntity<String> {
     private String secure_return_failure_reason;
     private boolean secure_return_initiated;
     private String coupon_code;
-    private Long discount_amount;
+
 
 
     @JsonIgnore

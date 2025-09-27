@@ -161,9 +161,13 @@ public class CartUtility {
                         demandingPincodeService.storeDemandingPincode(address.getPincode(), cart.getUser_id()));
             }
         }
+        BigDecimal actualSellingPrice = totalSellingPrice;
+        if (totalSellingPrice.compareTo(minCartValue) < 0) {
+            actualSellingPrice = totalSellingPrice.add(deliveryFee).add(smallCartFee).add(handlingFee);
+        }
 
         if (StringUtils.hasText(cart.getCouponCode()) && totalSellingPrice.compareTo(zero) > 0) {
-            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(totalSellingPrice), cart.getUser_id());
+            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(actualSellingPrice), cart.getUser_id());
             if (couponCodeInfo.isValid()) {
                 isFreeDelivery = couponCodeInfo.isFreeDelivery();
                 couponCode = cart.getCouponCode();
