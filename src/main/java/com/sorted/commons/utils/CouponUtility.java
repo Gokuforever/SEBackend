@@ -363,5 +363,103 @@ public class CouponUtility {
             return 0L;
         }
     }
+
+    /**
+     * Validates if a coupon can be applied to a cart for a specific user
+     *
+     * @param toPay          The amount to pay
+     * @param code           The coupon code to validate
+     * @param userId         The user ID attempting to use the coupon
+     * @param isFreeDelivery is free delivery
+     * @throws RuntimeException if validation fails
+     */
+    public void validateCouponAndThrowException(String code, Long toPay, String userId, boolean isFreeDelivery) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(CouponEntity.Fields.code, code));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        CouponEntity coupon = couponService.repoFindOne(filter);
+
+        Preconditions.check(coupon != null, ResponseCode.INVALID_COUPON_CODE);
+
+        // Check if coupon is active
+        Preconditions.check(coupon.isActive(), ResponseCode.COUPON_CODE_NOT_ACTIVE);
+
+        // Check if coupon has started (now should be after or equal to start date)
+        Preconditions.check(!now.isBefore(coupon.getStartDate()), ResponseCode.COUPON_CODE_NOT_STARTED);
+
+        // Check if coupon has not expired (now should be before or equal to end date)
+        Preconditions.check(!now.isAfter(coupon.getEndDate()), ResponseCode.COUPON_CODE_EXPIRED);
+
+        // Check coupon scope
+        CouponScope couponScope = coupon.getCouponScope();
+        if (couponScope != null && couponScope.equals(CouponScope.USER_SPECIFIC)) {
+            List<String> assignedToUsers = coupon.getAssignedToUsers();
+            Preconditions.check(!CollectionUtils.isEmpty(assignedToUsers), ResponseCode.INVALID_COUPON_CODE);
+            Preconditions.check(assignedToUsers.contains(userId), ResponseCode.INVALID_COUPON_CODE);
+        }
+
+        // Check minimum purchase amount if applicable
+        if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0) {
+            Preconditions.check(
+                    toPay >= coupon.getMinCartValue(),
+                    new CustomIllegalArgumentsException("Minimum cart value of ₹" + CommonUtils.paiseToRupee(coupon.getMinCartValue()) + " required")
+            );
+        }
+
+        // Check if coupon is once per user and already used
+        if (coupon.isOncePerUser()) {
+            if (!CollectionUtils.isEmpty(coupon.getCouponUsages())) {
+                boolean alreadyUsed = coupon.getCouponUsages().stream()
+                        .anyMatch(usage -> usage.getUserId().equals(userId));
+                Preconditions.check(!alreadyUsed, ResponseCode.COUPON_CODE_ALREADY_USED);
+            }
+        }
+
+        // Check max uses per user if applicable
+        if (coupon.getMaxUsesPerUser() != null && coupon.getMaxUsesPerUser() > 0) {
+            long userUsageCount = coupon.getCouponUsages() != null ?
+                    coupon.getCouponUsages().stream()
+                            .filter(usage -> usage.getUserId().equals(userId))
+                            .count() : 0;
+            Preconditions.check(
+                    userUsageCount < coupon.getMaxUsesPerUser(),
+                    ResponseCode.COUPON_CODE_ALREADY_USED
+            );
+        }
+
+        // Check max total uses if applicable
+        if (coupon.getMaxUses() != null && coupon.getUsedCount() != null) {
+            Preconditions.check(
+                    coupon.getUsedCount() < coupon.getMaxUses(),
+                    new CustomIllegalArgumentsException("Coupon has reached maximum uses")
+            );
+        }
+
+        DiscountType discountType = coupon.getDiscountType();
+
+        Preconditions.check(discountType != null, ResponseCode.MISSING_COUPON_DISCOUNT_TYPE);
+
+        switch (discountType) {
+            case FIXED -> {
+                // Fixed discount amount
+                Preconditions.check(coupon.getDiscountValue() != null && coupon.getDiscountValue() > 0, ResponseCode.MISSING_COUPON_DISCOUNT_VALUE);
+                // Ensure discount doesn't exceed total amount
+            }
+            case PERCENTAGE -> {
+                // Percentage discount
+                Preconditions.check(coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) > 0, ResponseCode.MISSING_COUPON_DISCOUNT_PERCENTAGE);
+            }
+            case FREE_SHIPPING -> {
+                if (isFreeDelivery) {
+                    throw new CustomIllegalArgumentsException(ResponseCode.DELIVERY_ALREADY_FREE);
+                }
+            }
+            default -> throw new CustomIllegalArgumentsException("Invalid discount type: " + discountType);
+        }
+    }
 }
 
