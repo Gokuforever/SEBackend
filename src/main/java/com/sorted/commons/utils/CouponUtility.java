@@ -1,8 +1,6 @@
 package com.sorted.commons.utils;
 
-import com.sorted.commons.beans.CartBean;
-import com.sorted.commons.beans.CartBeanV2;
-import com.sorted.commons.beans.CouponCodeInfo;
+import com.sorted.commons.beans.*;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.CouponEntity;
 import com.sorted.commons.entity.service.CouponService;
@@ -21,6 +19,8 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class CouponUtility {
 
     private final CouponService couponService;
 
-    public CouponCodeInfo validateCouponByCodeForCart(String code, Long totalSellingPriceInPaise, String userId) {
+    public CouponCodeInfo validateCouponByCodeForCart(String code, Long totalSellingPriceInPaise, boolean isNotSmallCart, String userId) {
         CouponCodeInfo info = CouponCodeInfo.builder()
                 .isValid(false)
                 .isFreeDelivery(false)
@@ -131,7 +131,7 @@ public class CouponUtility {
                 }
             }
             default -> {
-                if (totalSellingPriceInPaise > minCartValueInPaise) {
+                if (isNotSmallCart) {
                     return info;
                 }
                 isFreeShipping = true;
@@ -144,6 +144,97 @@ public class CouponUtility {
                 .isFreeDelivery(isFreeShipping)
                 .discountAmount(discountAmount)
                 .build();
+    }
+
+    public boolean validateCoupon(CouponEntity coupon, Long totalSellingPriceInPaise, boolean isNotSmallCart, String userId) {
+
+        if (!coupon.isActive()) {
+            return false;
+        }
+        if (coupon.getStartDate() != null && LocalDateTime.now().isBefore(coupon.getStartDate())) {
+            return false;
+        }
+        if (coupon.getEndDate() != null && LocalDateTime.now().isAfter(coupon.getEndDate())) {
+            return false;
+        }
+        if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0) {
+            if (totalSellingPriceInPaise < coupon.getMinCartValue()) {
+                return false;
+            }
+        }
+        if (coupon.getMaxUses() != null && coupon.getUsedCount() != null) {
+            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
+                return false;
+            }
+        }
+
+        if (coupon.isOncePerUser()) {
+            if (!CollectionUtils.isEmpty(coupon.getCouponUsages())) {
+                boolean alreadyUsed = coupon.getCouponUsages().stream()
+                        .anyMatch(usage -> usage.getUserId().equals(userId));
+                if (alreadyUsed)
+                    return false;
+            }
+        }
+        if (coupon.getMaxUsesPerUser() != null && coupon.getMaxUsesPerUser() > 0) {
+            long userUsageCount = coupon.getCouponUsages() != null ?
+                    coupon.getCouponUsages().stream()
+                            .filter(usage -> usage.getUserId().equals(userId))
+                            .count() : 0;
+            if (userUsageCount >= coupon.getMaxUsesPerUser()) {
+                return false;
+            }
+        }
+
+        CouponScope couponScope = coupon.getCouponScope();
+        if (couponScope == null) {
+            return false;
+        }
+
+        if (couponScope.equals(CouponScope.USER_SPECIFIC)) {
+            if (CollectionUtils.isEmpty(coupon.getEligibleUserIds())) {
+                return false;
+            }
+            if (!coupon.getEligibleUserIds().contains(userId)) {
+                return false;
+            }
+        }
+
+        // Check if discount type is valid
+        if (coupon.getDiscountType() == null) {
+            return false;
+        }
+
+        // Check if discount value/percentage is set based on discount type
+        switch (coupon.getDiscountType()) {
+            case FIXED:
+                if (coupon.getDiscountValue() == null || coupon.getDiscountValue() <= 0) {
+                    return false;
+                }
+                // Check if fixed discount is not greater than cart total
+                if (coupon.getDiscountValue() > totalSellingPriceInPaise) {
+                    // Discount exceeds cart total - this might be valid in some cases
+                    // but the actual discount will be capped at cart total
+                }
+                break;
+            case PERCENTAGE:
+                if (coupon.getDiscountPercentage() == null ||
+                        coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) <= 0 ||
+                        coupon.getDiscountPercentage().compareTo(BigDecimal.valueOf(100)) > 0) {
+                    return false;
+                }
+                break;
+            case FREE_SHIPPING:
+                if (isNotSmallCart) {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+
     }
 
     /**
@@ -266,6 +357,67 @@ public class CouponUtility {
             // Log the error if needed
             // Return false for any unexpected errors
             return false;
+        }
+    }
+
+    public Long calculateDiscountAmount(CouponEntity coupon, Long totalSellingPriceInPaise, boolean isNotSmallCart, String userId) {
+        try {
+            boolean isValid = validateCoupon(coupon, totalSellingPriceInPaise, isNotSmallCart, userId);
+            if (!isValid) {
+                return 0L;
+            }
+
+            long discountAmount;
+            switch (coupon.getDiscountType()) {
+                case FIXED -> {
+                    // Fixed discount amount
+                    if (coupon.getDiscountValue() == null || coupon.getDiscountValue() <= 0) {
+                        return 0L;
+                    }
+                    discountAmount = coupon.getDiscountValue();
+
+                    // Ensure discount doesn't exceed total amount
+                    return Math.min(discountAmount, totalSellingPriceInPaise);
+                }
+                case PERCENTAGE -> {
+                    // Percentage discount
+                    if (coupon.getDiscountPercentage() == null ||
+                            coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) <= 0) {
+                        return 0L;
+                    }
+
+                    // Convert percentage to hundredths for precision (e.g., 10.5% becomes 1050)
+                    long percentageInHundredths = coupon.getDiscountPercentage()
+                            .multiply(BigDecimal.valueOf(100))
+                            .longValue();
+
+                    // Calculate discount amount
+                    discountAmount = (totalSellingPriceInPaise * percentageInHundredths) / 10000;
+
+                    // Apply max discount limit if applicable
+                    if (coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 && discountAmount > coupon.getMaxDiscount()) {
+                        discountAmount = coupon.getMaxDiscount();
+                    }
+
+                    // Ensure discount doesn't exceed total amount
+                    return Math.min(discountAmount, totalSellingPriceInPaise);
+                }
+                case FREE_SHIPPING -> {
+                    // Check if delivery is already free
+                    if (isNotSmallCart) {
+                        return 0L;
+                    }
+                    return fixedDeliveryCharge + handlingFee + smallCartFee;
+                }
+                default -> {
+                    // Invalid discount type, return 0
+                    return 0L;
+                }
+            }
+        } catch (Exception e) {
+            // Log the error if needed
+            // Return 0 for any unexpected errors
+            return 0L;
         }
     }
 
@@ -461,5 +613,107 @@ public class CouponUtility {
             default -> throw new CustomIllegalArgumentsException("Invalid discount type: " + discountType);
         }
     }
+
+    public CouponListResponse getApplicableCoupons(List<CouponEntity> coupons, String userId, long totalSellingPriceInPaise, boolean notSmallCart) {
+        List<ApplicableCoupon> applicableCoupons = new ArrayList<>();
+        List<OtherCoupon> otherCoupons = new ArrayList<>();
+
+        for (CouponEntity coupon : coupons) {
+            long usageCount = coupon.getCouponUsages() != null ?
+                    coupon.getCouponUsages().stream()
+                            .filter(usage -> usage.getUserId().equals(userId))
+                            .count() : 0;
+
+            String invalidReason = getCouponInvalidReason(coupon, userId, CommonUtils.paiseToRupee(totalSellingPriceInPaise), usageCount);
+
+            if (invalidReason == null) {
+                long discount = calculateDiscountAmount(coupon, totalSellingPriceInPaise, notSmallCart, userId);
+                ApplicableCoupon applicableCoupon = ApplicableCoupon.builder()
+                        .code(coupon.getCode())
+                        .name(coupon.getName())
+                        .description(coupon.getDescription())
+                        .discountType(coupon.getDiscountType())
+                        .discountValue(coupon.getDiscountValue() != null && coupon.getDiscountValue() > 0 ? CommonUtils.paiseToRupee(coupon.getDiscountValue()) : null)
+                        .discountPercentage(coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) > 0 ? coupon.getDiscountPercentage() : null)
+                        .calculatedDiscount(CommonUtils.paiseToRupee(discount))
+                        .finalCartValue(CommonUtils.paiseToRupee(totalSellingPriceInPaise - discount))
+                        .maxDiscount(coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 ? CommonUtils.paiseToRupee(coupon.getMaxDiscount()) : null)
+                        .minCartValue(coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 ? CommonUtils.paiseToRupee(coupon.getMinCartValue()) : null)
+                        .endDate(coupon.getEndDate())
+                        .savingsText("You save ₹" + CommonUtils.paiseToRupee(discount))
+                        .build();
+                applicableCoupons.add(applicableCoupon);
+            } else {
+                long additionalAmountNeeded = 0L;
+                if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 && totalSellingPriceInPaise < coupon.getMinCartValue()) {
+                    additionalAmountNeeded = coupon.getMinCartValue() - totalSellingPriceInPaise;
+                }
+                OtherCoupon otherCoupon = OtherCoupon.builder()
+                        .code(coupon.getCode())
+                        .name(coupon.getName())
+                        .description(coupon.getDescription())
+                        .discountType(coupon.getDiscountType())
+                        .discountValue(coupon.getDiscountValue() != null && coupon.getDiscountValue() > 0 ? CommonUtils.paiseToRupee(coupon.getDiscountValue()) : null)
+                        .discountPercentage(coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) > 0 ? coupon.getDiscountPercentage() : null)
+                        .minCartValue(coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 ? CommonUtils.paiseToRupee(coupon.getMinCartValue()) : null)
+                        .additionalAmountNeeded(CommonUtils.paiseToRupee(additionalAmountNeeded))
+                        .potentialDiscount(CommonUtils.paiseToRupee(calculateDiscountAmount(coupon, totalSellingPriceInPaise + additionalAmountNeeded, notSmallCart, userId)))
+                        .maxDiscount(coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 ? CommonUtils.paiseToRupee(coupon.getMaxDiscount()) : null)
+                        .endDate(coupon.getEndDate())
+                        .notApplicableReason(invalidReason)
+                        .build();
+                otherCoupons.add(otherCoupon);
+            }
+        }
+
+        // Sort applicable coupons by the highest discount
+        applicableCoupons.sort(Comparator.comparing(ApplicableCoupon::calculatedDiscount).reversed());
+
+        // Mark the best offer
+        if (!applicableCoupons.isEmpty()) {
+            ApplicableCoupon bestOffer = applicableCoupons.get(0);
+            // Since records are immutable, we create a new one with the flag set
+            applicableCoupons.set(0, new ApplicableCoupon(bestOffer.code(), bestOffer.name(), bestOffer.description(),
+                    bestOffer.discountType(), bestOffer.discountValue(), bestOffer.discountPercentage(),
+                    bestOffer.calculatedDiscount(), bestOffer.finalCartValue(), bestOffer.maxDiscount(),
+                    bestOffer.minCartValue(), bestOffer.endDate(), bestOffer.savingsText(), true, bestOffer.sortOrder()));
+        }
+
+        // Sort other coupons: those needing a small additional amount first
+        otherCoupons.sort(Comparator.comparing(OtherCoupon::additionalAmountNeeded));
+
+        return CouponListResponse.builder()
+                .applicableCoupons(applicableCoupons)
+                .otherCoupons(otherCoupons)
+                .currentCartValue(CommonUtils.paiseToRupee(totalSellingPriceInPaise))
+                .build();
+    }
+
+    private String getCouponInvalidReason(CouponEntity coupon, String userId, BigDecimal purchaseAmount, long userUsageCount) {
+        if (!coupon.isActive()) {
+            return "Coupon is not active.";
+        }
+        if (coupon.getEndDate() != null && LocalDateTime.now().isAfter(coupon.getEndDate())) {
+            return "Coupon has expired.";
+        }
+        if (coupon.getStartDate() != null && LocalDateTime.now().isBefore(coupon.getStartDate())) {
+            return "Coupon is not yet active.";
+        }
+        if (coupon.getMaxUses() != null && coupon.getMaxUses() > 0 && coupon.getUsedCount() != null && coupon.getUsedCount() >= coupon.getMaxUses()) {
+            return "Coupon has reached its maximum usage limit.";
+        }
+        if (CouponScope.USER_SPECIFIC.equals(coupon.getCouponScope()) && (coupon.getEligibleUserIds() == null || !coupon.getEligibleUserIds().contains(userId))) {
+            return "This coupon is not applicable for your account.";
+        }
+        if (coupon.getMaxUsesPerUser() != null && userUsageCount >= coupon.getMaxUsesPerUser()) {
+            return "You have already used this coupon the maximum number of times.";
+        }
+        if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 && CommonUtils.rupeeToPaise(purchaseAmount) < coupon.getMinCartValue()) {
+            BigDecimal diff = CommonUtils.paiseToRupee(coupon.getMinCartValue() - CommonUtils.rupeeToPaise(purchaseAmount));
+            return String.format("Add items worth ₹%.2f more to apply this coupon.", diff);
+        }
+        return null; // Coupon is valid
+    }
+
 }
 
