@@ -10,6 +10,7 @@ public class CartItems {
     private String product_code;
     private String product_id;
     private BigDecimal selling_price;
+    private BigDecimal mrp;
     private Long quantity;
     private boolean secure_item;
     private Integer current_status;

@@ -124,6 +124,7 @@ public class CartUtility {
             items.setQuantity(i.getQuantity());
             items.setSelling_price(CommonUtils.paiseToRupee(products.getSelling_price()));
             items.setSecure_item(i.is_secure());
+            items.setMrp(CommonUtils.paiseToRupee(products.getMrp()));
 
             if (products.isDeleted()) {
                 items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
@@ -162,16 +163,18 @@ public class CartUtility {
             }
         }
         BigDecimal actualSellingPrice = totalSellingPrice;
-        if (totalSellingPrice.compareTo(minCartValue) < 0) {
+        boolean isNotSmallCart = totalSellingPrice.compareTo(minCartValue) > 0;
+        if (isNotSmallCart) {
             actualSellingPrice = totalSellingPrice.add(deliveryFee).add(smallCartFee).add(handlingFee);
         }
 
         if (StringUtils.hasText(cart.getCouponCode()) && totalSellingPrice.compareTo(zero) > 0) {
-            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(actualSellingPrice), cart.getUser_id());
+            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(actualSellingPrice), isNotSmallCart, cart.getUser_id());
             if (couponCodeInfo.isValid()) {
                 isFreeDelivery = couponCodeInfo.isFreeDelivery();
                 couponCode = cart.getCouponCode();
                 couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
+                totalSellingPrice = totalSellingPrice.subtract(couponDiscount);
             }
             savings = savings.add(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
         }
@@ -195,9 +198,7 @@ public class CartUtility {
 
         savings = savings.add(difference);
 
-        BigDecimal remainingAmount = totalSellingPrice.subtract(couponDiscount);
-
-        toPay = actualDeliveryFee.add(actualSmallCartFee).add(actualHandlingFee).add(remainingAmount);
+        toPay = actualDeliveryFee.add(actualSmallCartFee).add(actualHandlingFee).add(totalSellingPrice);
 
         isStoreOperational = storeActivityService.isStoreOperational(sellerId);
 
