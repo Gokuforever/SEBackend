@@ -50,6 +50,7 @@ public class Users extends BaseMongoEntity<String> {
     private boolean pass_changed;
     private Gender gender;
     private Map<String, String> properties;
+    private boolean ambassador;
 
     @JsonIgnore
     public void setEducationDetails(EducationCategoryBean educationCategoryBean) {

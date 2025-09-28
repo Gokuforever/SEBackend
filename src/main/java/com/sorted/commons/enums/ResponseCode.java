@@ -261,6 +261,7 @@ public enum ResponseCode {
 	INVALID_REFERRAL_CODE("SE_0244", "Invalid Referral Code.", "Invalid Referral Code."),
 	REFERRAL_NOT_APPLICABLE("SE_0245", "Referral not applicable.", "Referral not applicable."),
 	REFERRAL_CODE_EXISTS("SE_0246", "Referral code already exists.", "Referral code already exists."),
+	REFERRAL_EXISTS("SE_0247", "Referral code already exists for this user.", "Referral code already exists for this user."),
 	;
 	// @formatter:on
 
