@@ -68,12 +68,18 @@ public class CommonUtils {
         return randomNumber;
     }
 
-    public static Long rupeeToPaise(@NonNull BigDecimal val) {
+    public static Long rupeeToPaise(BigDecimal val) {
+        if (val == null) {
+            return 0L;
+        }
         val = val.setScale(2, RoundingMode.HALF_DOWN);
         return val.multiply(BigDecimal.valueOf(100)).longValue();
     }
 
-    public static BigDecimal paiseToRupee(@NonNull Long val) {
+    public static BigDecimal paiseToRupee(Long val) {
+        if (val == null) {
+            return BigDecimal.ZERO;
+        }
         BigDecimal bigDecimal = new BigDecimal(val).divide(BigDecimal.valueOf(100));
         return bigDecimal.setScale(2, RoundingMode.HALF_DOWN);
     }

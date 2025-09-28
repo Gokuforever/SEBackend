@@ -22,16 +22,36 @@ public class ReferralUtility {
 
     public void createReferral(String userId, String code) {
 
-    }
-
-    public void refer(String userId, String referredBy) {
-
-        if (!SERegExpUtils.isAlphaNumeric(referredBy)) {
+        if (!SERegExpUtils.isAlphaNumeric(code)) {
             throw new InvalidReferralCodeException();
         }
 
         SEFilter filter = new SEFilter(SEFilterType.AND);
-        filter.addClause(WhereClause.eq(ReferralEntity.Fields.code, referredBy));
+        filter.addClause(WhereClause.eq(ReferralEntity.Fields.code, code));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        long count = service.countByFilter(filter);
+        if (count > 0) {
+            throw new CustomIllegalArgumentsException(ResponseCode.REFERRAL_CODE_EXISTS);
+        }
+
+        ReferralEntity referral = ReferralEntity.builder()
+                .code(code)
+                .userId(userId)
+                .count(0)
+                .active(true)
+                .build();
+        service.create(referral, userId);
+    }
+
+    public void refer(String userId, String code) {
+
+        if (!SERegExpUtils.isAlphaNumeric(code)) {
+            throw new InvalidReferralCodeException();
+        }
+
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(ReferralEntity.Fields.code, code));
         filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         ReferralEntity referralEntity = service.repoFindOne(filter);
@@ -50,5 +70,12 @@ public class ReferralUtility {
 
         referralEntity.getUsers().add(userId);
         service.update(referralEntity.getId(), referralEntity, userId);
+    }
+
+    public void getReferredUsers(String userId) {
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.in(ReferralEntity.Fields.users, userId));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        service.repoFind(filter);
     }
 }

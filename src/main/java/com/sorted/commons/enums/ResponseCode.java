@@ -260,6 +260,7 @@ public enum ResponseCode {
 	DELIVERY_ALREADY_FREE("SE_0243", "Delivery is already free on this order.", "Delivery is already free on this order."),
 	INVALID_REFERRAL_CODE("SE_0244", "Invalid Referral Code.", "Invalid Referral Code."),
 	REFERRAL_NOT_APPLICABLE("SE_0245", "Referral not applicable.", "Referral not applicable."),
+	REFERRAL_CODE_EXISTS("SE_0246", "Referral code already exists.", "Referral code already exists."),
 	;
 	// @formatter:on
 
