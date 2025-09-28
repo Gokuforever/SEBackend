@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
 
@@ -20,4 +21,6 @@ public class AssetsEntity extends BaseMongoEntity<String> {
     private AssetType type;
     private String url;
     private int order;
+    @Field("alt_text")
+    private String altText;
 }
