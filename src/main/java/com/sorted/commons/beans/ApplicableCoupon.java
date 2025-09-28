@@ -46,7 +46,10 @@ public record ApplicableCoupon(
         boolean isBestOffer,
 
         @JsonProperty("sort_order")
-        int sortOrder
+        int sortOrder,
+
+        @JsonProperty("is_applied")
+        boolean isApplied
 ) {
 
 }

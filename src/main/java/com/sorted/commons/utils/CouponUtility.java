@@ -2,6 +2,7 @@ package com.sorted.commons.utils;
 
 import com.sorted.commons.beans.*;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
+import com.sorted.commons.entity.mongo.Cart;
 import com.sorted.commons.entity.mongo.CouponEntity;
 import com.sorted.commons.entity.service.CouponService;
 import com.sorted.commons.enums.CouponScope;
@@ -614,7 +615,7 @@ public class CouponUtility {
         }
     }
 
-    public CouponListResponse getApplicableCoupons(List<CouponEntity> coupons, String userId, long totalSellingPriceInPaise, boolean notSmallCart) {
+    public CouponListResponse getApplicableCoupons(List<CouponEntity> coupons, String userId, long totalSellingPriceInPaise, boolean notSmallCart, Cart cart) {
         List<ApplicableCoupon> applicableCoupons = new ArrayList<>();
         List<OtherCoupon> otherCoupons = new ArrayList<>();
 
@@ -627,6 +628,11 @@ public class CouponUtility {
             String invalidReason = getCouponInvalidReason(coupon, userId, CommonUtils.paiseToRupee(totalSellingPriceInPaise), usageCount);
 
             if (invalidReason == null) {
+
+                boolean applied = false;
+                if (StringUtils.hasText(cart.getCouponCode())) {
+                    applied = cart.getCouponCode().equals(coupon.getCode());
+                }
                 long discount = calculateDiscountAmount(coupon, totalSellingPriceInPaise, notSmallCart, userId);
                 ApplicableCoupon applicableCoupon = ApplicableCoupon.builder()
                         .code(coupon.getCode())
@@ -641,6 +647,7 @@ public class CouponUtility {
                         .minCartValue(coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 ? CommonUtils.paiseToRupee(coupon.getMinCartValue()) : null)
                         .endDate(coupon.getEndDate())
                         .savingsText("You save ₹" + CommonUtils.paiseToRupee(discount))
+                        .isApplied(applied)
                         .build();
                 applicableCoupons.add(applicableCoupon);
             } else {
@@ -676,7 +683,7 @@ public class CouponUtility {
             applicableCoupons.set(0, new ApplicableCoupon(bestOffer.code(), bestOffer.name(), bestOffer.description(),
                     bestOffer.discountType(), bestOffer.discountValue(), bestOffer.discountPercentage(),
                     bestOffer.calculatedDiscount(), bestOffer.finalCartValue(), bestOffer.maxDiscount(),
-                    bestOffer.minCartValue(), bestOffer.endDate(), bestOffer.savingsText(), true, bestOffer.sortOrder()));
+                    bestOffer.minCartValue(), bestOffer.endDate(), bestOffer.savingsText(), true, bestOffer.sortOrder(), bestOffer.isApplied()));
         }
 
         // Sort other coupons: those needing a small additional amount first
