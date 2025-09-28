@@ -19,10 +19,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -201,6 +198,8 @@ public class CartUtility {
         toPay = actualDeliveryFee.add(actualSmallCartFee).add(actualHandlingFee).add(totalSellingPrice);
 
         isStoreOperational = storeActivityService.isStoreOperational(sellerId);
+
+        cartItems = cartItems.stream().sorted(Comparator.comparing(CartItems::getProduct_id)).toList();
 
         return CartBeanV2.builder()
                 .cartItems(cartItems)

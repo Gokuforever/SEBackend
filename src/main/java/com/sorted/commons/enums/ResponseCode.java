@@ -262,6 +262,7 @@ public enum ResponseCode {
 	REFERRAL_NOT_APPLICABLE("SE_0245", "Referral not applicable.", "Referral not applicable."),
 	REFERRAL_CODE_EXISTS("SE_0246", "Referral code already exists.", "Referral code already exists."),
 	REFERRAL_EXISTS("SE_0247", "Referral code already exists for this user.", "Referral code already exists for this user."),
+	MISSING_COMBO("SE_0248", "This combo is missing.", "This combo is missing."),
 	;
 	// @formatter:on
 
