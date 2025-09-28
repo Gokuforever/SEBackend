@@ -68,6 +68,22 @@ public class AwsS3Service {
                 .build();
     }
 
+    public String uploadPhoto(byte[] bytes, String contentType, String fileName) throws IOException {
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(bytes.length);
+        metadata.setContentType(contentType);
+
+        fileName = generateFileName(fileName);
+
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes)) {
+            s3Client.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+            log.info("Successfully uploaded image to S3: bucket={}, key={}", bucketName, fileName);
+        }
+
+        return getFileUrl(fileName);
+    }
+
     public File_Upload_Details uploadPhoto(MultipartFile multipartFile, UsersBean usersBean, DocumentType documentType) throws IOException {
         log.info("Starting upload for user ID: {}, documentType: {}", usersBean.getId(), documentType);
 
@@ -164,7 +180,7 @@ public class AwsS3Service {
 
         // Generate unique filename with timestamp
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return INVOICE_FOLDER +baseName + "_" + timestamp + ".pdf";
+        return INVOICE_FOLDER + baseName + "_" + timestamp + ".pdf";
     }
 
     private String getFileUrl(String fileName) {
@@ -173,6 +189,11 @@ public class AwsS3Service {
 
     private String generateFileName(MultipartFile file) {
         String original = Objects.requireNonNull(file.getOriginalFilename()).replace(" ", "_");
+        return BASE_FOLDER + UUID.randomUUID() + "-" + original + CommonUtils.generateFixedLengthRandomNumber(3);
+    }
+
+    private String generateFileName(String fileName) {
+        String original = Objects.requireNonNull(fileName).replace(" ", "_");
         return BASE_FOLDER + UUID.randomUUID() + "-" + original + CommonUtils.generateFixedLengthRandomNumber(3);
     }
 
