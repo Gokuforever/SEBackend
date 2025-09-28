@@ -74,7 +74,7 @@ public class ReferralUtility {
 
     public void getReferredUsers(String userId) {
         SEFilter filter = new SEFilter(SEFilterType.AND);
-        filter.addClause(WhereClause.in(ReferralEntity.Fields.users, userId));
+        filter.addClause(WhereClause.in(ReferralEntity.Fields.users, List.of(userId)));
         filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
         service.repoFind(filter);
     }
