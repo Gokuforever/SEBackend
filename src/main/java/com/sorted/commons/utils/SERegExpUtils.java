@@ -21,6 +21,12 @@ public class SERegExpUtils {
         otp_length_new = otp_length;
     }
 
+    public static boolean isAlphaNumeric(@NonNull String val) {
+        val = val.trim();
+        Pattern pattern = Pattern.compile("[a-zA-Z0-9]*");
+        return pattern.matcher(val).matches();
+    }
+
     public static boolean isAlphabeticString(@NonNull String val) {
         val = val.trim();
         Pattern pattern = Pattern.compile("[a-zA-Z]*");

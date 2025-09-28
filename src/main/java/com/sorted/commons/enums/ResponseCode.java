@@ -258,6 +258,8 @@ public enum ResponseCode {
 	COUPON_CODE_ALREADY_USED("SE_0241", "Coupon code is already used.", "Coupon code is already used."),
 	COUPON_CODE_NOT_FOUND("SE_0242", "Coupon code not found.", "Coupon code not found."),
 	DELIVERY_ALREADY_FREE("SE_0243", "Delivery is already free on this order.", "Delivery is already free on this order."),
+	INVALID_REFERRAL_CODE("SE_0244", "Invalid Referral Code.", "Invalid Referral Code."),
+	REFERRAL_NOT_APPLICABLE("SE_0245", "Referral not applicable.", "Referral not applicable."),
 	;
 	// @formatter:on
 
