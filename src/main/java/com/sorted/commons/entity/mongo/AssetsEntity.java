@@ -23,4 +23,6 @@ public class AssetsEntity extends BaseMongoEntity<String> {
     private int order;
     @Field("alt_text")
     private String altText;
+    @Field("mobile_view")
+    private boolean mobileView;
 }
