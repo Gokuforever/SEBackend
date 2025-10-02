@@ -6,7 +6,9 @@ import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.*;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import com.sorted.commons.helper.AggregationFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +34,7 @@ public class OrderUtility {
     private final Seller_Service seller_Service;
     private final OrderService orderService;
     private final CartUtility cartUtility;
+    private final ComboUtility comboUtility;
 
     @Value("${se.fixed-delivery-charge.in-paise:4000}")
     private long fixedDeliveryFee;
@@ -116,11 +119,11 @@ public class OrderUtility {
             throw new CustomIllegalArgumentsException(ResponseCode.MISSING_DELIVERY_ADD);
         }
 
-        AggregationFilter.SEFilter filterA = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, req.getDelivery_address_id()));
-        filterA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        filterA.addClause(AggregationFilter.WhereClause.eq(Address.Fields.entity_id, usersBean.getId()));
-        filterA.addClause(AggregationFilter.WhereClause.eq(Address.Fields.user_type, UserType.CUSTOMER.name()));
+        SEFilter filterA = new SEFilter(SEFilterType.AND);
+        filterA.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, req.getDelivery_address_id()));
+        filterA.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        filterA.addClause(WhereClause.eq(Address.Fields.entity_id, usersBean.getId()));
+        filterA.addClause(WhereClause.eq(Address.Fields.user_type, UserType.CUSTOMER.name()));
 
         Address address = address_Service.repoFindOne(filterA);
         if (address == null) {
@@ -138,9 +141,9 @@ public class OrderUtility {
     private Cart validateCart(UsersBean usersBean) {
         log.debug("validateCart:: Validating cart for user: {}", usersBean.getId());
 
-        AggregationFilter.SEFilter filterC = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterC.addClause(AggregationFilter.WhereClause.eq(Cart.Fields.user_id, usersBean.getId()));
-        filterC.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        SEFilter filterC = new SEFilter(SEFilterType.AND);
+        filterC.addClause(WhereClause.eq(Cart.Fields.user_id, usersBean.getId()));
+        filterC.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         Cart cart = cart_Service.repoFindOne(filterC);
         if (cart == null) {
@@ -171,9 +174,9 @@ public class OrderUtility {
         String seller_id = productsOptional.get().getSeller_id();
         log.debug("validateSeller:: Using seller ID: {}", seller_id);
 
-        AggregationFilter.SEFilter filterS = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterS.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.id, seller_id));
-        filterS.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        SEFilter filterS = new SEFilter(SEFilterType.AND);
+        filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, seller_id));
+        filterS.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         Seller seller = seller_Service.repoFindOne(filterS);
         if (seller == null) {
@@ -186,10 +189,10 @@ public class OrderUtility {
     }
 
     private Address getSellerAddress(Seller seller) {
-        AggregationFilter.SEFilter filterSA = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterSA.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        filterSA.addClause(AggregationFilter.WhereClause.eq(Address.Fields.entity_id, seller.getId()));
-        filterSA.addClause(AggregationFilter.WhereClause.eq(Address.Fields.user_type, UserType.SELLER.name()));
+        SEFilter filterSA = new SEFilter(SEFilterType.AND);
+        filterSA.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        filterSA.addClause(WhereClause.eq(Address.Fields.entity_id, seller.getId()));
+        filterSA.addClause(WhereClause.eq(Address.Fields.user_type, UserType.SELLER.name()));
 
         Address sellerAddress = address_Service.repoFindOne(filterSA);
         if (sellerAddress == null) {
@@ -202,11 +205,30 @@ public class OrderUtility {
         log.debug("createOrderItems:: Creating order items for {} cart items", cartItems.size());
         List<Order_Item> listOI = new ArrayList<>();
 
-        List<String> productIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id())).map(CartItems::getProduct_id).toList();
+        List<String> comboIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && e.is_combo()).map(CartItems::getProduct_id).toList();
 
-        AggregationFilter.SEFilter filterP = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterP.addClause(AggregationFilter.WhereClause.in(BaseMongoEntity.Fields.id, productIds));
-        filterP.addClause(AggregationFilter.WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        if (!CollectionUtils.isEmpty(comboIds)) {
+            List<Combo> activeCombos = comboUtility.getActiveCombos(comboIds);
+
+            if (!CollectionUtils.isEmpty(activeCombos)) {
+                Map<String, Combo> comboMap = activeCombos.stream().collect(Collectors.toMap(BaseMongoEntity::getId, combo -> combo));
+
+                for (CartItems item : cartItems) {
+                    Combo combo = comboMap.getOrDefault(item.getProduct_id(), null);
+                    if (combo == null) {
+                        continue;
+                    }
+                    Order_Item orderItem = getOrderItem(item, combo, userId);
+                    listOI.add(orderItem);
+                }
+            }
+        }
+
+        List<String> productIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && !e.is_combo()).map(CartItems::getProduct_id).toList();
+
+        SEFilter filterP = new SEFilter(SEFilterType.AND);
+        filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
+        filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         List<Products> listP = productService.repoFind(filterP);
         if (CollectionUtils.isEmpty(listP)) {
@@ -238,6 +260,24 @@ public class OrderUtility {
 
         log.info("createOrderItems:: Successfully created {} order items", listOI.size());
         return listOI;
+    }
+
+    private Order_Item getOrderItem(CartItems item, Combo combo, String userId) {
+        Order_Item order_Item = new Order_Item();
+        order_Item.setProduct_id(combo.getId());
+        order_Item.setProduct_code(combo.getCode());
+        order_Item.setProduct_name(combo.getName());
+        order_Item.setCdn_url(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : null);
+        order_Item.setQuantity(item.getQuantity());
+        order_Item.setSelling_price(combo.getSelling_price());
+        order_Item.setSeller_id(combo.getSeller_id());
+        order_Item.setSeller_code(combo.getSeller_code());
+        order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
+        order_Item.setTotal_cost(combo.getSelling_price() * item.getQuantity());
+        order_Item.setType(PurchaseType.BUY);
+        order_Item.setCombo(true);
+        order_Item.setCombo_item_ids(combo.getItem_ids());
+        return order_Item;
     }
 
     private Order_Item getOrderItem(CartItems item, Products product, String userId) {

@@ -2,15 +2,14 @@ package com.sorted.commons.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sorted.commons.beans.*;
-import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.entity.mongo.Cart;
-import com.sorted.commons.entity.mongo.Products;
-import com.sorted.commons.entity.mongo.Seller;
+import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.All_Status;
 import com.sorted.commons.enums.ResponseCode;
 import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
-import com.sorted.commons.helper.AggregationFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +33,7 @@ public class CartUtility {
     private final DemandingPincodeService demandingPincodeService;
     private final Address_Service addressService;
     private final CouponUtility couponUtility;
+    private final ComboUtility comboUtility;
 
     @Value("${se.fixed-delivery-charge.in-paise:4000}")
     private long fixedDeliveryFee;
@@ -81,8 +81,8 @@ public class CartUtility {
                     .totalItemCount(0L)
                     .build();
         }
-        BigDecimal minCartValue = CommonUtils.paiseToRupee(minCartValueInPaise);
         List<CartItems> cartItems = new ArrayList<>();
+        BigDecimal minCartValue = CommonUtils.paiseToRupee(minCartValueInPaise);
         String couponCode = null;
         BigDecimal toPay = zero;
         BigDecimal savings = zero;
@@ -97,19 +97,54 @@ public class CartUtility {
         BigDecimal actualHandlingFee = CommonUtils.paiseToRupee(fixedHandlingFee);
         long totalItemCount = 0;
         boolean isFreeDelivery = false;
-        boolean isStoreOperational = false;
+        boolean isStoreOperational;
         String sellerId = null;
 
-        List<String> productIds = itemList.stream().map(Item::getProduct_id).distinct().toList();
+        List<String> comboIds = itemList.stream().filter(Item::isCombo).map(Item::getProduct_id).toList();
 
-        AggregationFilter.SEFilter filterP = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-        filterP.addClause(AggregationFilter.WhereClause.in(BaseMongoEntity.Fields.id, productIds));
+        if (!CollectionUtils.isEmpty(comboIds)) {
+            List<Combo> combos = comboUtility.getActiveCombos(comboIds);
+            if (!CollectionUtils.isEmpty(combos)) {
+                Map<String, Combo> comboMap = combos.stream().collect(Collectors.toMap(BaseMongoEntity::getId, combo -> combo));
+                for (Item i : itemList) {
+                    if (!i.isCombo()) {
+                        continue;
+                    }
+                    Combo combo = comboMap.getOrDefault(i.getProduct_id(), null);
+                    if (combo == null) {
+                        continue;
+                    }
+                    CartItems items = new CartItems();
+                    items.setProduct_name(combo.getName());
+                    items.setProduct_code(i.getProduct_code());
+                    items.setProduct_id(i.getProduct_id());
+                    items.setQuantity(i.getQuantity());
+                    items.setSelling_price(CommonUtils.paiseToRupee(combo.getSelling_price()));
+                    items.setSecure_item(i.is_secure());
+                    items.setMrp(CommonUtils.paiseToRupee(combo.getMrp()));
+                    items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
+                    items.set_combo(true);
+                    cartItems.add(items);
+                    totalItemCount += items.getQuantity();
+                    totalSellingPrice = totalSellingPrice.add(items.getSelling_price());
+                    totalMrp = totalMrp.add(items.getMrp());
+                }
+            }
+        }
+
+        List<String> productIds = itemList.stream().filter(e -> !e.isCombo()).map(Item::getProduct_id).distinct().toList();
+
+        SEFilter filterP = new SEFilter(SEFilterType.AND);
+        filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
 
         List<Products> listP = productService.repoFind(filterP);
         if (!CollectionUtils.isEmpty(listP)) {
             sellerId = listP.get(0).getSeller_id();
         }
         for (Item i : itemList) {
+            if (i.isCombo()) {
+                continue;
+            }
             Map<String, Products> productMap = listP.stream().collect(Collectors.toMap(BaseMongoEntity::getId, p -> p));
             Products products = productMap.get(i.getProduct_id());
 
@@ -122,7 +157,7 @@ public class CartUtility {
             items.setSelling_price(CommonUtils.paiseToRupee(products.getSelling_price()));
             items.setSecure_item(i.is_secure());
             items.setMrp(CommonUtils.paiseToRupee(products.getMrp()));
-
+            items.set_combo(false);
             if (products.isDeleted()) {
                 items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
             } else if (products.getQuantity().compareTo(i.getQuantity()) >= 0) {
@@ -161,7 +196,7 @@ public class CartUtility {
         }
         BigDecimal actualSellingPrice = totalSellingPrice;
         boolean isNotSmallCart = totalSellingPrice.compareTo(minCartValue) > 0;
-        if (isNotSmallCart) {
+        if (!isNotSmallCart) {
             actualSellingPrice = totalSellingPrice.add(deliveryFee).add(smallCartFee).add(handlingFee);
         }
 
@@ -240,8 +275,8 @@ public class CartUtility {
         String seller_id = null;
         if (!CollectionUtils.isEmpty(cart_items)) {
             List<String> product_ids = cart_items.stream().map(Item::getProduct_id).toList();
-            AggregationFilter.SEFilter filterP = new AggregationFilter.SEFilter(AggregationFilter.SEFilterType.AND);
-            filterP.addClause(AggregationFilter.WhereClause.in(BaseMongoEntity.Fields.id, product_ids));
+            SEFilter filterP = new SEFilter(SEFilterType.AND);
+            filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, product_ids));
 //			filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
             List<Products> listP = productService.repoFind(filterP);

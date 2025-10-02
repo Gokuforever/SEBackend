@@ -2,10 +2,7 @@ package com.sorted.commons.utils;
 
 import com.sorted.commons.beans.CartItems;
 import com.sorted.commons.constants.Defaults;
-import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.entity.mongo.Cart;
-import com.sorted.commons.entity.mongo.Order_Item;
-import com.sorted.commons.entity.mongo.Products;
+import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.Cart_Service;
 import com.sorted.commons.entity.service.Order_Item_Service;
 import com.sorted.commons.entity.service.ProductService;
@@ -19,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +26,7 @@ public class OrderService {
     private final ProductService productService;
     private final Order_Item_Service orderItemService;
     private final Cart_Service cartService;
+    private final ComboUtility comboUtility;
 
     public void increaseProductQuantity(Products product, Long quantity) {
         quantity = product.getQuantity() + quantity;
@@ -55,7 +50,17 @@ public class OrderService {
     @Async
     public void reduceProductQuantity(List<CartItems> cartItems) {
 
-        List<String> productIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id())).map(CartItems::getProduct_id).toList();
+        Map<String, List<String>> comboProductIds = new HashMap<>();
+        List<String> productIds = new ArrayList<>(cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && !e.is_combo()).map(CartItems::getProduct_id).toList());
+        List<String> comboIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && e.is_combo()).map(CartItems::getProduct_id).toList();
+        List<Combo> activeCombos = comboUtility.getActiveCombos(comboIds);
+        boolean containsCombo = !CollectionUtils.isEmpty(activeCombos);
+        if (containsCombo) {
+            comboProductIds = activeCombos.stream().collect(Collectors.toMap(Combo::getId, Combo::getItem_ids));
+            for (Combo activeCombo : activeCombos) {
+                productIds.addAll(activeCombo.getItem_ids());
+            }
+        }
 
         SEFilter filterP = new SEFilter(SEFilterType.AND);
         filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
@@ -69,17 +74,25 @@ public class OrderService {
         Map<String, Products> productsMap = listP.stream().collect(Collectors.toMap(Products::getId, p -> p));
 
         for (CartItems cartItem : cartItems) {
-            Products products = productsMap.getOrDefault(cartItem.getProduct_id(), null);
-            if (products == null) {
-                continue;
+            if (containsCombo && comboProductIds.containsKey(cartItem.getProduct_id())) {
+                comboProductIds.get(cartItem.getProduct_id());
+                reduceProductQuantity(cartItem.getProduct_id(), cartItem.getQuantity(), cartItem.getCurrent_status(), productsMap);
             }
-            if (!cartItem.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id())) {
-                continue;
-            }
-            long quantity = products.getQuantity() - cartItem.getQuantity();
-            products.setQuantity(quantity);
-            productService.update(products.getId(), products, Defaults.SYSTEM_ADMIN);
+            reduceProductQuantity(cartItem.getProduct_id(), cartItem.getQuantity(), cartItem.getCurrent_status(), productsMap);
         }
+    }
+
+    private void reduceProductQuantity(String productId, long quantity, int currentStatus, Map<String, Products> productsMap) {
+        Products products = productsMap.getOrDefault(productId, null);
+        if (products == null) {
+            return;
+        }
+        if (currentStatus == All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) {
+            return;
+        }
+        quantity -= products.getQuantity();
+        products.setQuantity(quantity);
+        productService.update(products.getId(), products, Defaults.SYSTEM_ADMIN);
     }
 
     @Async

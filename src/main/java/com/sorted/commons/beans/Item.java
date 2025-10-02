@@ -12,5 +12,5 @@ public class Item {
 	private PurchaseType purchase_type;
 	private boolean is_secure;
 	private ProductType product_type;
-	private String bundle_id;
+	private boolean combo;
 }

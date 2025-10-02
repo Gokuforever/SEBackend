@@ -49,6 +49,8 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private List<Order_Status_History> status_history;
 	private Order_Status_History latest_order_history;
 	private Return_Details return_details;
+	private boolean combo;
+	private List<String> combo_item_ids;
 
 	public void setStatus(@NonNull OrderStatus status, String cud_by) {
 		Order_Status_History order_Status_History = Order_Status_History.builder().status(status)

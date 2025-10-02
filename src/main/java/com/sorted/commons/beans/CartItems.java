@@ -15,4 +15,5 @@ public class CartItems {
     private boolean secure_item;
     private Integer current_status;
     private String cdn_url;
+    private boolean is_combo;
 }

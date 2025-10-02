@@ -4,6 +4,9 @@ import com.sorted.commons.entity.mongo.Combo;
 import com.sorted.commons.repository.mongo.ComboRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Year;
+import java.util.UUID;
+
 @Service
 public class ComboService extends GenericEntityServiceImpl<String, Combo, ComboRepository> {
     @Override
@@ -13,7 +16,11 @@ public class ComboService extends GenericEntityServiceImpl<String, Combo, ComboR
 
     @Override
     protected void validateBeforeCreate(Combo inE) throws RuntimeException {
+        long nanoseconds = System.nanoTime();
+        String productCode = "CBID-" + nanoseconds + "-" + Year.now() + "-"
+                + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 
+        inE.setCode(productCode);
     }
 
     @Override

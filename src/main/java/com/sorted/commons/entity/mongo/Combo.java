@@ -14,10 +14,13 @@ import java.util.List;
 @Document(collection = "combo")
 public class Combo extends BaseMongoEntity<String> {
     private String name;
+    private String code;
     private List<String> item_ids;
     private String description;
     private List<Media> media;
-    private Long price;
+    private Long selling_price;
+    private Long mrp;
     private boolean active;
     private String seller_id;
+    private String seller_code;
 }
