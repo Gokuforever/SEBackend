@@ -94,8 +94,7 @@ public class Users_Service extends GenericEntityServiceImpl<String, Users, Users
         if (role == null) {
             throw new CustomIllegalArgumentsException(ResponseCode.ROLE_MISSING);
         }
-        boolean isSeller = role.getUser_type() != null && role.getUser_type().equals(UserType.SELLER);
-        String uuid = manageOTPManagerService.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN, isSeller);
+        String uuid = manageOTPManagerService.send(mobile_no, ProcessType.SIGN_IN, Defaults.SIGN_IN);
         OTPResponse response = new OTPResponse();
         response.setReference_id(uuid);
         response.setProcess_type(ProcessType.SIGN_IN.name());

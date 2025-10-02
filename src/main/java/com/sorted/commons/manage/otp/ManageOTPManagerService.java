@@ -12,7 +12,6 @@ import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,14 +22,11 @@ public class ManageOTPManagerService {
 
     private final Otp_Service otp_Service;
 
-    @Value("${se.portal.otp_length}")
-    private int otp_length;
-
-    public String send(@NonNull String mobile_number, @NonNull ProcessType process_type, String cud_by, boolean isSeller) {
-        return manageOtp.generateAndSaveOtp(mobile_number, process_type, cud_by, isSeller ? 3 : otp_length);
+    public String send(@NonNull String mobile_number, @NonNull ProcessType process_type, String cud_by) {
+        return manageOtp.generateAndSaveOtp(mobile_number, process_type, cud_by);
     }
 
-    public String resendOtp(@NonNull ProcessType process, @NonNull String uuid, boolean isSeller) {
+    public String resendOtp(@NonNull ProcessType process, @NonNull String uuid) {
         SEFilter filterO = new SEFilter(SEFilterType.AND);
         filterO.addClause(WhereClause.eq(Otp.Fields.process_type, process.name()));
         filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
@@ -44,6 +40,6 @@ public class ManageOTPManagerService {
         }
         oldOtp.setStatus(false);
         otp_Service.update(oldOtp.getId(), oldOtp, Defaults.RESEND);
-        return this.send(oldOtp.getMobile_no(), process, Defaults.RESEND, isSeller);
+        return this.send(oldOtp.getMobile_no(), process, Defaults.RESEND);
     }
 }

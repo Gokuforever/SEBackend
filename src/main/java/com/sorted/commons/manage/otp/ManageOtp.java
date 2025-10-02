@@ -48,7 +48,7 @@ public class ManageOtp {
     private final SmsTraceHelper smsTraceHelper;
     private final SMSService smsService;
 
-    public String generateAndSaveOtp(String mobile_number, ProcessType process_type, String cud_by, Integer otpLength) {
+    public String generateAndSaveOtp(String mobile_number, ProcessType process_type, String cud_by) {
         SEFilter filterO = new SEFilter(SEFilterType.AND);
         filterO.addClause(WhereClause.eq(Otp.Fields.mobile_no, mobile_number));
         filterO.addClause(WhereClause.eq(Otp.Fields.status, true));
@@ -65,7 +65,7 @@ public class ManageOtp {
         Otp otp = new Otp();
         String random_otp;
         if (enableSms) {
-            random_otp = CommonUtils.generateFixedLengthRandomNumber(otpLength != null ? otpLength : otp_length);
+            random_otp = CommonUtils.generateFixedLengthRandomNumber(otp_length);
         } else {
             random_otp = "1111";
         }
