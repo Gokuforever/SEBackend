@@ -75,8 +75,10 @@ public class OrderService {
 
         for (CartItems cartItem : cartItems) {
             if (containsCombo && comboProductIds.containsKey(cartItem.getProduct_id())) {
-                comboProductIds.get(cartItem.getProduct_id());
-                reduceProductQuantity(cartItem.getProduct_id(), cartItem.getQuantity(), cartItem.getCurrent_status(), productsMap);
+                for (String productId : comboProductIds.get(cartItem.getProduct_id())) {
+                    reduceProductQuantity(productId, cartItem.getQuantity(), cartItem.getCurrent_status(), productsMap);
+                }
+                continue;
             }
             reduceProductQuantity(cartItem.getProduct_id(), cartItem.getQuantity(), cartItem.getCurrent_status(), productsMap);
         }

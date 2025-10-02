@@ -124,6 +124,7 @@ public class CartUtility {
                     items.setMrp(CommonUtils.paiseToRupee(combo.getMrp()));
                     items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
                     items.set_combo(true);
+                    items.setCdn_url(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : "");
                     cartItems.add(items);
                     totalItemCount += items.getQuantity();
                     totalSellingPrice = totalSellingPrice.add(items.getSelling_price());
@@ -134,48 +135,51 @@ public class CartUtility {
 
         List<String> productIds = itemList.stream().filter(e -> !e.isCombo()).map(Item::getProduct_id).distinct().toList();
 
-        SEFilter filterP = new SEFilter(SEFilterType.AND);
-        filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
+        if (!CollectionUtils.isEmpty(productIds)) {
 
-        List<Products> listP = productService.repoFind(filterP);
-        if (!CollectionUtils.isEmpty(listP)) {
-            sellerId = listP.get(0).getSeller_id();
-        }
-        for (Item i : itemList) {
-            if (i.isCombo()) {
-                continue;
-            }
-            Map<String, Products> productMap = listP.stream().collect(Collectors.toMap(BaseMongoEntity::getId, p -> p));
-            Products products = productMap.get(i.getProduct_id());
+            SEFilter filterP = new SEFilter(SEFilterType.AND);
+            filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
 
-            CartItems items = new CartItems();
+            List<Products> listP = productService.repoFind(filterP);
+            if (!CollectionUtils.isEmpty(listP)) {
+                sellerId = listP.get(0).getSeller_id();
+            }
+            for (Item i : itemList) {
+                if (i.isCombo()) {
+                    continue;
+                }
+                Map<String, Products> productMap = listP.stream().collect(Collectors.toMap(BaseMongoEntity::getId, p -> p));
+                Products products = productMap.get(i.getProduct_id());
 
-            items.setProduct_name(products.getName());
-            items.setProduct_code(i.getProduct_code());
-            items.setProduct_id(i.getProduct_id());
-            items.setQuantity(i.getQuantity());
-            items.setSelling_price(CommonUtils.paiseToRupee(products.getSelling_price()));
-            items.setSecure_item(i.is_secure());
-            items.setMrp(CommonUtils.paiseToRupee(products.getMrp()));
-            items.set_combo(false);
-            if (products.isDeleted()) {
-                items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
-            } else if (products.getQuantity().compareTo(i.getQuantity()) >= 0) {
-                long sellingPriceInPaise = products.getSelling_price() * items.getQuantity();
-                totalSellingPrice = totalSellingPrice.add(CommonUtils.paiseToRupee(sellingPriceInPaise));
-                long mrpInPaise = products.getMrp() * items.getQuantity();
-                totalMrp = totalMrp.add(CommonUtils.paiseToRupee(mrpInPaise));
-                items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
-                totalItemCount += items.getQuantity();
-            } else {
-                items.setCurrent_status(All_Status.ProductCurrentStatus.OUT_OF_STOCK.getStatus_id());
+                CartItems items = new CartItems();
+
+                items.setProduct_name(products.getName());
+                items.setProduct_code(i.getProduct_code());
+                items.setProduct_id(i.getProduct_id());
+                items.setQuantity(i.getQuantity());
+                items.setSelling_price(CommonUtils.paiseToRupee(products.getSelling_price()));
+                items.setSecure_item(i.is_secure());
+                items.setMrp(CommonUtils.paiseToRupee(products.getMrp()));
+                items.set_combo(false);
+                if (products.isDeleted()) {
+                    items.setCurrent_status(All_Status.ProductCurrentStatus.CURRENTLY_UNAVAILABLE.getStatus_id());
+                } else if (products.getQuantity().compareTo(i.getQuantity()) >= 0) {
+                    long sellingPriceInPaise = products.getSelling_price() * items.getQuantity();
+                    totalSellingPrice = totalSellingPrice.add(CommonUtils.paiseToRupee(sellingPriceInPaise));
+                    long mrpInPaise = products.getMrp() * items.getQuantity();
+                    totalMrp = totalMrp.add(CommonUtils.paiseToRupee(mrpInPaise));
+                    items.setCurrent_status(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id());
+                    totalItemCount += items.getQuantity();
+                } else {
+                    items.setCurrent_status(All_Status.ProductCurrentStatus.OUT_OF_STOCK.getStatus_id());
+                }
+                List<Media> media = products.getMedia();
+                if (!CollectionUtils.isEmpty(media)) {
+                    Optional<Media> findFirst = media.stream().filter(m -> m.getOrder() == 0).findFirst();
+                    findFirst.ifPresent(value -> items.setCdn_url(value.getCdn_url()));
+                }
+                cartItems.add(items);
             }
-            List<Media> media = products.getMedia();
-            if (!CollectionUtils.isEmpty(media)) {
-                Optional<Media> findFirst = media.stream().filter(m -> m.getOrder() == 0).findFirst();
-                findFirst.ifPresent(value -> items.setCdn_url(value.getCdn_url()));
-            }
-            cartItems.add(items);
         }
 
 

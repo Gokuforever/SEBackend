@@ -30,6 +30,13 @@ public class Order_Item extends BaseMongoEntity<String> {
 	private String order_code;
 	private String seller_id;
 	private String seller_code;
+	private String combo_id;
+	private String combo_code;
+	private String combo_name;
+	private String combo_description;
+	private String combo_img_src;
+	private Long combo_selling_price;
+	private Long combo_mrp;
 	private String product_id;
 	private String product_code;
 	private String product_name;

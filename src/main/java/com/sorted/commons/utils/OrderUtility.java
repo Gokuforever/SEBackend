@@ -211,6 +211,19 @@ public class OrderUtility {
             List<Combo> activeCombos = comboUtility.getActiveCombos(comboIds);
 
             if (!CollectionUtils.isEmpty(activeCombos)) {
+                List<String> comboProductIds = activeCombos.stream().flatMap(combo -> combo.getItem_ids().stream()).distinct().toList();
+
+                SEFilter filterP = new SEFilter(SEFilterType.AND);
+                filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, comboProductIds));
+                filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+                List<Products> listP = productService.repoFind(filterP);
+                if (CollectionUtils.isEmpty(listP)) {
+                    return listOI;
+                }
+
+                Map<String, Products> productsMap = listP.stream().collect(Collectors.toMap(Products::getId, p -> p));
+
                 Map<String, Combo> comboMap = activeCombos.stream().collect(Collectors.toMap(BaseMongoEntity::getId, combo -> combo));
 
                 for (CartItems item : cartItems) {
@@ -218,8 +231,15 @@ public class OrderUtility {
                     if (combo == null) {
                         continue;
                     }
-                    Order_Item orderItem = getOrderItem(item, combo, userId);
-                    listOI.add(orderItem);
+                    List<String> itemIds = combo.getItem_ids();
+                    for (String itemId : itemIds) {
+                        Products products = productsMap.getOrDefault(itemId, null);
+                        if (products == null) {
+                            continue;
+                        }
+                        Order_Item orderItem = getOrderItem(item, combo, products, userId);
+                        listOI.add(orderItem);
+                    }
                 }
             }
         }
@@ -262,21 +282,30 @@ public class OrderUtility {
         return listOI;
     }
 
-    private Order_Item getOrderItem(CartItems item, Combo combo, String userId) {
+    private Order_Item getOrderItem(CartItems item, Combo combo, Products product, String userId) {
+
         Order_Item order_Item = new Order_Item();
-        order_Item.setProduct_id(combo.getId());
-        order_Item.setProduct_code(combo.getCode());
-        order_Item.setProduct_name(combo.getName());
-        order_Item.setCdn_url(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : null);
-        order_Item.setQuantity(item.getQuantity());
-        order_Item.setSelling_price(combo.getSelling_price());
-        order_Item.setSeller_id(combo.getSeller_id());
-        order_Item.setSeller_code(combo.getSeller_code());
-        order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
-        order_Item.setTotal_cost(combo.getSelling_price() * item.getQuantity());
-        order_Item.setType(PurchaseType.BUY);
         order_Item.setCombo(true);
-        order_Item.setCombo_item_ids(combo.getItem_ids());
+        order_Item.setCombo_id(combo.getId());
+        order_Item.setCombo_code(combo.getCode());
+        order_Item.setCombo_name(combo.getName());
+        order_Item.setCombo_description(combo.getDescription());
+        order_Item.setCombo_img_src(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : null);
+        order_Item.setCombo_selling_price(combo.getSelling_price());
+        order_Item.setCombo_mrp(combo.getMrp());
+        order_Item.setProduct_id(product.getId());
+        order_Item.setProduct_code(product.getProduct_code());
+        order_Item.setProduct_name(product.getName());
+        order_Item.setCdn_url(!CollectionUtils.isEmpty(product.getMedia()) ? product.getMedia().get(0).getCdn_url() : null);
+        order_Item.setQuantity(item.getQuantity());
+        order_Item.setSelling_price(product.getSelling_price());
+        order_Item.setSeller_id(product.getSeller_id());
+        order_Item.setSeller_code(product.getSeller_code());
+        order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
+        order_Item.setTotal_cost(product.getSelling_price() * item.getQuantity());
+
+        order_Item.setType(PurchaseType.BUY);
+
         return order_Item;
     }
 
