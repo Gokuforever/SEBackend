@@ -246,7 +246,7 @@ public class CartUtility {
                         .smallCartFee(smallCartFee)
                         .handlingFee(handlingFee)
                         .totalMrp(totalMrp)
-                        .totalSellingPrice(totalSellingPrice)
+                        .totalSellingPrice(actualSellingPrice)
                         .couponDiscount(couponDiscount)
                         .deliveryFee(CommonUtils.paiseToRupee(fixedDeliveryFee))
                         .handlingFee(CommonUtils.paiseToRupee(fixedHandlingFee))
