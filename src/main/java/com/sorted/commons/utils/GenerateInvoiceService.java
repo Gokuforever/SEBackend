@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -80,7 +82,25 @@ public class GenerateInvoiceService {
 
         if (!CollectionUtils.isEmpty(orderItems)) {
             log.debug("Found {} order items for order ID: {}", orderItems.size(), orderDetails.getId());
-            for (Order_Item item : orderItems) {
+
+            Map<String, List<Order_Item>> comboItemMap =
+                    orderItems.stream().filter(Order_Item::isCombo).collect(Collectors.groupingBy(Order_Item::getCombo_id));
+
+            if (!CollectionUtils.isEmpty(comboItemMap)){
+                for (Map.Entry<String, List<Order_Item>> entry : comboItemMap.entrySet()) {
+                    Order_Item item = entry.getValue().get(0);
+                    invoiceItems.add(InvoiceItem.builder()
+                            .productId(item.getCombo_code())
+                            .productName(item.getCombo_name())
+                            .hsnCode("")
+                            .quantity(item.getQuantity())
+                            .unitPrice(CommonUtils.paiseToRupee(item.getCombo_selling_price()))
+                            .totalPrice(CommonUtils.paiseToRupee(item.getCombo_mrp()))
+                            .build());
+                }
+            }
+            List<Order_Item> order_items = orderItems.stream().filter(item -> !item.isCombo()).toList();
+            for (Order_Item item : order_items) {
                 invoiceItems.add(InvoiceItem.builder()
                         .productId(item.getProduct_code())
                         .productName(item.getProduct_name())
