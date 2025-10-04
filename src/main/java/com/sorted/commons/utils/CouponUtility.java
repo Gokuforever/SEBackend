@@ -710,7 +710,7 @@ public class CouponUtility {
         if (coupon.getMaxUses() != null && coupon.getMaxUses() > 0 && coupon.getUsedCount() != null && coupon.getUsedCount() >= coupon.getMaxUses()) {
             return "Coupon has reached its maximum usage limit.";
         }
-        if (CouponScope.USER_SPECIFIC.equals(coupon.getCouponScope()) && (coupon.getEligibleUserIds() == null || !coupon.getEligibleUserIds().contains(userId))) {
+        if (CouponScope.USER_SPECIFIC.equals(coupon.getCouponScope()) && (coupon.getAssignedToUsers() == null || !coupon.getAssignedToUsers().contains(userId))) {
             return "This coupon is not applicable for your account.";
         }
         if (coupon.getMaxUsesPerUser() != null && userUsageCount >= coupon.getMaxUsesPerUser()) {
