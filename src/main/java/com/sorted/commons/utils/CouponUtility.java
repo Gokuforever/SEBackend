@@ -193,10 +193,10 @@ public class CouponUtility {
         }
 
         if (couponScope.equals(CouponScope.USER_SPECIFIC)) {
-            if (CollectionUtils.isEmpty(coupon.getEligibleUserIds())) {
+            if (CollectionUtils.isEmpty(coupon.getAssignedToUsers())) {
                 return false;
             }
-            if (!coupon.getEligibleUserIds().contains(userId)) {
+            if (!coupon.getAssignedToUsers().contains(userId)) {
                 return false;
             }
         }
