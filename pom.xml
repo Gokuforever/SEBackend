@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sorted</groupId>
     <artifactId>se-commons</artifactId>
-    <version>25.10.03-SNAPSHOT</version>
+    <version>25.10.04-SNAPSHOT</version>
     <name>se-commons</name>
     <description>Common utilities and components library</description>
     <properties>
@@ -90,14 +90,14 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>5.2.5</version>
+            <version>5.2.3</version>
         </dependency>
 
         <!-- Apache POI for .xlsx (XSSF) format -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.4.0</version>
+            <version>5.2.3</version>
         </dependency>
         <dependency>
             <groupId>io.github.cdimascio</groupId>

@@ -628,7 +628,6 @@ public class CouponUtility {
             String invalidReason = getCouponInvalidReason(coupon, userId, CommonUtils.paiseToRupee(totalSellingPriceInPaise), usageCount);
 
             if (invalidReason == null) {
-
                 boolean applied = false;
                 if (StringUtils.hasText(cart.getCouponCode())) {
                     applied = cart.getCouponCode().equals(coupon.getCode());
@@ -650,7 +649,7 @@ public class CouponUtility {
                         .isApplied(applied)
                         .build();
                 applicableCoupons.add(applicableCoupon);
-            } else {
+            } else if (invalidReason.contains("Add items worth")) {
                 long additionalAmountNeeded = 0L;
                 if (coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 && totalSellingPriceInPaise < coupon.getMinCartValue()) {
                     additionalAmountNeeded = coupon.getMinCartValue() - totalSellingPriceInPaise;
@@ -674,7 +673,9 @@ public class CouponUtility {
         }
 
         // Sort applicable coupons by the highest discount
-        applicableCoupons.sort(Comparator.comparing(ApplicableCoupon::calculatedDiscount).reversed());
+        applicableCoupons.sort(Comparator.comparing(ApplicableCoupon::calculatedDiscount).
+
+                reversed());
 
         // Mark the best offer
         if (!applicableCoupons.isEmpty()) {
