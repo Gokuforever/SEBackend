@@ -5,10 +5,12 @@ import com.google.gson.JsonParser;
 import com.sorted.commons.entity.mongo.SmsTraceEntity;
 import com.sorted.commons.enums.SmsTemplate;
 import com.sorted.commons.repository.mongo.SmsTraceRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class SmsTraceService extends GenericEntityServiceImpl<String, SmsTraceEntity, SmsTraceRepository> {
 
@@ -38,8 +40,10 @@ public class SmsTraceService extends GenericEntityServiceImpl<String, SmsTraceEn
                 .content(content)
                 .template(template)
                 .build();
+        log.info("response: {}", response);
         if (response != null) {
             JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject();
+            log.info("jsonObject: {}", jsonObject);
             boolean isSent = jsonObject.get("return").getAsBoolean();
             traceEntity.setSent(isSent);
         }
