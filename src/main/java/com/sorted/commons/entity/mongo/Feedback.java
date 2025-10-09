@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "counter")
+@Document(collection = "feedback")
 @Builder
 public class Feedback extends BaseMongoEntity<String> {
 
