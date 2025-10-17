@@ -2,6 +2,7 @@ package com.sorted.commons.entity.service;
 
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.WalletEntity;
+import com.sorted.commons.entity.mongo.WalletTransactionEntity;
 import com.sorted.commons.enums.TxnType;
 import com.sorted.commons.enums.WalletTxnSource;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
