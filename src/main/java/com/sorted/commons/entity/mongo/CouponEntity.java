@@ -64,5 +64,7 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private Long maxDiscount;
     @Field("coupon_usages")
     private List<CouponUsage> couponUsages;
+    @Field("is_visible_in_cart")
+    private boolean isVisibleInCart;
 
 }
