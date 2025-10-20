@@ -117,6 +117,7 @@ public class CouponUtility {
                 discountAmount = coupon.getDiscountValue();
                 // Ensure discount doesn't exceed total amount
                 discountAmount = Math.min(discountAmount, totalSellingPriceInPaise);
+                isFreeShipping = coupon.isDeliveryFree();
             }
             case PERCENTAGE -> {
                 // Percentage discount
@@ -130,6 +131,7 @@ public class CouponUtility {
                 if (coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 && discountAmount > coupon.getMaxDiscount()) {
                     discountAmount = coupon.getMaxDiscount();
                 }
+                isFreeShipping = coupon.isDeliveryFree();
             }
             default -> {
                 if (isNotSmallCart) {

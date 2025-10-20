@@ -66,5 +66,7 @@ public class CouponEntity extends BaseMongoEntity<String> {
     private List<CouponUsage> couponUsages;
     @Field("is_visible_in_cart")
     private boolean isVisibleInCart;
+    @Field("is_delivery_free")
+    private boolean isDeliveryFree;
 
 }
