@@ -126,7 +126,7 @@ public class CouponUtility {
                 }
                 isFreeShipping = coupon.isDeliveryFree();
                 if (!isFreeShipping) {
-                    totalSellingPriceInPaise = +totalPlatformFeeInPaise;
+                    totalSellingPriceInPaise += totalPlatformFeeInPaise;
                 }
                 long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
                 discountAmount = (totalSellingPriceInPaise * percentageInHundredths) / 10000;
@@ -134,6 +134,9 @@ public class CouponUtility {
                 // Apply max discount limit if applicable
                 if (coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 && discountAmount > coupon.getMaxDiscount()) {
                     discountAmount = coupon.getMaxDiscount();
+                }
+                if (isFreeShipping){
+                    discountAmount += totalPlatformFeeInPaise;
                 }
             }
             default -> {
