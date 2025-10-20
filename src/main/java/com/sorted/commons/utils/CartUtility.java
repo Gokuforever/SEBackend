@@ -205,9 +205,11 @@ public class CartUtility {
             actualSellingPrice = totalSellingPrice.add(deliveryFee).add(smallCartFee).add(handlingFee);
         }
 
+        boolean freeShippingIsIncludedInCoupon = false;
         if (StringUtils.hasText(cart.getCouponCode()) && totalSellingPrice.compareTo(zero) > 0) {
             CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(actualSellingPrice), isNotSmallCart, cart.getUser_id());
             if (couponCodeInfo.isValid()) {
+                freeShippingIsIncludedInCoupon = couponCodeInfo.isFreeDelivery();
                 isFreeDelivery = couponCodeInfo.isFreeDelivery();
                 couponCode = cart.getCouponCode();
                 couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
@@ -226,12 +228,14 @@ public class CartUtility {
             actualDeliveryFee = zero;
             actualSmallCartFee = zero;
             actualHandlingFee = zero;
+        }
+        if (isFreeDelivery && !freeShippingIsIncludedInCoupon) {
             savings = savings.add(deliveryFee);
             savings = savings.add(smallCartFee);
             savings = savings.add(handlingFee);
         }
 
-        BigDecimal difference = totalMrp.subtract(totalSellingPrice);
+        BigDecimal difference = totalMrp.subtract(sellingPrice);
 
         savings = savings.add(difference);
 
