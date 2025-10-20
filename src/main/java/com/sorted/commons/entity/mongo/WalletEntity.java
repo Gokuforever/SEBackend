@@ -23,6 +23,8 @@ public class WalletEntity extends BaseMongoEntity<String> {
     @Field("balance_details")
     private List<WalletBalanceDetail> balanceDetails;
 
+    private Long balance;
+
     @Field("total_earned")
     private Long totalEarned;
 
