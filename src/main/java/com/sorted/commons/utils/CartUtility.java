@@ -228,8 +228,6 @@ public class CartUtility {
             actualDeliveryFee = zero;
             actualSmallCartFee = zero;
             actualHandlingFee = zero;
-        }
-        if (isFreeDelivery && !freeShippingIsIncludedInCoupon) {
             savings = savings.add(deliveryFee);
             savings = savings.add(smallCartFee);
             savings = savings.add(handlingFee);
