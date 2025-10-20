@@ -198,6 +198,7 @@ public class CartUtility {
                         demandingPincodeService.storeDemandingPincode(address.getPincode(), cart.getUser_id()));
             }
         }
+        final BigDecimal sellingPrice = totalSellingPrice;
         BigDecimal actualSellingPrice = totalSellingPrice;
         boolean isNotSmallCart = totalSellingPrice.compareTo(minCartValue) > 0;
         if (!isNotSmallCart) {
@@ -250,7 +251,7 @@ public class CartUtility {
                         .smallCartFee(smallCartFee)
                         .handlingFee(handlingFee)
                         .totalMrp(totalMrp)
-                        .totalSellingPrice(actualSellingPrice)
+                        .totalSellingPrice(sellingPrice)
                         .couponDiscount(couponDiscount)
                         .deliveryFee(CommonUtils.paiseToRupee(fixedDeliveryFee))
                         .handlingFee(CommonUtils.paiseToRupee(fixedHandlingFee))
