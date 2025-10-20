@@ -213,7 +213,7 @@ public class CartUtility {
                 isFreeDelivery = couponCodeInfo.isFreeDelivery();
                 couponCode = cart.getCouponCode();
                 couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
-                totalSellingPrice = totalSellingPrice.subtract(couponDiscount);
+                actualSellingPrice = actualSellingPrice.subtract(couponDiscount);
             }
             savings = savings.add(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
         }
