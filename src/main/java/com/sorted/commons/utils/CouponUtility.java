@@ -43,7 +43,7 @@ public class CouponUtility {
 
     private final CouponService couponService;
 
-    public CouponCodeInfo validateCouponByCodeForCart(String code, Long totalSellingPriceInPaise, boolean isNotSmallCart, String userId) {
+    public CouponCodeInfo validateCouponByCodeForCart(String code, Long totalSellingPriceInPaise, long totalPlatformFeeInPaise, boolean isNotSmallCart, String userId) {
         CouponCodeInfo info = CouponCodeInfo.builder()
                 .isValid(false)
                 .isFreeDelivery(false)
@@ -124,6 +124,10 @@ public class CouponUtility {
                 if (coupon.getDiscountPercentage() == null) {
                     return info;
                 }
+                isFreeShipping = coupon.isDeliveryFree();
+                if (!isFreeShipping) {
+                    totalSellingPriceInPaise = +totalPlatformFeeInPaise;
+                }
                 long percentageInHundredths = coupon.getDiscountPercentage().multiply(BigDecimal.valueOf(100)).longValue();
                 discountAmount = (totalSellingPriceInPaise * percentageInHundredths) / 10000;
 
@@ -131,7 +135,6 @@ public class CouponUtility {
                 if (coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 && discountAmount > coupon.getMaxDiscount()) {
                     discountAmount = coupon.getMaxDiscount();
                 }
-                isFreeShipping = coupon.isDeliveryFree();
             }
             default -> {
                 if (isNotSmallCart) {
@@ -363,7 +366,7 @@ public class CouponUtility {
         }
     }
 
-    public Long calculateDiscountAmount(CouponEntity coupon, Long totalSellingPriceInPaise, boolean isNotSmallCart, String userId) {
+    public Long calculateDiscountAmount(CouponEntity coupon, Long totalSellingPriceInPaise, long platformFee, boolean isNotSmallCart, String userId) {
         try {
             boolean isValid = validateCoupon(coupon, totalSellingPriceInPaise, isNotSmallCart, userId);
             if (!isValid) {
@@ -389,6 +392,11 @@ public class CouponUtility {
                         return 0L;
                     }
 
+                    boolean deliveryFree = coupon.isDeliveryFree();
+                    if (!deliveryFree) {
+                        totalSellingPriceInPaise += platformFee;
+                    }
+
                     // Convert percentage to hundredths for precision (e.g., 10.5% becomes 1050)
                     long percentageInHundredths = coupon.getDiscountPercentage()
                             .multiply(BigDecimal.valueOf(100))
@@ -402,6 +410,9 @@ public class CouponUtility {
                         discountAmount = coupon.getMaxDiscount();
                     }
 
+                    if (deliveryFree) {
+                        discountAmount += platformFee;
+                    }
                     // Ensure discount doesn't exceed total amount
                     return Math.min(discountAmount, totalSellingPriceInPaise);
                 }
@@ -617,7 +628,7 @@ public class CouponUtility {
         }
     }
 
-    public CouponListResponse getApplicableCoupons(List<CouponEntity> coupons, String userId, long totalSellingPriceInPaise, boolean notSmallCart, Cart cart) {
+    public CouponListResponse getApplicableCoupons(List<CouponEntity> coupons, String userId, long totalSellingPriceInPaise, long platformFee, boolean notSmallCart, Cart cart) {
         List<ApplicableCoupon> applicableCoupons = new ArrayList<>();
         List<OtherCoupon> otherCoupons = new ArrayList<>();
 
@@ -634,7 +645,7 @@ public class CouponUtility {
                 if (StringUtils.hasText(cart.getCouponCode())) {
                     applied = cart.getCouponCode().equals(coupon.getCode());
                 }
-                long discount = calculateDiscountAmount(coupon, totalSellingPriceInPaise, notSmallCart, userId);
+                long discount = calculateDiscountAmount(coupon, totalSellingPriceInPaise, platformFee, notSmallCart, userId);
                 ApplicableCoupon applicableCoupon = ApplicableCoupon.builder()
                         .code(coupon.getCode())
                         .name(coupon.getName())
@@ -665,7 +676,7 @@ public class CouponUtility {
                         .discountPercentage(coupon.getDiscountPercentage() != null && coupon.getDiscountPercentage().compareTo(BigDecimal.ZERO) > 0 ? coupon.getDiscountPercentage() : null)
                         .minCartValue(coupon.getMinCartValue() != null && coupon.getMinCartValue() > 0 ? CommonUtils.paiseToRupee(coupon.getMinCartValue()) : null)
                         .additionalAmountNeeded(CommonUtils.paiseToRupee(additionalAmountNeeded))
-                        .potentialDiscount(CommonUtils.paiseToRupee(calculateDiscountAmount(coupon, totalSellingPriceInPaise + additionalAmountNeeded, notSmallCart, userId)))
+                        .potentialDiscount(CommonUtils.paiseToRupee(calculateDiscountAmount(coupon, totalSellingPriceInPaise + additionalAmountNeeded, platformFee, notSmallCart, userId)))
                         .maxDiscount(coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 ? CommonUtils.paiseToRupee(coupon.getMaxDiscount()) : null)
                         .endDate(coupon.getEndDate())
                         .notApplicableReason(invalidReason)

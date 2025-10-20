@@ -199,21 +199,21 @@ public class CartUtility {
             }
         }
         final BigDecimal sellingPrice = totalSellingPrice;
-        BigDecimal actualSellingPrice = totalSellingPrice;
-        boolean isNotSmallCart = totalSellingPrice.compareTo(minCartValue) > 0;
+        long placeOrderPrice = 0;
+        boolean isNotSmallCart = sellingPrice.compareTo(minCartValue) > 0;
         if (!isNotSmallCart) {
-            actualSellingPrice = totalSellingPrice.add(deliveryFee).add(smallCartFee).add(handlingFee);
+            placeOrderPrice = CommonUtils.rupeeToPaise(deliveryFee.add(smallCartFee).add(handlingFee));
         }
 
         boolean freeShippingIsIncludedInCoupon = false;
-        if (StringUtils.hasText(cart.getCouponCode()) && totalSellingPrice.compareTo(zero) > 0) {
-            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(actualSellingPrice), isNotSmallCart, cart.getUser_id());
+        if (StringUtils.hasText(cart.getCouponCode()) && sellingPrice.compareTo(zero) > 0) {
+            CouponCodeInfo couponCodeInfo = couponUtility.validateCouponByCodeForCart(cart.getCouponCode(), CommonUtils.rupeeToPaise(sellingPrice),placeOrderPrice, isNotSmallCart, cart.getUser_id());
             if (couponCodeInfo.isValid()) {
                 freeShippingIsIncludedInCoupon = couponCodeInfo.isFreeDelivery();
                 isFreeDelivery = couponCodeInfo.isFreeDelivery();
                 couponCode = cart.getCouponCode();
                 couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
-                actualSellingPrice = actualSellingPrice.subtract(couponDiscount);
+                totalSellingPrice = totalSellingPrice.subtract(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
             }
             savings = savings.add(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
         }
