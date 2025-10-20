@@ -104,7 +104,7 @@ public class CouponUtility {
             return info;
         }
         long discountAmount;
-        boolean isFreeShipping = false;
+        boolean isFreeShipping;
         DiscountType discountType = coupon.getDiscountType();
 
 
