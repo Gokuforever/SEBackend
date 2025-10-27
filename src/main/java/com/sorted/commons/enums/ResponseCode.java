@@ -277,6 +277,7 @@ public enum ResponseCode {
 	REFERRAL_EXISTS("SE_0261", "Referral code already exists for this user.", "Referral code already exists for this user."),
 	MISSING_COMBO("SE_0262", "This combo is missing.", "This combo is missing."),
 	COMBO_ITEM_NOT_AVAILABLE("SE_0263", "Few items in this combo are not available.", "Few items in this combo are not available."),
+	AMBASSADOR_COUPON_EXISTS("SE_0264", "Ambassador coupon code already exists.", "Ambassador coupon code already exists."),
 	;
 	// @formatter:on
 

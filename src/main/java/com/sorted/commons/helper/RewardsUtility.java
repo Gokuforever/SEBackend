@@ -5,11 +5,7 @@ import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.RewardRulesEntity;
 import com.sorted.commons.entity.service.RewardRulesService;
 import com.sorted.commons.entity.service.WalletService;
-import com.sorted.commons.enums.ResponseCode;
-import com.sorted.commons.enums.RewardScope;
-import com.sorted.commons.enums.RewardType;
-import com.sorted.commons.enums.RewardValidityType;
-import com.sorted.commons.enums.WalletTxnSource;
+import com.sorted.commons.enums.*;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
@@ -42,44 +38,39 @@ public class RewardsUtility {
         rewardRulesService.create(entity, Defaults.RETOOL);
     }
 
-    public void creditOnSignUp(String userId) {
+    public void creditOnEvent(String userId, RewardEvent rewardEvent) {
         SEFilter filter = new SEFilter(SEFilterType.AND);
-        filter.addClause(WhereClause.eq(RewardRulesEntity.Fields.triggeringEvent, SIGN_UP));
+        filter.addClause(WhereClause.eq(RewardRulesEntity.Fields.triggeringEvent, rewardEvent.name()));
         filter.addClause(WhereClause.eq(RewardRulesEntity.Fields.active, true));
 
         RewardRulesEntity rewardRules = rewardRulesService.repoFindOne(filter);
         if (rewardRules == null) {
-            log.info("No active sign-up reward rule found.");
+            log.info("No active reward rule found.");
             return;
         }
 
         // Check for validity
         LocalDate today = LocalDate.now();
         if (rewardRules.getValidityType() != null) {
-            switch (rewardRules.getValidityType()) {
-                case DATE_RANGE:
-                    if (rewardRules.getValidFrom() != null && rewardRules.getValidUpto() != null &&
-                            (today.isBefore(rewardRules.getValidFrom()) || today.isAfter(rewardRules.getValidUpto()))) {
-                        log.info("Sign-up reward rule is not active today. Rule ID: {}", rewardRules.getRewardId());
-                        return;
-                    }
-                    break;
-                case DAYS_FROM_CREDIT:
-                    // No date check needed at the time of credit
-                    break;
+            if (rewardRules.getValidityType().equals(RewardValidityType.DATE_RANGE)) {
+                if (rewardRules.getValidFrom() != null && rewardRules.getValidUpto() != null &&
+                        (today.isBefore(rewardRules.getValidFrom()) || today.isAfter(rewardRules.getValidUpto()))) {
+                    log.info("reward rule is not active today. Rule ID: {}", rewardRules.getRewardId());
+                    return;
+                }
             }
         }
 
         // Check if the reward can be claimed only once and if the user has already claimed it
         if (rewardRules.getOncePerUser() && !CollectionUtils.isEmpty(rewardRules.getRedeemedUserIds()) && rewardRules.getRedeemedUserIds().contains(userId)) {
-            log.info("User {} has already redeemed the sign-up reward.", userId);
+            log.info("User {} has already redeemed the reward.", userId);
             return;
         }
 
         // Validate the reward type and value
         Long creditAmount = rewardRules.getReward().getValue();
         if (rewardRules.getReward().getType() != RewardType.WALLET_CREDIT || creditAmount <= 0) {
-            log.error("Invalid sign-up reward configuration. Reward must be of type WALLET_CREDIT with a positive value. Rule ID: {}", rewardRules.getRewardId());
+            log.error("Invalid reward configuration. Reward must be of type WALLET_CREDIT with a positive value. Rule ID: {}", rewardRules.getRewardId());
             return;
         }
 
@@ -106,7 +97,7 @@ public class RewardsUtility {
             }
             rewardRules.getRedeemedUserIds().add(userId);
             rewardRulesService.update(rewardRules.getId(), rewardRules, WalletTxnSource.SIGNUP_REWARD.name());
-            log.info("Successfully credited sign-up reward to user {} and updated redeemed list.", userId);
+            log.info("Successfully credited reward to user {} and updated redeemed list.", userId);
         }
     }
 

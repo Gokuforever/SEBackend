@@ -54,6 +54,7 @@ public class WalletService extends GenericEntityServiceImpl<String, WalletEntity
         if (wallet == null) {
             wallet = WalletEntity.builder()
                     .userId(userId)
+                    .balance(0L)
                     .totalEarned(0L)
                     .totalSpent(0L)
                     .totalExpired(0L)
@@ -62,6 +63,7 @@ public class WalletService extends GenericEntityServiceImpl<String, WalletEntity
         }
 
         long totalEarned = wallet.getTotalEarned() + amount;
+        wallet.setBalance(wallet.getBalance() + amount);
         wallet.setTotalEarned(totalEarned);
 
         long currentBalance = getBalance(wallet);
