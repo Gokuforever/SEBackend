@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -51,6 +52,8 @@ public class Users extends BaseMongoEntity<String> {
     private Gender gender;
     private Map<String, String> properties;
     private boolean ambassador;
+    @Field("ambassador_id")
+    private String ambassadorId;
 
     @JsonIgnore
     public void setEducationDetails(EducationCategoryBean educationCategoryBean) {
