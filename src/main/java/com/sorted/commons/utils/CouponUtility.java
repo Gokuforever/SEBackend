@@ -556,6 +556,10 @@ public class CouponUtility {
 
         Preconditions.check(coupon != null, ResponseCode.INVALID_COUPON_CODE);
 
+        if (StringUtils.hasText(coupon.getAmbassadorId())) {
+            Preconditions.check(!coupon.getAmbassadorId().equals(userId), ResponseCode.INVALID_COUPON_CODE);
+        }
+
         // Check if coupon is active
         Preconditions.check(coupon.isActive(), ResponseCode.COUPON_CODE_NOT_ACTIVE);
 
