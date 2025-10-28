@@ -64,6 +64,10 @@ public class CouponUtility {
             return info;
         }
 
+        if (StringUtils.hasText(coupon.getAmbassadorId()) && coupon.getAmbassadorId().equals(userId)) {
+            return info;
+        }
+
         LocalDateTime now = LocalDateTime.now();
         if (!coupon.isActive()) {
             return info;
