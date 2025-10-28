@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.sorted.commons.enums.ResponseCode.INVALID_REFERRAL_CODE;
+
 @RequiredArgsConstructor
 @Service
 public class CouponUtility {
@@ -135,7 +137,7 @@ public class CouponUtility {
                 if (coupon.getMaxDiscount() != null && coupon.getMaxDiscount() > 0 && discountAmount > coupon.getMaxDiscount()) {
                     discountAmount = coupon.getMaxDiscount();
                 }
-                if (isFreeShipping){
+                if (isFreeShipping) {
                     discountAmount += totalPlatformFeeInPaise;
                 }
             }
@@ -737,6 +739,28 @@ public class CouponUtility {
             return String.format("Add items worth ₹%.2f more to apply this coupon.", diff);
         }
         return null; // Coupon is valid
+    }
+
+    public String validateReferralCodeAndGetAmbassadorId(String code) {
+
+        if (!StringUtils.hasText(code)) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(CouponEntity.Fields.code, code.trim().replaceAll("\\s+", "")));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        CouponEntity coupon = couponService.repoFindOne(filter);
+
+        Preconditions.check(coupon != null, ResponseCode.INVALID_REFERRAL_CODE);
+        Preconditions.check(coupon.isActive(), ResponseCode.INVALID_REFERRAL_CODE);
+        Preconditions.check(!now.isBefore(coupon.getStartDate()), ResponseCode.INVALID_REFERRAL_CODE);
+        Preconditions.check(!now.isAfter(coupon.getEndDate()), ResponseCode.INVALID_REFERRAL_CODE);
+        Preconditions.check(StringUtils.hasText(coupon.getAmbassadorId()), INVALID_REFERRAL_CODE);
+
+        return coupon.getAmbassadorId();
     }
 
 }
