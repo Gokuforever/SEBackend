@@ -22,7 +22,7 @@ public class SMSService {
     private String sms_auth_token;
 
 
-    private final List<String> internalPhones = List.of("9867292392", "9156015331");
+    private final List<String> internalPhones = List.of("9867292392", "9156015331", "9004180031");
     private final List<SmsTemplate> notifyToInternalTeam = List.of(SmsTemplate.NEW_ORDER, SmsTemplate.ORDER_CONFIRMED);
     private final RestTemplate restTemplate = new RestTemplate();
 
