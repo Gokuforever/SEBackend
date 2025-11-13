@@ -11,6 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,13 +23,16 @@ public class SMSService {
 
 
     private final List<String> internalPhones = List.of("9867292392", "9156015331");
-    private final List<SmsTemplate> notifyToInternalTeam = List.of(SmsTemplate.NEW_ORDER);
+    private final List<SmsTemplate> notifyToInternalTeam = List.of(SmsTemplate.NEW_ORDER, SmsTemplate.ORDER_CONFIRMED);
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String sendSMS(List<String> mobileNumbers, String content, SmsTemplate template) {
 
         if (notifyToInternalTeam.contains(template)) {
-            mobileNumbers.addAll(internalPhones);
+            List<String> newMobileNumbers = new ArrayList<>();
+            newMobileNumbers.addAll(mobileNumbers);
+            newMobileNumbers.addAll(internalPhones);
+            mobileNumbers = new ArrayList<>(newMobileNumbers);
         }
 
         HttpHeaders headers = new HttpHeaders();
@@ -48,5 +52,15 @@ public class SMSService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formData, headers);
 
         return restTemplate.postForObject("https://www.fast2sms.com/dev/bulkV2", request, String.class);
+    }
+
+    public static void main(String[] args) {
+        List<String> mobileNumbers = List.of("9867292392");
+        List<String> internalPhones = List.of("9920534134");
+        List<String> newMobileNumbers = new ArrayList<>();
+        newMobileNumbers.addAll(mobileNumbers);
+        newMobileNumbers.addAll(internalPhones);
+        mobileNumbers = new ArrayList<>(newMobileNumbers);
+        System.out.println(String.join(",", mobileNumbers));
     }
 }
