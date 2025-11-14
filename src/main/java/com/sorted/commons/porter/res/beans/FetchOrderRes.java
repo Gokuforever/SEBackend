@@ -27,7 +27,7 @@ public class FetchOrderRes implements Serializable {
 	@Getter
 	@AllArgsConstructor
 	public enum Status {
-		open, accepted, live, ended, cancelled
+		open, accepted, live, ended, cancelled, completed
 	}
 
 	@Data
