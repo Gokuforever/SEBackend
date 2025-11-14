@@ -706,6 +706,7 @@ public class PorterUtility {
                 case "order_end_job" -> Status.ended;
                 case "order_reopen" -> Status.open;
                 case "order_cancel" -> Status.cancelled;
+                case "completed" -> Status.ended;
                 default -> throw new BadRequestException("Unexpected value: " + response.getStatus());
             };
 
