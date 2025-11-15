@@ -1,13 +1,24 @@
 package com.sorted.commons.entity.service;
 
+import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Order_Details;
+import com.sorted.commons.entity.mongo.Order_Item;
+import com.sorted.commons.helper.AggregationFilter.SEFilter;
+import com.sorted.commons.helper.AggregationFilter.SEFilterType;
+import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.repository.mongo.Order_Details_Repository;
 import com.sorted.commons.utils.SequenceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class Order_Details_Service extends GenericEntityServiceImpl<String, Order_Details, Order_Details_Repository> {
+
+    @Autowired
+    private Order_Item_Service orderItemService;
 
     @Autowired
     private SequenceService sequenceService;
@@ -24,6 +35,22 @@ public class Order_Details_Service extends GenericEntityServiceImpl<String, Orde
 
     @Override
     protected void validateBeforeUpdate(String id, Order_Details inE) throws RuntimeException {
+        updateOrderItemStatus(id, inE);
+
+    }
+
+    @Async
+    private void updateOrderItemStatus(String id, Order_Details inE) {
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(Order_Item.Fields.order_id, id));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        List<Order_Item> orderItems = orderItemService.repoFind(filter);
+        orderItems.forEach(orderItem -> {
+            if (!inE.getStatus().equals(orderItem.getStatus())) {
+                orderItem.setStatus(inE.getStatus(), inE.getOrder_status_history().get(inE.getOrder_status_history().size() - 1).getModified_by());
+                orderItemService.update(orderItem.getId(), orderItem, inE.getOrder_status_history().get(inE.getOrder_status_history().size() - 1).getModified_by());
+            }
+        });
     }
 
     @Override

@@ -633,14 +633,13 @@ public class PorterUtility {
             }
 
             List<Order_Item> listOI = getOrderItems(details);
-            final OrderStatus finalOrderStatus = currentOrderStatus;
 
-            listOI.forEach(e -> {
-                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
-                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
-            });
+//            listOI.forEach(e -> {
+//                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+//                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
+//            });
             details.setFare_details(fetchOrderRes.getFare_details());
-            details.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
+            details.setStatus(currentOrderStatus, Defaults.PORTER_STCHK_CRON);
             order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
 
             if (currentOrderStatus == OrderStatus.DELIVERED) {

@@ -24,4 +24,8 @@ public class Order_Item_Service extends GenericEntityServiceImpl<String, Order_I
 	protected void validateBeforeDelete(String id) throws RuntimeException {
 	}
 
+	@Override
+	public Order_Item update(String id, Order_Item entity, String cudby) {
+		return super.update(id, entity, cudby);
+	}
 }
