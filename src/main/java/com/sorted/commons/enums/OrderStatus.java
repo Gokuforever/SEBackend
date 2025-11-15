@@ -61,7 +61,7 @@ public enum OrderStatus {
         }
     }
 
-    public OrderStatus getById(int i) {
+    public static OrderStatus getById(int i) {
         return getById.getOrDefault(i, null);
     }
 
