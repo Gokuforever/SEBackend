@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -579,13 +580,17 @@ public class PorterUtility {
                 internalMailService.sendMailOnError("Order Cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Order Cancelled");
                 currentOrderStatus = secureReturn ? OrderStatus.ORDER_CANCELLED_FOR_SECURE_RETURN : OrderStatus.ORDER_CANCELLED;
                 break;
-            case ended, completed:
+            case ended:
                 currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_COMPLETED : OrderStatus.DELIVERED;
                 // TODO: send mail to seller to appraise the book
                 mailTemplate = secureReturn ? null : MailTemplate.ORDER_ARRIVED;
                 break;
             case live:
                 currentOrderStatus = secureReturn ? OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN : OrderStatus.OUT_FOR_DELIVERY;
+                break;
+            case completed:
+                currentOrderStatus = OrderStatus.DELIVERY_FAILED;
+                mailTemplate = MailTemplate.DELIVERY_FAILED;
                 break;
             default:
                 break;
@@ -616,6 +621,16 @@ public class PorterUtility {
                         () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), content, SmsTemplate.DELIVERED)
                 );
             }
+            if (currentOrderStatus.equals(OrderStatus.DELIVERY_FAILED) && enableSms) {
+                String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
+//                smsTraceHelper.runWithTrace(List.of(details.getDelivery_address().getPhone_no()),
+//                        firstName,
+//                        SmsTemplate.DELIVERED,
+//                        Defaults.AUTO,
+//                        () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), firstName, SmsTemplate.DELIVERED)
+//                );
+                // TODO: Delivery Failed
+            }
 
             List<Order_Item> listOI = getOrderItems(details);
             final OrderStatus finalOrderStatus = currentOrderStatus;
@@ -637,32 +652,36 @@ public class PorterUtility {
             }
 
             if (mailTemplate != null) {
-
-                SEFilter filterU = new SEFilter(SEFilterType.AND);
-                filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-                filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, details.getUser_id()));
-
-                Users user = usersService.repoFindOne(filterU);
-                if (user == null) {
-                    throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
-                }
-                String userName = user.getFirst_name() + " " + user.getLast_name();
-                String orderTemplateTable = orderTemplateHelper.getOrderTemplateTable(details);
-
-                String mailContent = userName + "|" + orderTemplateTable;
-
-                MailBuilder builder = new MailBuilder();
-                builder.setTo(user.getEmail_id());
-                builder.setContent(mailContent);
-                builder.setTemplate(mailTemplate);
-                if (invoiceUrl != null) {
-                    builder.setAttachmentUrls(invoiceUrl);
-                }
-                emailSenderImpl.sendEmailHtmlTemplate(builder);
+                sendMailWithOrderDetails(details, mailTemplate, invoiceUrl);
             }
         }
 
 
+    }
+
+    @Async
+    public void sendMailWithOrderDetails(Order_Details details, MailTemplate mailTemplate, String invoiceUrl) {
+        SEFilter filterU = new SEFilter(SEFilterType.AND);
+        filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+        filterU.addClause(WhereClause.eq(BaseMongoEntity.Fields.id, details.getUser_id()));
+
+        Users user = usersService.repoFindOne(filterU);
+        if (user == null) {
+            throw new CustomIllegalArgumentsException(ResponseCode.ERR_0001);
+        }
+        String userName = user.getFirst_name() + " " + user.getLast_name();
+        String orderTemplateTable = orderTemplateHelper.getOrderTemplateTable(details);
+
+        String mailContent = userName + "|" + orderTemplateTable;
+
+        MailBuilder builder = new MailBuilder();
+        builder.setTo(user.getEmail_id());
+        builder.setContent(mailContent);
+        builder.setTemplate(mailTemplate);
+        if (invoiceUrl != null) {
+            builder.setAttachmentUrls(invoiceUrl);
+        }
+        emailSenderImpl.sendEmailHtmlTemplate(builder);
     }
 
     private List<Order_Item> getOrderItems(Order_Details details) {

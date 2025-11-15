@@ -4,6 +4,7 @@ import com.sorted.commons.entity.service.SmsTraceService;
 import com.sorted.commons.enums.SmsTemplate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class SmsTraceHelper {
         this.smsTraceService = smsTraceService;
     }
 
+    @Async
     public void runWithTrace(List<String> mobileNumber, @NonNull String content, SmsTemplate smsTemplate, String createdBy, Supplier<String> supplier) {
         try {
             String res = supplier.get();

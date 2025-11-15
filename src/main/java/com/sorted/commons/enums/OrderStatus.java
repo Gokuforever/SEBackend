@@ -41,6 +41,7 @@ public enum OrderStatus {
     SECURE_RETURN_COMPLETED(22, "SecuRe Return Completed", "SecuRe Return Completed"),
     SECURE_RETURN_FAILED(23, "SecuRe Return Failed", "SecuRe Return Failed"),
     ITEM_SECURED(24, "Item SecuRe", "Item SecuRe"),
+    DELIVERY_FAILED(25, "Delivery Failed", "Delivery Failed - Reattempt Requested"),
     ;
 	// @formatter:on
 
