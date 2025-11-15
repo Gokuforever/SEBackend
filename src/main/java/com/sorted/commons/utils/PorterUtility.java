@@ -746,4 +746,42 @@ public class PorterUtility {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public void cancelOrder(Order_Details order, String cudBy) {
+        String url = porterBaseUrl + porterGetOrderEndpoint + order.getDp_order_id().trim() + "/cancel";
+
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-api-key", porterApiKey);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        } catch (HttpServerErrorException.InternalServerError ex) {
+            log.error("Exception occurred with message: {}", ex.getMessage(), ex);
+            String responseBody = ex.getResponseBodyAsString();
+            internalMailService.sendMailOnError("Error on cancelling order : " + order.getDp_order_id(), ex.getMessage() + "\n\n" + responseBody, ex);
+        }
+
+        if (response == null) {
+            internalMailService.sendMailOnError("Error on cancelling order : " + order.getDp_order_id(), "Response is null on cancel");
+        }
+        assert response != null;
+        HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
+
+        if (httpStatus == null) {
+            throw new CustomIllegalArgumentsException(porterErrorMessage);
+        }
+        switch (httpStatus) {
+            case CREATED, OK:
+                break;
+            default:
+                throw new CustomIllegalArgumentsException("Invalid response code: " + httpStatus);
+        }
+
+        order.setStatus(OrderStatus.ORDER_CANCELLED, cudBy);
+        order_Details_Service.update(order.getId(), order, cudBy);
+    }
+
 }
