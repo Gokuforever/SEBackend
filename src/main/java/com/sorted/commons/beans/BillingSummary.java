@@ -36,4 +36,5 @@ public class BillingSummary {
     private BigDecimal totalSellingPrice;
     @JsonProperty("coupon_discount")
     private BigDecimal couponDiscount;
+    private BigDecimal orderTotal;
 }
