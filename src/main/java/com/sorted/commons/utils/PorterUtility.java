@@ -580,7 +580,7 @@ public class PorterUtility {
                 internalMailService.sendMailOnError("Order Cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Order Cancelled");
                 currentOrderStatus = secureReturn ? OrderStatus.ORDER_CANCELLED_FOR_SECURE_RETURN : OrderStatus.ORDER_CANCELLED;
                 break;
-            case ended:
+            case ended, completed:
                 currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_COMPLETED : OrderStatus.DELIVERED;
                 // TODO: send mail to seller to appraise the book
                 mailTemplate = secureReturn ? null : MailTemplate.ORDER_ARRIVED;
@@ -588,10 +588,10 @@ public class PorterUtility {
             case live:
                 currentOrderStatus = secureReturn ? OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN : OrderStatus.OUT_FOR_DELIVERY;
                 break;
-            case completed:
-                currentOrderStatus = OrderStatus.DELIVERY_FAILED;
-                mailTemplate = MailTemplate.DELIVERY_FAILED;
-                break;
+//            case completed:
+//                currentOrderStatus = OrderStatus.DELIVERY_FAILED;
+//                mailTemplate = MailTemplate.DELIVERY_FAILED;
+//                break;
             default:
                 break;
         }
