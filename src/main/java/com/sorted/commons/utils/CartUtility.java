@@ -215,6 +215,7 @@ public class CartUtility {
                 couponCode = cart.getCouponCode();
                 couponDiscount = CommonUtils.paiseToRupee(couponCodeInfo.discountAmount());
                 totalSellingPrice = totalSellingPrice.subtract(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
+                totalSellingPrice = freeShippingIsIncludedInCoupon ? CommonUtils.paiseToRupee(placeOrderPrice).add(totalSellingPrice) : totalSellingPrice;
             }
             savings = savings.add(CommonUtils.paiseToRupee(couponCodeInfo.discountAmount()));
         }
