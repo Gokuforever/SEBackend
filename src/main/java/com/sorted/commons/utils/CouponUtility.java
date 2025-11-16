@@ -1,9 +1,11 @@
 package com.sorted.commons.utils;
 
 import com.sorted.commons.beans.*;
+import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.BaseMongoEntity;
 import com.sorted.commons.entity.mongo.Cart;
 import com.sorted.commons.entity.mongo.CouponEntity;
+import com.sorted.commons.entity.mongo.Order_Details;
 import com.sorted.commons.entity.service.CouponService;
 import com.sorted.commons.enums.CouponScope;
 import com.sorted.commons.enums.DiscountType;
@@ -769,6 +771,27 @@ public class CouponUtility {
         Preconditions.check(StringUtils.hasText(coupon.getAmbassadorId()), INVALID_REFERRAL_CODE);
 
         return coupon.getAmbassadorId();
+    }
+
+    public void addCouponUsage(Order_Details order, String userId) {
+        SEFilter filter = new SEFilter(SEFilterType.AND);
+        filter.addClause(WhereClause.eq(CouponEntity.Fields.code, order.getCoupon_code()));
+        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+
+        CouponEntity coupon = couponService.repoFindOne(filter);
+
+        List<CouponUsage> couponUsages = coupon.getCouponUsages();
+        if (CollectionUtils.isEmpty(couponUsages)) {
+            couponUsages = new ArrayList<>();
+        }
+        couponUsages.add(CouponUsage.builder()
+                .discountAmount(order.getTotal_discount())
+                .orderId(order.getId())
+                .userId(userId)
+                .build());
+
+        coupon.setCouponUsages(couponUsages);
+        couponService.update(coupon.getId(), coupon, Defaults.SYSTEM_ADMIN);
     }
 
 }
