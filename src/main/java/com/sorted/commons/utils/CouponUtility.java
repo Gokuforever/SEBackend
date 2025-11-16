@@ -748,6 +748,9 @@ public class CouponUtility {
             BigDecimal diff = CommonUtils.paiseToRupee(coupon.getMinCartValue() - CommonUtils.rupeeToPaise(purchaseAmount));
             return String.format("Add items worth ₹%.2f more to apply this coupon.", diff);
         }
+        if (coupon.isOncePerUser() && !CollectionUtils.isEmpty(coupon.getCouponUsages()) && coupon.getCouponUsages().stream().anyMatch(e->e.getUserId().equals(userId))){
+            return "Coupon already used by user.";
+        }
         return null; // Coupon is valid
     }
 
