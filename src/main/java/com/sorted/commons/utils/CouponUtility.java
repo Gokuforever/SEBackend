@@ -773,7 +773,7 @@ public class CouponUtility {
         return coupon.getAmbassadorId();
     }
 
-    public void addCouponUsage(Order_Details order, String userId) {
+    public void addCouponUsage(Order_Details order) {
         SEFilter filter = new SEFilter(SEFilterType.AND);
         filter.addClause(WhereClause.eq(CouponEntity.Fields.code, order.getCoupon_code()));
         filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
@@ -787,7 +787,7 @@ public class CouponUtility {
         couponUsages.add(CouponUsage.builder()
                 .discountAmount(order.getTotal_discount())
                 .orderId(order.getId())
-                .userId(userId)
+                .userId(order.getUser_id())
                 .build());
 
         coupon.setCouponUsages(couponUsages);
