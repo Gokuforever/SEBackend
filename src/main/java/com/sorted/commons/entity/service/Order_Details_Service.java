@@ -9,7 +9,6 @@ import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.repository.mongo.Order_Details_Repository;
 import com.sorted.commons.utils.SequenceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,7 +38,6 @@ public class Order_Details_Service extends GenericEntityServiceImpl<String, Orde
 
     }
 
-    @Async
     private void updateOrderItemStatus(String id, Order_Details inE) {
         SEFilter filter = new SEFilter(SEFilterType.AND);
         filter.addClause(WhereClause.eq(Order_Item.Fields.order_id, id));
