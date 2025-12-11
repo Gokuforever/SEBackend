@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "category_master")
+@Document(collection = "category_master_new")
 public class Category_Master extends BaseMongoEntity<String> {
 
     /**
