@@ -22,4 +22,5 @@ public class Defaults {
 	public static final String AUTH = "Auth";
 	public static final String PHONEPE_REFUND_CRON = "PhonePe Refund Cron";
 	public static final String RETOOL = "Retool";
+	public static final String AMBASSADOR_ONBOARDING = "Ambassador Onboarding";
 }

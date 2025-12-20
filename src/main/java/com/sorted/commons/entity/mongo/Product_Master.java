@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @FieldNameConstants
-@Document(collection = "product_master")
+@Document(collection = "product_master_new")
 public class Product_Master extends BaseMongoEntity<String> {
 	/**
 	* 

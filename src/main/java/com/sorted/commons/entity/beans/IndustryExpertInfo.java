@@ -1,0 +1,17 @@
+package com.sorted.commons.entity.beans;
+
+import lombok.Builder;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.util.List;
+
+@Builder
+public class IndustryExpertInfo {
+
+    private String company;
+    @Field("job_title")
+    private String jobTitle;
+    private int yoe;
+    @Field("expertise_areas")
+    private List<String> expertiseAreas;
+}
