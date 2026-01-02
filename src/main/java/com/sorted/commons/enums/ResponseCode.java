@@ -278,6 +278,15 @@ public enum ResponseCode {
 	MISSING_COMBO("SE_0262", "This combo is missing.", "This combo is missing."),
 	COMBO_ITEM_NOT_AVAILABLE("SE_0263", "Few items in this combo are not available.", "Few items in this combo are not available."),
 	AMBASSADOR_COUPON_EXISTS("SE_0264", "Ambassador coupon code already exists.", "Ambassador coupon code already exists."),
+	MISSING_RECOMMENDER_TYPE("SE_0265", "Recommender type is missing.", "Recommender type is missing."),
+	MISSING_RECOMMENDER_DETAILS("SE_0266", "Recommender details is missing.", "Recommender details is missing."),
+	MISSING_RECOMMENDATIONS("SE_0267", "Recommender recommendations is missing.", "Recommender recommendations is missing."),
+	MANDATE_PRODUCT_ID("SE_0268", "Missing product id.", "Missing product id."),
+	MANDATE_TITLE("SE_0269", "Missing title.", "Missing title."),
+	MANDATE_TEXT("SE_0270", "Missing text.", "Missing text."),
+	INVALID_RATING("SE_0271", "Invalid rating.", "Invalid rating."),
+	MISSING_TITLE("SE_0272", "Title is missing.", "Title is missing."),
+	MISSING_REVIEW_TEXT("SE_0273", "Review text is missing.", "Review text is missing."),
 	;
 	// @formatter:on
 

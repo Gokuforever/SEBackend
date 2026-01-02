@@ -40,6 +40,7 @@ public class AwsS3Service {
     private AmazonS3 s3Client;
 
     private static final String BASE_FOLDER = "product-images/engineering-books/";
+    private static final String REPORTS_FOLDER = "reports/orders/";
     private static final String INVOICE_FOLDER = "b2c/invoices";
 
     public AwsS3Service(
@@ -66,6 +67,25 @@ public class AwsS3Service {
                 .withRegion(Regions.fromName(region))
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .build();
+    }
+
+    public String uploadExcelReport(byte[] excelBytes, String fileName) throws IOException {
+        log.info("Starting Excel report upload: {}", fileName);
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(excelBytes.length);
+        metadata.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        String s3Key = REPORTS_FOLDER + fileName;
+
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(excelBytes)) {
+            s3Client.putObject(new PutObjectRequest(bucketName, s3Key, inputStream, metadata));
+            log.info("Successfully uploaded Excel report to S3: bucket={}, key={}", bucketName, s3Key);
+        }
+
+        String fileUrl = getFileUrl(s3Key);
+        log.info("Excel report URL: {}", fileUrl);
+        return fileUrl;
     }
 
     public String uploadPhoto(byte[] bytes, String contentType, String fileName) throws IOException {

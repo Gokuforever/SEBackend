@@ -1,15 +1,20 @@
 package com.sorted.commons.entity.beans;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import org.springframework.data.mongodb.core.mapping.Field;
+import lombok.Data;
 
 @Builder
+@Data
 public class RecommenderDetails {
 
-    @Field("full_name")
-    private String fullName;
+    @JsonProperty("first_name")
+    private String firstName;
+    @JsonProperty("last_name")
+    private String lastName;
     private String email;
     private String phone;
     private String bio;
+    @JsonProperty("photo_url")
     private String photoUrl;
 }

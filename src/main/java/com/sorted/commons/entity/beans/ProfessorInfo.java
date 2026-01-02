@@ -1,8 +1,10 @@
 package com.sorted.commons.entity.beans;
 
 import lombok.Builder;
+import lombok.Data;
 
 @Builder
+@Data
 public class ProfessorInfo {
 
     private String degree;
