@@ -32,7 +32,7 @@ public class RecommendationsHandlerService {
     private final RecommendersService recommendersService;
     private final ProductService productService;
 
-    public RecommendersEntity searchRecommender(String phoneNo){
+    public RecommendersEntity searchRecommender(String phoneNo) {
         if (!StringUtils.hasText(phoneNo)) {
             return null;
         }
@@ -52,6 +52,7 @@ public class RecommendationsHandlerService {
         Preconditions.check(Objects.nonNull(request.getDetails()), ResponseCode.MISSING_RECOMMENDER_DETAILS);
         Preconditions.check(StringUtils.hasText(request.getDetails().getPhone()), ResponseCode.MANDATE_PHONE);
         Preconditions.check(SERegExpUtils.isMobileNo(request.getDetails().getPhone()), ResponseCode.INVALID_PHONE);
+        Preconditions.check(StringUtils.hasText(request.getDetails().getEmail()), ResponseCode.MISSING_EI);
         Preconditions.check(StringUtils.hasText(request.getDetails().getFirstName()), ResponseCode.MANDATE_FIRST_NAME);
         Preconditions.check(StringUtils.hasText(request.getDetails().getLastName()), ResponseCode.MANDATE_LAST_NAME);
 
@@ -80,18 +81,26 @@ public class RecommendationsHandlerService {
             Optional<RecommendersEntity> optionalRecommender = recommendersService.findById(request.getRecommenderId());
             if (optionalRecommender.isPresent()) {
                 RecommendersEntity recommendersEntity = optionalRecommender.get();
+
+                recommendersEntity.setFirstName(request.getDetails().getFirstName());
+                recommendersEntity.setLastName(request.getDetails().getLastName());
+                recommendersEntity.setPhotoUrl(request.getDetails().getPhotoUrl());
+                recommendersEntity.setBio(request.getDetails().getBio());
+                switch (request.getType()) {
+                    case INDUSTRY_EXPERT:
+                        recommendersEntity.setIndustryExpertInfo(request.getIndustryExpertInfo());
+                        break;
+                    case PROFESSOR:
+                        recommendersEntity.setProfessorInfo(request.getProfessorInfo());
+                        break;
+                    case STUDENT:
+                        recommendersEntity.setStudentInfo(request.getStudentInfo());
+                        break;
+                }
                 recommenderId = recommendersEntity.getId();
             }
         } else {
-            RecommendersEntity recommendersEntity = RecommendersEntity.builder()
-                    .firstName(request.getDetails().getFirstName())
-                    .lastName(request.getDetails().getLastName())
-                    .email(request.getDetails().getEmail())
-                    .phoneNo(request.getDetails().getPhone())
-                    .photoUrl(request.getDetails().getPhotoUrl())
-                    .bio(request.getDetails().getBio())
-                    .type(request.getType())
-                    .build();
+            RecommendersEntity recommendersEntity = getRecommendersEntity(request);
             recommendersEntity = recommendersService.create(recommendersEntity, Defaults.SYSTEM_ADMIN);
             recommenderId = recommendersEntity.getId();
         }
@@ -102,16 +111,34 @@ public class RecommendationsHandlerService {
             if (recommendation == null) {
                 continue;
             }
-            RecommendationsEntity recommendationsEntity = RecommendationsEntity.builder()
-                    .productId(product.getId())
-                    .title(recommendation.getTitle())
-                    .text(recommendation.getText())
-                    .rating(recommendation.getRating())
-                    .recommenderId(recommenderId)
-                    .build();
+            RecommendationsEntity recommendationsEntity = RecommendationsEntity.builder().productId(product.getId()).title(recommendation.getTitle()).text(recommendation.getText()).rating(recommendation.getRating()).recommenderId(recommenderId).build();
             list.add(recommendationsEntity);
         }
 
         recommendationsService.bulkCreate(list, Defaults.SYSTEM_ADMIN);
+    }
+
+    private static RecommendersEntity getRecommendersEntity(RegisterRecommendationsBean request) {
+        RecommendersEntity recommendersEntity = RecommendersEntity.builder()
+                .firstName(request.getDetails().getFirstName())
+                .lastName(request.getDetails().getLastName())
+                .email(request.getDetails().getEmail())
+                .phoneNo(request.getDetails().getPhone())
+                .photoUrl(request.getDetails().getPhotoUrl())
+                .bio(request.getDetails().getBio())
+                .type(request.getType())
+                .build();
+        switch (request.getType()) {
+            case INDUSTRY_EXPERT:
+                recommendersEntity.setIndustryExpertInfo(request.getIndustryExpertInfo());
+                break;
+            case PROFESSOR:
+                recommendersEntity.setProfessorInfo(request.getProfessorInfo());
+                break;
+            case STUDENT:
+                recommendersEntity.setStudentInfo(request.getStudentInfo());
+                break;
+        }
+        return recommendersEntity;
     }
 }

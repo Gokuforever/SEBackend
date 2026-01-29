@@ -11,6 +11,7 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ProductReqBean extends ReqBaseBean {
+	private String product_master_id;
 	private String product_id;
 	private String seller_id;
 	private String category_id;

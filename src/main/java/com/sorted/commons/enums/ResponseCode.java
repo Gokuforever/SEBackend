@@ -287,6 +287,9 @@ public enum ResponseCode {
 	INVALID_RATING("SE_0271", "Invalid rating.", "Invalid rating."),
 	MISSING_TITLE("SE_0272", "Title is missing.", "Title is missing."),
 	MISSING_REVIEW_TEXT("SE_0273", "Review text is missing.", "Review text is missing."),
+	MANDATE_PRODUCT_MASTER_ID("SE_0274", "Missing product master id.", "Missing product master id."),
+	PRODUCT_MASTER_NOT_FOUND("SE_0275", "Product master not found.", "Product master not found."),
+	PRODUCT_IN_STOCK("SE_0276", "Product is in stock, please place your order.", "Product is in stock, please place your order."),
 	;
 	// @formatter:on
 
