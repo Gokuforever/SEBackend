@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serial;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
@@ -38,5 +40,17 @@ public class Seller extends BaseMongoEntity<String> {
     private String business_type;
     private BigDecimal fee_in_percentage;
     private BusinessHours business_hours;
+    private List<String> deliverableZones;
+
+    public void setDeliverableZones(String... zoneId) {
+        if (deliverableZones == null) {
+            deliverableZones = new ArrayList<>();
+        }
+        List<String> list = Arrays.asList(zoneId);
+        list.addAll(deliverableZones);
+        list = list.stream().distinct().toList();
+        deliverableZones.clear();
+        deliverableZones.addAll(list);
+    }
 
 }

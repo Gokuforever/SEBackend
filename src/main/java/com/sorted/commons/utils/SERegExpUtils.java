@@ -2,9 +2,9 @@ package com.sorted.commons.utils;
 
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -128,7 +128,7 @@ public class SERegExpUtils {
     }
 
     public static boolean isIfsc(String ifsc) {
-        if (StringUtils.isBlank(ifsc)) {
+        if (!StringUtils.hasText(ifsc)) {
             return false;
         }
         Pattern ifscRegex = Pattern.compile("^[A-Z]{4}0[A-Z0-9]{6}$");
