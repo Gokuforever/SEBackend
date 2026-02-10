@@ -98,7 +98,8 @@ public class PreferencesHandlerService {
             filter3.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
             filter3.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
             filter3.addClause(WhereClause.isNotEmpty("media.cdn_url"));
-            filter3.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productsMapBySeller.keySet())));
+            Set<String> productIdsBySeller = productsMapBySeller.keySet();
+            filter3.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
             filter3.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
 
             List<Products> randomProducts = productRepository.getRandomProducts(filter3, 7);
@@ -125,49 +126,52 @@ public class PreferencesHandlerService {
 
             List<GroupComponentBean> groupComponentBeans = new ArrayList<>();
 
-            for (GroupComponent group : groupComponent) {
-                SEFilter filterPM = new SEFilter(SEFilterType.AND);
-                filterPM.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-                filterPM.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
-                filterPM.addClause(WhereClause.eq(Products.Fields.group_id, group.getId()));
-                filterPM.addClause(WhereClause.isNotEmpty("media.cdn_url"));
-                filterPM.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productsMapBySeller.keySet())));
-                filterPM.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
-                if (group.getFilters() != null && !group.getFilters().isEmpty()) {
-                    for (Map.Entry<String, List<String>> entry : group.getFilters().entrySet()) {
-                        if (StringUtils.hasText(entry.getKey()) && !CollectionUtils.isEmpty(entry.getValue())) {
-                            Map<String, Object> map = new HashMap<>();
-                            map.put(SelectedSubCategories.Fields.sub_category, entry.getKey());
-                            map.put(SelectedSubCategories.Fields.selected_attributes, entry.getValue());
-                            filterPM.addClause(WhereClause.elem_match(Products.Fields.selected_sub_catagories, map));
+            if (!CollectionUtils.isEmpty(productIdsBySeller)) {
+
+                for (GroupComponent group : groupComponent) {
+                    SEFilter filterPM = new SEFilter(SEFilterType.AND);
+                    filterPM.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+                    filterPM.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
+                    filterPM.addClause(WhereClause.eq(Products.Fields.group_id, group.getId()));
+                    filterPM.addClause(WhereClause.isNotEmpty("media.cdn_url"));
+                    filterPM.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
+                    filterPM.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
+                    if (group.getFilters() != null && !group.getFilters().isEmpty()) {
+                        for (Map.Entry<String, List<String>> entry : group.getFilters().entrySet()) {
+                            if (StringUtils.hasText(entry.getKey()) && !CollectionUtils.isEmpty(entry.getValue())) {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put(SelectedSubCategories.Fields.sub_category, entry.getKey());
+                                map.put(SelectedSubCategories.Fields.selected_attributes, entry.getValue());
+                                filterPM.addClause(WhereClause.elem_match(Products.Fields.selected_sub_catagories, map));
+                            }
                         }
                     }
-                }
 
-                List<Products> productsByGroup = productRepository.getRandomProducts(filterPM, 7);
+                    List<Products> productsByGroup = productRepository.getRandomProducts(filterPM, 7);
 
-                List<ProductBean> productListByGroup = new ArrayList<>();
-                for (Products productByGroup : productsByGroup) {
-                    long maxSellingPrize = highestPrize.getOrDefault(productByGroup.getProduct_master_id(), 0L);
-                    if (maxSellingPrize > 0L) {
-                        productByGroup.setSelling_price(maxSellingPrize);
-                        productListByGroup.add(getProductBean(productByGroup));
+                    List<ProductBean> productListByGroup = new ArrayList<>();
+                    for (Products productByGroup : productsByGroup) {
+                        long maxSellingPrize = highestPrize.getOrDefault(productByGroup.getProduct_master_id(), 0L);
+                        if (maxSellingPrize > 0L) {
+                            productByGroup.setSelling_price(maxSellingPrize);
+                            productListByGroup.add(getProductBean(productByGroup));
+                        }
                     }
+
+
+                    GroupComponentBean groupComponentBean = GroupComponentBean.builder()
+                            .groupId(group.getId())
+                            .title(group.getTitle())
+                            .filters(group.getFilters())
+                            .products(productListByGroup)
+                            .build();
+                    groupComponentBeans.add(groupComponentBean);
                 }
-
-
-                GroupComponentBean groupComponentBean = GroupComponentBean.builder()
-                        .groupId(group.getId())
-                        .title(group.getTitle())
-                        .filters(group.getFilters())
-                        .products(productListByGroup)
+                HomeProductsBean homeProductsBean = homeProductsBeanBuilder.groupComponent(groupComponentBeans)
+                        .combo(false)
                         .build();
-                groupComponentBeans.add(groupComponentBean);
+                homeProductsBeans.add(homeProductsBean);
             }
-            HomeProductsBean homeProductsBean = homeProductsBeanBuilder.groupComponent(groupComponentBeans)
-                    .combo(false)
-                    .build();
-            homeProductsBeans.add(homeProductsBean);
         }
 
         List<PromoBanners> promoBanners = new ArrayList<>();

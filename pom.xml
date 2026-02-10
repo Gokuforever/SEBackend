@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sorted</groupId>
     <artifactId>se-commons</artifactId>
-    <version>26.02.01-SNAPSHOT</version>
+    <version>26.02.04-SNAPSHOT</version>
     <name>se-commons</name>
     <description>Common utilities and components library</description>
     <properties>
@@ -118,6 +118,12 @@
             <groupId>org.locationtech.jts</groupId>
             <artifactId>jts-core</artifactId>
             <version>1.19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.60.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <repositories>
