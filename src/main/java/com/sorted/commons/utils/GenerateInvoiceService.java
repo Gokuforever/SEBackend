@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,7 @@ public class GenerateInvoiceService {
     private final Users_Service usersService;
     private final Seller_Service sellerService;
     private final Order_Item_Service orderItemService;
-    private final AwsS3Service awsS3Service;
+    private final GcpStorageService gcpStorageService;
     private final InvoiceService invoiceService;
 
 
@@ -86,7 +85,7 @@ public class GenerateInvoiceService {
             Map<String, List<Order_Item>> comboItemMap =
                     orderItems.stream().filter(Order_Item::isCombo).collect(Collectors.groupingBy(Order_Item::getCombo_id));
 
-            if (!CollectionUtils.isEmpty(comboItemMap)){
+            if (!CollectionUtils.isEmpty(comboItemMap)) {
                 for (Map.Entry<String, List<Order_Item>> entry : comboItemMap.entrySet()) {
                     Order_Item item = entry.getValue().get(0);
                     invoiceItems.add(InvoiceItem.builder()
@@ -152,7 +151,7 @@ public class GenerateInvoiceService {
         byte[] pdfBytes = InvoicePdfGenerator.generateInvoicePdf(invoice);
 
         // Upload to S3
-        File_Upload_Details fileUploadDetails = awsS3Service.uploadPdf(pdfBytes, invoice.getInvoiceId() + ".pdf", buyer, DocumentType.INVOICE);
+        File_Upload_Details fileUploadDetails = gcpStorageService.uploadPdf(pdfBytes, invoice.getInvoiceId() + ".pdf", buyer, DocumentType.INVOICE);
 
         // Save invoice to database
         invoice.setGeneratedUrl(fileUploadDetails.getFile_url());
