@@ -86,47 +86,47 @@ public class PreferencesHandlerService {
 
         List<HomeProductsBean> homeProductsBeans = new ArrayList<>();
 
-        for (HomeConfig homeConfig : homeConfigs) {
 
-            String categoryId = homeConfig.getCategoryId();
-            homeProductsBeanBuilder.mainBadge(homeConfig.getMainBadge())
-                    .mainTitle(homeConfig.getMainTitle())
-                    .mainSubtitle(homeConfig.getMainSubtitle())
-                    .categoryId(categoryId);
+        Set<String> productIdsBySeller = productsMapBySeller.keySet();
+        if (!CollectionUtils.isEmpty(productIdsBySeller)) {
+            for (HomeConfig homeConfig : homeConfigs) {
 
-            SEFilter filter3 = new SEFilter(SEFilterType.AND);
-            filter3.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-            filter3.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
-            filter3.addClause(WhereClause.isNotEmpty("media.cdn_url"));
-            Set<String> productIdsBySeller = productsMapBySeller.keySet();
-            filter3.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
-            filter3.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
+                String categoryId = homeConfig.getCategoryId();
+                homeProductsBeanBuilder.mainBadge(homeConfig.getMainBadge())
+                        .mainTitle(homeConfig.getMainTitle())
+                        .mainSubtitle(homeConfig.getMainSubtitle())
+                        .categoryId(categoryId);
 
-            List<Products> randomProducts = productRepository.getRandomProducts(filter3, 7);
+                SEFilter filter3 = new SEFilter(SEFilterType.AND);
+                filter3.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+                filter3.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
+                filter3.addClause(WhereClause.isNotEmpty("media.cdn_url"));
+                filter3.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
+                filter3.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
 
-            ProductCarousel productCarousel = homeConfig.getProductCarousel();
-            List<ProductBean> randomProductBeans = new ArrayList<>();
-            for (Products randomProduct : randomProducts) {
-                long maxSellingPrize = highestPrize.getOrDefault(randomProduct.getProduct_master_id(), 0L);
-                if (maxSellingPrize > 0L) {
-                    randomProduct.setSelling_price(maxSellingPrize);
-                    randomProductBeans.add(getProductBean(randomProduct));
+                List<Products> randomProducts = productRepository.getRandomProducts(filter3, 7);
+
+                ProductCarousel productCarousel = homeConfig.getProductCarousel();
+                List<ProductBean> randomProductBeans = new ArrayList<>();
+                for (Products randomProduct : randomProducts) {
+                    long maxSellingPrize = highestPrize.getOrDefault(randomProduct.getProduct_master_id(), 0L);
+                    if (maxSellingPrize > 0L) {
+                        randomProduct.setSelling_price(maxSellingPrize);
+                        randomProductBeans.add(getProductBean(randomProduct));
+                    }
                 }
-            }
 
-            ProductCarouselBean productCarouselBean = ProductCarouselBean.builder()
-                    .title(productCarousel.getTitle())
-                    .subtitle(productCarousel.getSubtitle())
-                    .products(randomProductBeans)
-                    .build();
+                ProductCarouselBean productCarouselBean = ProductCarouselBean.builder()
+                        .title(productCarousel.getTitle())
+                        .subtitle(productCarousel.getSubtitle())
+                        .products(randomProductBeans)
+                        .build();
 
-            homeProductsBeanBuilder.productCarousel(productCarouselBean);
+                homeProductsBeanBuilder.productCarousel(productCarouselBean);
 
-            List<GroupComponent> groupComponent = homeConfig.getGroupComponent();
+                List<GroupComponent> groupComponent = homeConfig.getGroupComponent();
 
-            List<GroupComponentBean> groupComponentBeans = new ArrayList<>();
-
-            if (!CollectionUtils.isEmpty(productIdsBySeller)) {
+                List<GroupComponentBean> groupComponentBeans = new ArrayList<>();
 
                 for (GroupComponent group : groupComponent) {
                     SEFilter filterPM = new SEFilter(SEFilterType.AND);
