@@ -1,11 +1,9 @@
 package com.sorted.commons.service;
 
 import com.sorted.commons.beans.*;
+import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.*;
-import com.sorted.commons.entity.service.AssetsService;
-import com.sorted.commons.entity.service.ComboService;
-import com.sorted.commons.entity.service.ProductService;
-import com.sorted.commons.entity.service.Product_Master_Service;
+import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.AssetType;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
@@ -34,10 +32,14 @@ public class PreferencesHandlerService {
     private final ComboUtility comboUtility;
     private final ProductRepository productRepository;
     private final CategoryFilterServiceV2 categoryFilterService;
+    private final Users_Service usersService;
 
-    public Config fetchPreference(double lat, double lng) {
-
+    public Config fetchPreference(double lat, double lng, Users users) {
         ZoneEntity zoneEntity = zoneHandlerService.identifyZone(lat, lng);
+
+        users.setNearestZoneId(zoneEntity.getZoneId());
+        usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
+
         Seller seller = zoneHandlerService.getSellerByZone(zoneEntity.getZoneId(), lat, lng);
         SEFilter filter = new SEFilter(SEFilterType.AND);
         filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));

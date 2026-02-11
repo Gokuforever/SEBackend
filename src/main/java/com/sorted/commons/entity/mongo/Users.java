@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -54,6 +55,7 @@ public class Users extends BaseMongoEntity<String> {
     private boolean ambassador;
     @Field("ambassador_id")
     private String ambassadorId;
+    private String nearestZoneId;
 
     @JsonIgnore
     public void setEducationDetails(EducationCategoryBean educationCategoryBean) {
