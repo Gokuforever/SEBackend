@@ -88,14 +88,14 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
     @Override
     default List<T> repoFind(SEFilter f) {
         Query query = buildQuery(f);
-                logger.info("query:: {}, entity:: {}", query, getEntityType());
+        logger.info("query:: {}, entity:: {}", query, getEntityType());
         return StaticMongoAccessor.MONGO_TEMPLATE.find(query, getEntityType());
     }
 
     @Override
     default long countByFilter(SEFilter f) {
         Query query = buildQuery(f);
-                logger.info("query:: {}, entity:: {}", query, getEntityType());
+        logger.info("query:: {}, entity:: {}", query, getEntityType());
         return StaticMongoAccessor.MONGO_TEMPLATE.count(query, getEntityType());
     }
 
@@ -124,7 +124,7 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
 
     default List<T> random(SEFilter f, long count) {
         Query query = buildQuery(f);
-                logger.info("query:: {}, entity:: {}", query, getEntityType());
+        logger.info("query:: {}, entity:: {}", query, getEntityType());
         // Get the native MongoDB collection
         MongoCollection<Document> collection = StaticMongoAccessor.MONGO_TEMPLATE.getCollection(
                 StaticMongoAccessor.MONGO_TEMPLATE.getCollectionName(this.getEntityType())
@@ -224,11 +224,11 @@ public interface BaseMongoRepository<K, T extends BaseMongoEntity<K>>
             List<Criteria> whereCriterias = node.getClause().stream().map(BaseMongoRepository::buildWhereClauseCriteria)
                     .toList();
 
-//			if (node.getType() == SEFilterType.AND) {
-            criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
-//			} else if (node.getType() == SEFilterType.OR) {
-//				criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
-//			}
+            if (node.getType() == SEFilterType.AND) {
+                criteria.andOperator(whereCriterias.toArray(new Criteria[0]));
+            } else if (node.getType() == SEFilterType.OR) {
+                criteria.orOperator(whereCriterias.toArray(new Criteria[0]));
+            }
         }
         return criteria;
     }

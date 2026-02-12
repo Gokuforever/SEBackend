@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,8 @@ public class PreferencesHandlerService {
         ZoneEntity zoneEntity = zoneHandlerService.identifyZone(lat, lng);
 
         users.setNearestZoneId(zoneEntity.getZoneId());
+        users.setCurrentLat(BigDecimal.valueOf(lat));
+        users.setCurrentLng(BigDecimal.valueOf(lng));
         usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
 
         Seller seller = zoneHandlerService.getSellerByZone(zoneEntity.getZoneId(), lat, lng);

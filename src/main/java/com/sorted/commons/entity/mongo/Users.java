@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serial;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,8 @@ public class Users extends BaseMongoEntity<String> {
     @Field("ambassador_id")
     private String ambassadorId;
     private String nearestZoneId;
+    private BigDecimal currentLat;
+    private BigDecimal currentLng;
 
     @JsonIgnore
     public void setEducationDetails(EducationCategoryBean educationCategoryBean) {
