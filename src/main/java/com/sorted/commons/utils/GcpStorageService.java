@@ -26,7 +26,7 @@ public class GcpStorageService {
 
     private final File_Upload_Details_Service fileUploadDetailsService;
 
-    @Value("${gcp.project-id:project-28856987-837d-4ca3-a16\n}")
+    @Value("${gcp.project-id:project-28856987-837d-4ca3-a16}")
     private String projectId;
 
     @Value("${gcp.bucket.name:studeaze-assets}")

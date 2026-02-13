@@ -8,9 +8,11 @@ import com.sorted.commons.enums.AssetType;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.helper.Pagination;
 import com.sorted.commons.repository.mongo.ProductRepository;
 import com.sorted.commons.utils.ComboUtility;
 import com.sorted.commons.utils.CommonUtils;
+import com.sorted.commons.utils.ProductUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -34,6 +36,7 @@ public class PreferencesHandlerService {
     private final ProductRepository productRepository;
     private final CategoryFilterServiceV2 categoryFilterService;
     private final Users_Service usersService;
+    private final ProductUtility productUtility;
 
     public Config fetchPreference(double lat, double lng, Users users) {
         ZoneEntity zoneEntity = zoneHandlerService.identifyZone(lat, lng);
@@ -44,46 +47,14 @@ public class PreferencesHandlerService {
         usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
 
         Seller seller = zoneHandlerService.getSellerByZone(zoneEntity.getZoneId(), lat, lng);
-        SEFilter filter = new SEFilter(SEFilterType.AND);
-        filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        List<Product_Master> productMasters = productMasterService.repoFind(filter);
-
-        Map<String, Product_Master> mapPM = productMasters.stream().collect(Collectors.toMap(Product_Master::getId, e -> e));
-        List<String> productMasterIds = CommonUtils.convertS2L(mapPM.keySet());
 
         SEFilter filter2 = new SEFilter(SEFilterType.AND);
         filter2.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-        filter2.addClause(WhereClause.in(Products.Fields.product_master_id, productMasterIds));
+        filter2.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
         List<Products> products = productService.repoFind(filter2);
 
-        Map<String, List<Products>> listMap = products.stream().collect(Collectors.groupingBy(Products::getProduct_master_id));
-
-        Map<String, Long> highestPrize = new HashMap<>();
-
-        for (Map.Entry<String, List<Products>> entry : listMap.entrySet()) {
-            long max = 0L;
-            for (Products product : entry.getValue()) {
-                Long sellingPrice = product.getSelling_price();
-                max = Math.max(max, sellingPrice);
-            }
-            highestPrize.put(entry.getKey(), max);
-        }
-
-        Map<String, Products> productsMapBySeller = products.stream().filter(e -> e.getSeller_id().equals(seller.getId())).collect(Collectors.toMap(p -> p.getProduct_master_id(), p -> p));
-
-        List<ProductBean> productBeans = new ArrayList<>();
-        for (Product_Master productMaster : productMasters) {
-            Products product = productsMapBySeller.getOrDefault(productMaster.getId(), null);
-            if (product == null) {
-                productBeans.add(getProductBean(productMaster));
-            } else {
-                long maxSellingPrize = highestPrize.getOrDefault(productMaster.getId(), 0L);
-                if (maxSellingPrize > 0L) {
-                    product.setSelling_price(maxSellingPrize);
-                }
-                productBeans.add(getProductBean(product));
-            }
-        }
+        Map<String, Products> productsMapBySeller = products.stream().collect(Collectors.toMap(Products::getProduct_master_id, p -> p));
+        Set<String> productIdsBySeller = productsMapBySeller.keySet();
 
         HomeProductsBean.HomeProductsBeanBuilder homeProductsBeanBuilder = HomeProductsBean.builder();
 
@@ -91,9 +62,8 @@ public class PreferencesHandlerService {
 
         List<HomeProductsBean> homeProductsBeans = new ArrayList<>();
 
-
-        Set<String> productIdsBySeller = productsMapBySeller.keySet();
         if (!CollectionUtils.isEmpty(productIdsBySeller)) {
+            Map<String, Long> highestPrize = productUtility.getProductHighestSellingPrice(productIdsBySeller.toArray(new String[0]));
             for (HomeConfig homeConfig : homeConfigs) {
 
                 String categoryId = homeConfig.getCategoryId();
@@ -106,7 +76,6 @@ public class PreferencesHandlerService {
                 filter3.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
                 filter3.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
                 filter3.addClause(WhereClause.isNotEmpty("media.cdn_url"));
-                filter3.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
                 filter3.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
 
                 List<Products> randomProducts = productRepository.getRandomProducts(filter3, 7);
@@ -114,10 +83,28 @@ public class PreferencesHandlerService {
                 ProductCarousel productCarousel = homeConfig.getProductCarousel();
                 List<ProductBean> randomProductBeans = new ArrayList<>();
                 for (Products randomProduct : randomProducts) {
-                    long maxSellingPrize = highestPrize.getOrDefault(randomProduct.getProduct_master_id(), 0L);
-                    if (maxSellingPrize > 0L) {
-                        randomProduct.setSelling_price(maxSellingPrize);
-                        randomProductBeans.add(getProductBean(randomProduct));
+                    randomProductBeans.add(getProductBean(randomProduct, highestPrize));
+                }
+
+                if (CollectionUtils.isEmpty(randomProducts) || randomProducts.size() < 7) {
+                    SEFilter filter = new SEFilter(SEFilterType.AND);
+                    filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+                    filter.addClause(WhereClause.eq(Product_Master.Fields.catagory_id, categoryId));
+                    filter.addClause(WhereClause.isNotEmpty(Product_Master.Fields.cdn_url));
+                    if (!CollectionUtils.isEmpty(randomProducts)) {
+                        filter.addClause(WhereClause.nin(BaseMongoEntity.Fields.id, randomProducts.stream().map(Products::getProduct_master_id).toList()));
+                    }
+                    Pagination pagination;
+                    if (CollectionUtils.isEmpty(randomProducts)) {
+                        pagination = new Pagination(0, 7);
+                    } else {
+                        pagination = new Pagination(0, 7 - randomProducts.size());
+                    }
+                    filter.setPagination(pagination);
+
+                    List<Product_Master> productMasters = productMasterService.repoFind(filter);
+                    for (Product_Master productMaster : productMasters) {
+                        randomProductBeans.add(getProductBean(productMaster));
                     }
                 }
 
@@ -139,7 +126,6 @@ public class PreferencesHandlerService {
                     filterPM.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
                     filterPM.addClause(WhereClause.eq(Products.Fields.group_id, group.getId()));
                     filterPM.addClause(WhereClause.isNotEmpty("media.cdn_url"));
-                    filterPM.addClause(WhereClause.in(BaseMongoEntity.Fields.id, CommonUtils.convertS2L(productIdsBySeller)));
                     filterPM.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
                     if (group.getFilters() != null && !group.getFilters().isEmpty()) {
                         for (Map.Entry<String, List<String>> entry : group.getFilters().entrySet()) {
@@ -155,14 +141,43 @@ public class PreferencesHandlerService {
                     List<Products> productsByGroup = productRepository.getRandomProducts(filterPM, 7);
 
                     List<ProductBean> productListByGroup = new ArrayList<>();
+
                     for (Products productByGroup : productsByGroup) {
-                        long maxSellingPrize = highestPrize.getOrDefault(productByGroup.getProduct_master_id(), 0L);
-                        if (maxSellingPrize > 0L) {
-                            productByGroup.setSelling_price(maxSellingPrize);
-                            productListByGroup.add(getProductBean(productByGroup));
-                        }
+                        productListByGroup.add(getProductBean(productByGroup, highestPrize));
                     }
 
+                    if (CollectionUtils.isEmpty(productsByGroup) || productsByGroup.size() < 7) {
+                        SEFilter filterMaster = new SEFilter(SEFilterType.AND);
+                        filterMaster.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+                        filterMaster.addClause(WhereClause.eq(Product_Master.Fields.catagory_id, categoryId));
+                        filterMaster.addClause(WhereClause.eq(Product_Master.Fields.group_id, group.getId()));
+                        filterMaster.addClause(WhereClause.isNotEmpty(Product_Master.Fields.cdn_url));
+                        if (!CollectionUtils.isEmpty(productsByGroup)) {
+                            filterMaster.addClause(WhereClause.nin(BaseMongoEntity.Fields.id, productsByGroup.stream().map(Products::getProduct_master_id).toList()));
+                        }
+                        if (group.getFilters() != null && !group.getFilters().isEmpty()) {
+                            for (Map.Entry<String, List<String>> entry : group.getFilters().entrySet()) {
+                                if (StringUtils.hasText(entry.getKey()) && !CollectionUtils.isEmpty(entry.getValue())) {
+                                    filterMaster.addClause(WhereClause.in("sub_categories." + entry.getKey(), entry.getValue()));
+                                }
+                            }
+                        }
+
+                        Pagination pagination;
+                        if (CollectionUtils.isEmpty(productsByGroup)) {
+                            pagination = new Pagination(0, 7);
+                        } else {
+                            pagination = new Pagination(0, 7 - productsByGroup.size());
+                        }
+                        filterMaster.setPagination(pagination);
+
+                        List<Product_Master> productMasters = productMasterService.repoFind(filterMaster);
+                        if (!CollectionUtils.isEmpty(productMasters)) {
+                            for (Product_Master productMaster : productMasters) {
+                                productListByGroup.add(getProductBean(productMaster));
+                            }
+                        }
+                    }
 
                     GroupComponentBean groupComponentBean = GroupComponentBean.builder()
                             .groupId(group.getId())
@@ -198,42 +213,42 @@ public class PreferencesHandlerService {
             }
         }
 
-        List<ProductBean> comboBeans = new ArrayList<>();
-
-        SEFilter filterC = new SEFilter(SEFilterType.AND);
-        filterC.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-
-        List<Combo> combos = comboService.repoFind(filterC);
-        if (!CollectionUtils.isEmpty(combos)) {
-            Combo combo = combos.get(0);
-            boolean valid = comboUtility.validateCombo(combo);
-            if (valid) {
-                List<Products> comboProducts = comboUtility.getProductsByCombo(combo);
-                long averageQuantity = products.stream().map(Products::getQuantity).toList().stream().sorted().toList().get(0);
-                ProductBean productBean = ProductBean.builder()
-                        .id(combo.getId())
-                        .name(combo.getName())
-                        .secure(false)
-                        .image(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : comboProducts.stream().anyMatch(p -> !CollectionUtils.isEmpty(p.getMedia())) ? comboProducts.stream().filter(p -> !CollectionUtils.isEmpty(p.getMedia())).findFirst().get().getMedia().get(0).getCdn_url() : "")
-                        .mrp(CommonUtils.paiseToRupee(combo.getMrp()))
-                        .sellingPrice(CommonUtils.paiseToRupee(combo.getSelling_price()))
-                        .quantity(averageQuantity)
-                        .build();
-                comboBeans.add(productBean);
-            }
-//            HomeProductsBean homeProductsBean = HomeProductsBean.builder()
-//                    .combo(true)
-//                    .mainBadge("Best Seller Combo")
-//                    .mainTitle("Engineering Starter Pack")
-//                    .mainSubtitle("Get all essentials in one bundle")
-//                    .productCarousel(ProductCarouselBean.builder()
-//                            .title("Included in this Combo")
-//                            .subtitle("Handpicked books to kickstart your semester")
-//                            .products(comboBeans)
-//                            .build())
-//                    .build();
-//            homeProductsBeans.add(homeProductsBean);
-        }
+//        List<ProductBean> comboBeans = new ArrayList<>();
+//
+//        SEFilter filterC = new SEFilter(SEFilterType.AND);
+//        filterC.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+//
+//        List<Combo> combos = comboService.repoFind(filterC);
+//        if (!CollectionUtils.isEmpty(combos)) {
+//            Combo combo = combos.get(0);
+//            boolean valid = comboUtility.validateCombo(combo);
+//            if (valid) {
+//                List<Products> comboProducts = comboUtility.getProductsByCombo(combo);
+//                long averageQuantity = products.stream().map(Products::getQuantity).toList().stream().sorted().toList().get(0);
+//                ProductBean productBean = ProductBean.builder()
+//                        .id(combo.getId())
+//                        .name(combo.getName())
+//                        .secure(false)
+//                        .image(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : comboProducts.stream().anyMatch(p -> !CollectionUtils.isEmpty(p.getMedia())) ? comboProducts.stream().filter(p -> !CollectionUtils.isEmpty(p.getMedia())).findFirst().get().getMedia().get(0).getCdn_url() : "")
+//                        .mrp(CommonUtils.paiseToRupee(combo.getMrp()))
+//                        .sellingPrice(CommonUtils.paiseToRupee(combo.getSelling_price()))
+//                        .quantity(averageQuantity)
+//                        .build();
+//                comboBeans.add(productBean);
+//            }
+////            HomeProductsBean homeProductsBean = HomeProductsBean.builder()
+////                    .combo(true)
+////                    .mainBadge("Best Seller Combo")
+////                    .mainTitle("Engineering Starter Pack")
+////                    .mainSubtitle("Get all essentials in one bundle")
+////                    .productCarousel(ProductCarouselBean.builder()
+////                            .title("Included in this Combo")
+////                            .subtitle("Handpicked books to kickstart your semester")
+////                            .products(comboBeans)
+////                            .build())
+////                    .build();
+////            homeProductsBeans.add(homeProductsBean);
+//        }
 
         Assets assets = Assets.builder()
                 .homePromoBanners(promoBanners)
@@ -250,10 +265,10 @@ public class PreferencesHandlerService {
 
     }
 
-    private ProductBean getProductBean(Products product) {
+    private ProductBean getProductBean(Products product, Map<String, Long> highestPrize) {
         return ProductBean.builder()
                 .mrp(CommonUtils.paiseToRupee(product.getMrp()))
-                .sellingPrice(CommonUtils.paiseToRupee(product.getSelling_price()))
+                .sellingPrice(CommonUtils.paiseToRupee(highestPrize.get(product.getProduct_master_id())))
                 .image(CollectionUtils.isEmpty(product.getMedia()) ? "" : product.getMedia().stream().filter(e -> e.getOrder() == 0).findFirst().get().getCdn_url())
                 .id(product.getId())
                 .name(product.getName())

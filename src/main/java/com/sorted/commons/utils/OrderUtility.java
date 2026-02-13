@@ -35,6 +35,7 @@ public class OrderUtility {
     private final OrderService orderService;
     private final CartUtility cartUtility;
     private final ComboUtility comboUtility;
+    private final ProductUtility productUtility;
 
     @Value("${se.fixed-delivery-charge.in-paise:4000}")
     private long fixedDeliveryFee;
@@ -205,44 +206,44 @@ public class OrderUtility {
         log.debug("createOrderItems:: Creating order items for {} cart items", cartItems.size());
         List<Order_Item> listOI = new ArrayList<>();
 
-        List<String> comboIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && e.is_combo()).map(CartItems::getProduct_id).toList();
-
-        if (!CollectionUtils.isEmpty(comboIds)) {
-            List<Combo> activeCombos = comboUtility.getActiveCombos(comboIds);
-
-            if (!CollectionUtils.isEmpty(activeCombos)) {
-                List<String> comboProductIds = activeCombos.stream().flatMap(combo -> combo.getItem_ids().stream()).distinct().toList();
-
-                SEFilter filterP = new SEFilter(SEFilterType.AND);
-                filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, comboProductIds));
-                filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
-
-                List<Products> listP = productService.repoFind(filterP);
-                if (CollectionUtils.isEmpty(listP)) {
-                    return listOI;
-                }
-
-                Map<String, Products> productsMap = listP.stream().collect(Collectors.toMap(Products::getId, p -> p));
-
-                Map<String, Combo> comboMap = activeCombos.stream().collect(Collectors.toMap(BaseMongoEntity::getId, combo -> combo));
-
-                for (CartItems item : cartItems) {
-                    Combo combo = comboMap.getOrDefault(item.getProduct_id(), null);
-                    if (combo == null) {
-                        continue;
-                    }
-                    List<String> itemIds = combo.getItem_ids();
-                    for (String itemId : itemIds) {
-                        Products products = productsMap.getOrDefault(itemId, null);
-                        if (products == null) {
-                            continue;
-                        }
-                        Order_Item orderItem = getOrderItem(item, combo, products, userId);
-                        listOI.add(orderItem);
-                    }
-                }
-            }
-        }
+//        List<String> comboIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && e.is_combo()).map(CartItems::getProduct_id).toList();
+//
+//        if (!CollectionUtils.isEmpty(comboIds)) {
+//            List<Combo> activeCombos = comboUtility.getActiveCombos(comboIds);
+//
+//            if (!CollectionUtils.isEmpty(activeCombos)) {
+//                List<String> comboProductIds = activeCombos.stream().flatMap(combo -> combo.getItem_ids().stream()).distinct().toList();
+//
+//                SEFilter filterP = new SEFilter(SEFilterType.AND);
+//                filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, comboProductIds));
+//                filterP.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
+//
+//                List<Products> listP = productService.repoFind(filterP);
+//                if (CollectionUtils.isEmpty(listP)) {
+//                    return listOI;
+//                }
+//
+//                Map<String, Products> productsMap = listP.stream().collect(Collectors.toMap(Products::getId, p -> p));
+//
+//                Map<String, Combo> comboMap = activeCombos.stream().collect(Collectors.toMap(BaseMongoEntity::getId, combo -> combo));
+//
+//                for (CartItems item : cartItems) {
+//                    Combo combo = comboMap.getOrDefault(item.getProduct_id(), null);
+//                    if (combo == null) {
+//                        continue;
+//                    }
+//                    List<String> itemIds = combo.getItem_ids();
+//                    for (String itemId : itemIds) {
+//                        Products products = productsMap.getOrDefault(itemId, null);
+//                        if (products == null) {
+//                            continue;
+//                        }
+//                        Order_Item orderItem = getOrderItem(item, combo, products, userId);
+//                        listOI.add(orderItem);
+//                    }
+//                }
+//            }
+//        }
 
         List<String> productIds = cartItems.stream().filter(e -> e.getCurrent_status().equals(All_Status.ProductCurrentStatus.IN_STOCK.getStatus_id()) && !e.is_combo()).map(CartItems::getProduct_id).toList();
 
@@ -256,6 +257,8 @@ public class OrderUtility {
         }
 
         Map<String, Products> productsMap = listP.stream().collect(Collectors.toMap(Products::getId, p -> p));
+
+        Map<String, Long> productHighestSellingPrice = productUtility.getProductHighestSellingPrice(listP.stream().map(Products::getProduct_master_id).toArray(String[]::new));
 
         for (CartItems cartItem : cartItems) {
             Products products = productsMap.getOrDefault(cartItem.getProduct_id(), null);
@@ -272,7 +275,7 @@ public class OrderUtility {
                 throw new CustomIllegalArgumentsException(ResponseCode.FEW_OUT_OF_STOCK);
             }
 
-            Order_Item order_Item = getOrderItem(cartItem, products, userId);
+            Order_Item order_Item = getOrderItem(cartItem, products, userId, productHighestSellingPrice);
             listOI.add(order_Item);
             log.debug("createOrderItems:: Created order item for product: {}, quantity: {}, total: {}",
                     products.getId(), products.getQuantity(), order_Item.getTotal_cost());
@@ -282,45 +285,46 @@ public class OrderUtility {
         return listOI;
     }
 
-    private Order_Item getOrderItem(CartItems item, Combo combo, Products product, String userId) {
+//    private Order_Item getOrderItem(CartItems item, Combo combo, Products product, String userId) {
+//
+//        Order_Item order_Item = new Order_Item();
+//        order_Item.setCombo(true);
+//        order_Item.setCombo_id(combo.getId());
+//        order_Item.setCombo_code(combo.getCode());
+//        order_Item.setCombo_name(combo.getName());
+//        order_Item.setCombo_description(combo.getDescription());
+//        order_Item.setCombo_img_src(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : null);
+//        order_Item.setCombo_selling_price(combo.getSelling_price());
+//        order_Item.setCombo_mrp(combo.getMrp());
+//        order_Item.setProduct_id(product.getId());
+//        order_Item.setProduct_code(product.getProduct_code());
+//        order_Item.setProduct_name(product.getName());
+//        order_Item.setCdn_url(!CollectionUtils.isEmpty(product.getMedia()) ? product.getMedia().get(0).getCdn_url() : null);
+//        order_Item.setQuantity(item.getQuantity());
+//        order_Item.setSelling_price(product.getSelling_price());
+//        order_Item.setSeller_id(product.getSeller_id());
+//        order_Item.setSeller_code(product.getSeller_code());
+//        order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
+//        order_Item.setTotal_cost(product.getSelling_price() * item.getQuantity());
+//
+//        order_Item.setType(PurchaseType.BUY);
+//
+//        return order_Item;
+//    }
 
+    private Order_Item getOrderItem(CartItems item, Products product, String userId, Map<String, Long> productHighestSellingPrice) {
+        Long sellingPrice = productHighestSellingPrice.get(product.getProduct_master_id());
         Order_Item order_Item = new Order_Item();
-        order_Item.setCombo(true);
-        order_Item.setCombo_id(combo.getId());
-        order_Item.setCombo_code(combo.getCode());
-        order_Item.setCombo_name(combo.getName());
-        order_Item.setCombo_description(combo.getDescription());
-        order_Item.setCombo_img_src(!CollectionUtils.isEmpty(combo.getMedia()) ? combo.getMedia().get(0).getCdn_url() : null);
-        order_Item.setCombo_selling_price(combo.getSelling_price());
-        order_Item.setCombo_mrp(combo.getMrp());
         order_Item.setProduct_id(product.getId());
         order_Item.setProduct_code(product.getProduct_code());
         order_Item.setProduct_name(product.getName());
         order_Item.setCdn_url(!CollectionUtils.isEmpty(product.getMedia()) ? product.getMedia().get(0).getCdn_url() : null);
         order_Item.setQuantity(item.getQuantity());
-        order_Item.setSelling_price(product.getSelling_price());
+        order_Item.setSelling_price(sellingPrice);
         order_Item.setSeller_id(product.getSeller_id());
         order_Item.setSeller_code(product.getSeller_code());
         order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
-        order_Item.setTotal_cost(product.getSelling_price() * item.getQuantity());
-
-        order_Item.setType(PurchaseType.BUY);
-
-        return order_Item;
-    }
-
-    private Order_Item getOrderItem(CartItems item, Products product, String userId) {
-        Order_Item order_Item = new Order_Item();
-        order_Item.setProduct_id(product.getId());
-        order_Item.setProduct_code(product.getProduct_code());
-        order_Item.setProduct_name(product.getName());
-        order_Item.setCdn_url(!CollectionUtils.isEmpty(product.getMedia()) ? product.getMedia().get(0).getCdn_url() : null);
-        order_Item.setQuantity(item.getQuantity());
-        order_Item.setSelling_price(product.getSelling_price());
-        order_Item.setSeller_id(product.getSeller_id());
-        order_Item.setSeller_code(product.getSeller_code());
-        order_Item.setStatus(OrderStatus.ORDER_PLACED, userId);
-        order_Item.setTotal_cost(product.getSelling_price() * item.getQuantity());
+        order_Item.setTotal_cost(sellingPrice * item.getQuantity());
         if (item.isSecure_item()) {
             order_Item.setType(PurchaseType.SECURE);
         } else {
