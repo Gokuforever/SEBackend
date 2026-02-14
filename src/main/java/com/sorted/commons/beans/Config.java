@@ -16,4 +16,5 @@ public class Config {
     private List<Category_Master> categories;
     private List<HomeProductsBean> homeProducts;
     private Assets assets;
+    private boolean isLocationServiceable;
 }

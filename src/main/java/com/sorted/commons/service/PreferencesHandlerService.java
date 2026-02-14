@@ -5,6 +5,7 @@ import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.AssetType;
+import com.sorted.commons.exceptions.DeliveryNotAvailableException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
@@ -39,14 +40,21 @@ public class PreferencesHandlerService {
     private final ProductUtility productUtility;
 
     public Config fetchPreference(double lat, double lng, Users users) {
-        ZoneEntity zoneEntity = zoneHandlerService.identifyZone(lat, lng);
+        Seller seller;
+        try {
+            ZoneEntity zoneEntity = zoneHandlerService.identifyZone(lat, lng);
 
-        users.setNearestZoneId(zoneEntity.getZoneId());
-        users.setCurrentLat(BigDecimal.valueOf(lat));
-        users.setCurrentLng(BigDecimal.valueOf(lng));
-        usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
+            users.setNearestZoneId(zoneEntity.getZoneId());
+            users.setCurrentLat(BigDecimal.valueOf(lat));
+            users.setCurrentLng(BigDecimal.valueOf(lng));
+            usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
 
-        Seller seller = zoneHandlerService.getSellerByZone(zoneEntity.getZoneId(), lat, lng);
+            seller = zoneHandlerService.getSellerByZone(zoneEntity.getZoneId(), lat, lng);
+        } catch (DeliveryNotAvailableException e) {
+            return Config.builder()
+                    .isLocationServiceable(false)
+                    .build();
+        }
 
         SEFilter filter2 = new SEFilter(SEFilterType.AND);
         filter2.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
@@ -260,6 +268,7 @@ public class PreferencesHandlerService {
                 .categories(categoryMasterData)
                 .homeProducts(homeProductsBeans)
                 .assets(assets)
+                .isLocationServiceable(true)
                 .build();
 
 
