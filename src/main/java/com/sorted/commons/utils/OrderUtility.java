@@ -2,6 +2,7 @@ package com.sorted.commons.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sorted.commons.beans.*;
+import com.sorted.commons.constants.Defaults;
 import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.*;
@@ -9,6 +10,7 @@ import com.sorted.commons.exceptions.CustomIllegalArgumentsException;
 import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
+import com.sorted.commons.service.ZoneHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,8 @@ public class OrderUtility {
     private final CartUtility cartUtility;
     private final ComboUtility comboUtility;
     private final ProductUtility productUtility;
+    private final ZoneHandlerService zoneHandlerService;
+    private final Users_Service usersService;
 
     @Value("${se.fixed-delivery-charge.in-paise:4000}")
     private long fixedDeliveryFee;
@@ -55,6 +59,16 @@ public class OrderUtility {
         Address address = validateDeliveryAddress(req, usersBean);
         log.info("pay:: Delivery address validation successful. Address ID: {}, Pincode: {}",
                 address.getId(), address.getPincode());
+
+        ZoneEntity zoneEntity = zoneHandlerService.identifyZone(address.getLat().doubleValue(), address.getLng().doubleValue());
+        if (!zoneEntity.getZoneId().equals(usersBean.getNearestZoneId())) {
+            Users users = usersService.findById(usersBean.getId()).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.USER_NOT_FOUND));
+            users.setCurrentLat(address.getLat());
+            users.setCurrentLng(address.getLng());
+            users.setNearestZoneId(zoneEntity.getZoneId());
+            usersService.update(users.getId(), users, Defaults.SYSTEM_ADMIN);
+            throw new CustomIllegalArgumentsException("Please refresh the page and try again");
+        }
 
         // Validate cart
         log.debug("pay:: Starting cart validation");
@@ -131,10 +145,6 @@ public class OrderUtility {
             log.error("validateDeliveryAddress:: Address not found: {}", req.getDelivery_address_id());
             throw new CustomIllegalArgumentsException(ResponseCode.ADDRESS_NOT_FOUND);
         }
-
-        log.debug("validateDeliveryAddress:: Address found, checking nearest seller");
-        String nearestSeller = usersBean.getNearestSeller();
-
 
         return address;
     }

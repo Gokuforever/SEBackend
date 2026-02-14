@@ -2,10 +2,7 @@ package com.sorted.commons.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sorted.commons.beans.*;
-import com.sorted.commons.entity.mongo.BaseMongoEntity;
-import com.sorted.commons.entity.mongo.Cart;
-import com.sorted.commons.entity.mongo.Products;
-import com.sorted.commons.entity.mongo.Seller;
+import com.sorted.commons.entity.mongo.*;
 import com.sorted.commons.entity.service.*;
 import com.sorted.commons.enums.All_Status;
 import com.sorted.commons.enums.ResponseCode;
@@ -14,6 +11,7 @@ import com.sorted.commons.helper.AggregationFilter.SEFilter;
 import com.sorted.commons.helper.AggregationFilter.SEFilterType;
 import com.sorted.commons.helper.AggregationFilter.WhereClause;
 import com.sorted.commons.porter.res.beans.GetQuoteResponse;
+import com.sorted.commons.service.ZoneHandlerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,6 +36,8 @@ public class CartUtility {
     private final CouponUtility couponUtility;
     private final ComboUtility comboUtility;
     private final ProductUtility productUtility;
+    private final Users_Service usersService;
+    private final ZoneHandlerService zoneHandlerService;
 
     @Value("${se.fixed-delivery-charge.in-paise:4000}")
     private long fixedDeliveryFee;
@@ -103,7 +103,8 @@ public class CartUtility {
         long totalItemCount = 0;
         boolean isFreeDelivery = false;
         boolean isStoreOperational;
-        String sellerId = null;
+        Users users = usersService.findById(cart.getUser_id()).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.USER_NOT_FOUND));
+        Seller seller = zoneHandlerService.getSellerByZone(users.getNearestZoneId(), users.getCurrentLat().doubleValue(), users.getCurrentLng().doubleValue());
 
 //        List<String> comboIds = itemList.stream().filter(Item::isCombo).map(Item::getProduct_id).toList();
 //
@@ -144,11 +145,9 @@ public class CartUtility {
 
             SEFilter filterP = new SEFilter(SEFilterType.AND);
             filterP.addClause(WhereClause.in(BaseMongoEntity.Fields.id, productIds));
+            filterP.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
 
             List<Products> listP = productService.repoFind(filterP);
-            if (!CollectionUtils.isEmpty(listP)) {
-                sellerId = listP.get(0).getSeller_id();
-            }
 
             Map<String, Long> productHighestSellingPrice = productUtility.getProductHighestSellingPrice(
                     listP.stream()
@@ -197,7 +196,6 @@ public class CartUtility {
 
         boolean addressPresent = StringUtils.hasText(addressId);
         if (addressPresent && totalSellingPrice.compareTo(zero) > 0) {
-            Seller seller = sellerService.findById(sellerId).orElseThrow(() -> new CustomIllegalArgumentsException(ResponseCode.SELLER_NOT_FOUND));
             GetQuoteResponse quote = estimateDeliveryService.getEstimateDeliveryAmount(addressId, seller.getAddress_id(), customerName);
             if (quote != null) {
                 cart.setDelivery_charges(fixedDeliveryFee);
@@ -252,7 +250,7 @@ public class CartUtility {
 
         toPay = actualDeliveryFee.add(actualSmallCartFee).add(actualHandlingFee).add(totalSellingPrice);
 
-        isStoreOperational = storeActivityService.isStoreOperational(sellerId);
+        isStoreOperational = storeActivityService.isStoreOperational(seller.getId());
 
         cartItems = cartItems.stream().sorted(Comparator.comparing(CartItems::getProduct_id)).toList();
 
