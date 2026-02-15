@@ -83,7 +83,7 @@ public class PreferencesHandlerService {
                 SEFilter filter3 = new SEFilter(SEFilterType.AND);
                 filter3.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
                 filter3.addClause(WhereClause.eq(Products.Fields.category_id, categoryId));
-                filter3.addClause(WhereClause.isNotEmpty("media.cdn_url"));
+                filter3.addClause(WhereClause.isNotNull("media.cdn_url"));
                 filter3.addClause(WhereClause.eq(Products.Fields.seller_id, seller.getId()));
 
                 List<Products> randomProducts = productRepository.getRandomProducts(filter3, 7);
@@ -98,7 +98,7 @@ public class PreferencesHandlerService {
                     SEFilter filter = new SEFilter(SEFilterType.AND);
                     filter.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
                     filter.addClause(WhereClause.eq(Product_Master.Fields.catagory_id, categoryId));
-                    filter.addClause(WhereClause.isNotEmpty(Product_Master.Fields.cdn_url));
+                    filter.addClause(WhereClause.isNotNull(Product_Master.Fields.cdn_url));
                     if (!CollectionUtils.isEmpty(randomProducts)) {
                         filter.addClause(WhereClause.nin(BaseMongoEntity.Fields.id, randomProducts.stream().map(Products::getProduct_master_id).toList()));
                     }
@@ -159,7 +159,7 @@ public class PreferencesHandlerService {
                         filterMaster.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
                         filterMaster.addClause(WhereClause.eq(Product_Master.Fields.catagory_id, categoryId));
                         filterMaster.addClause(WhereClause.eq(Product_Master.Fields.group_id, group.getId()));
-                        filterMaster.addClause(WhereClause.isNotEmpty(Product_Master.Fields.cdn_url));
+                        filterMaster.addClause(WhereClause.isNotNull(Product_Master.Fields.cdn_url));
                         if (!CollectionUtils.isEmpty(productsByGroup)) {
                             filterMaster.addClause(WhereClause.nin(BaseMongoEntity.Fields.id, productsByGroup.stream().map(Products::getProduct_master_id).toList()));
                         }
