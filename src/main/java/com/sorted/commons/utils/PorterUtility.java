@@ -57,6 +57,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -565,39 +566,46 @@ public class PorterUtility {
     // @formatter:on
 
     public void updateOrderStatus(Order_Details details, FetchOrderRes fetchOrderRes) {
-        boolean secureReturn = details.isSecure_return_initiated();
+        List<OrderStatus> secureStatuses = List.of(OrderStatus.SECURE_RETURN_INITIATED, OrderStatus.SECURE_RETURN_SCHEDULED, OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN, OrderStatus.RIDER_ASSIGNED_FOR_SECURE_RETURN);
+        boolean secureReturn = secureStatuses.contains(details.getStatus());
         MailTemplate mailTemplate = null;
-        OrderStatus currentOrderStatus = null;
-        switch (fetchOrderRes.getStatus()) {
-            case open:
-                currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_INITIATED : OrderStatus.READY_FOR_PICK_UP;
-                break;
-            case accepted:
-                currentOrderStatus = secureReturn ? OrderStatus.RIDER_ASSIGNED_FOR_SECURE_RETURN : OrderStatus.RIDER_ASSIGNED;
-                mailTemplate = secureReturn ? null : MailTemplate.ORDER_DISPATCHED;
-                break;
-            case cancelled:
-                internalMailService.sendMailOnError("Order Cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Order Cancelled");
-                currentOrderStatus = secureReturn ? OrderStatus.ORDER_CANCELLED_FOR_SECURE_RETURN : OrderStatus.ORDER_CANCELLED;
-                break;
-            case ended, completed:
-                currentOrderStatus = secureReturn ? OrderStatus.SECURE_RETURN_COMPLETED : OrderStatus.DELIVERED;
-                // TODO: send mail to seller to appraise the book
-                mailTemplate = secureReturn ? null : MailTemplate.ORDER_ARRIVED;
-                break;
-            case live:
-                currentOrderStatus = secureReturn ? OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN : OrderStatus.OUT_FOR_DELIVERY;
-                break;
-//            case completed:
-//                currentOrderStatus = OrderStatus.DELIVERY_FAILED;
-//                mailTemplate = MailTemplate.DELIVERY_FAILED;
-//                break;
-            default:
-                break;
+        OrderStatus currentOrderStatus;
+
+        if (secureReturn) {
+            currentOrderStatus = switch (fetchOrderRes.getStatus()) {
+                case open -> OrderStatus.SECURE_RETURN_INITIATED;
+                case accepted -> OrderStatus.RIDER_ASSIGNED_FOR_SECURE_RETURN;
+                case cancelled -> {
+                    internalMailService.sendMailOnError("Secure pickup cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Secure Pickup Cancelled");
+                    yield OrderStatus.ORDER_CANCELLED_FOR_SECURE_RETURN;
+                }
+                case ended, completed -> OrderStatus.SECURE_RETURN_COMPLETED;
+                case live -> OrderStatus.ITEMS_PICKED_UP_FOR_SECURE_RETURN;
+            };
+        } else {
+            currentOrderStatus = switch (fetchOrderRes.getStatus()) {
+                case open -> OrderStatus.READY_FOR_PICK_UP;
+                case accepted -> OrderStatus.RIDER_ASSIGNED;
+                case cancelled -> {
+                    internalMailService.sendMailOnError("Order Cancelled - order id: " + details.getId() + "/" + details.getCode() + ", user id: " + details.getUser_id(), "Order Cancelled");
+                    yield OrderStatus.ORDER_CANCELLED;
+                }
+                case ended, completed -> OrderStatus.DELIVERED;
+                case live -> OrderStatus.OUT_FOR_DELIVERY;
+            };
         }
 
+        if (!secureReturn) {
+            mailTemplate = switch (fetchOrderRes.getStatus()) {
+                case accepted -> MailTemplate.ORDER_DISPATCHED;
+                case ended, completed -> MailTemplate.ORDER_ARRIVED;
+                default -> null;
+            };
+        }
+
+
         String invoiceUrl = null;
-        if (currentOrderStatus != null && details.getStatus() != currentOrderStatus) {
+        if (!details.getStatus().equals(currentOrderStatus)) {
             if (currentOrderStatus.equals(OrderStatus.OUT_FOR_DELIVERY) && enableSms) {
                 String code = details.getCode();
                 String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
@@ -621,27 +629,25 @@ public class PorterUtility {
                         () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), content, SmsTemplate.DELIVERED)
                 );
             }
-            if (currentOrderStatus.equals(OrderStatus.DELIVERY_FAILED) && enableSms) {
-                String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
+//            if (currentOrderStatus.equals(OrderStatus.DELIVERY_FAILED) && enableSms) {
+            String firstName = StringUtils.hasText(details.getDelivery_address().getFirst_name()) ? details.getDelivery_address().getFirst_name() : "Student";
 //                smsTraceHelper.runWithTrace(List.of(details.getDelivery_address().getPhone_no()),
 //                        firstName,
 //                        SmsTemplate.DELIVERED,
 //                        Defaults.AUTO,
 //                        () -> smsService.sendSMS(List.of(details.getDelivery_address().getPhone_no()), firstName, SmsTemplate.DELIVERED)
 //                );
-                // TODO: Delivery Failed
-            }
-
-            List<Order_Item> listOI = getOrderItems(details);
-
-//            listOI.forEach(e -> {
-//                e.setStatus(finalOrderStatus, Defaults.PORTER_STCHK_CRON);
-//                order_Item_Service.update(e.getId(), e, Defaults.PORTER_STCHK_CRON);
-//            });
+            // TODO: Delivery Failed
+//            }
             details.setFare_details(fetchOrderRes.getFare_details());
             details.setStatus(currentOrderStatus, Defaults.PORTER_STCHK_CRON);
-            order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
 
+            if (secureReturn) {
+                List<Order_Item> listOI = getSecureOrderItems(details);
+                order_Details_Service.updateForSecureItems(details.getId(), details, Defaults.PORTER_STCHK_CRON, listOI.stream().map(Order_Item::getId).toList());
+            } else {
+                order_Details_Service.update(details.getId(), details, Defaults.PORTER_STCHK_CRON);
+            }
             if (currentOrderStatus == OrderStatus.DELIVERED) {
                 try {
                     invoiceUrl = generateInvoiceService.generateInvoice(details);
@@ -650,7 +656,7 @@ public class PorterUtility {
                 }
             }
 
-            if (mailTemplate != null) {
+            if (Objects.nonNull(mailTemplate)) {
                 sendMailWithOrderDetails(details, mailTemplate, invoiceUrl);
             }
         }
@@ -683,9 +689,10 @@ public class PorterUtility {
         emailSenderImpl.sendEmailHtmlTemplate(builder);
     }
 
-    private List<Order_Item> getOrderItems(Order_Details details) {
+    private List<Order_Item> getSecureOrderItems(Order_Details details) {
         SEFilter filterOI = new SEFilter(SEFilterType.AND);
         filterOI.addClause(WhereClause.eq(Order_Item.Fields.order_id, details.getId()));
+        filterOI.addClause(WhereClause.eq(Order_Item.Fields.type, PurchaseType.SECURE.name()));
         filterOI.addClause(WhereClause.eq(BaseMongoEntity.Fields.deleted, false));
 
         List<Order_Item> listOI = order_Item_Service.repoFind(filterOI);
